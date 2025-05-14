@@ -1,0 +1,13 @@
+package com.bboxxtrack;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class BboxxTrackApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+
+}

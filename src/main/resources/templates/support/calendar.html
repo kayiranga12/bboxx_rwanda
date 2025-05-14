@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Team Calendar – Support | BBOXXTrack</title>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@5.11.3/main.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@5.11.3/main.min.css" rel="stylesheet"/>
+
+    <link href="/css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="border-end bg-dark" id="sidebar-wrapper">
+        <div class="sidebar-heading text-center py-4">
+            <a href="/support/dashboard"><img src="/images/bboxx.png" class="logo-img"/></a>
+            <h5 class="text-white mt-2">Support Panel</h5>
+        </div>
+        <div class="sidebar-menu px-2">
+            <ul class="nav flex-column mt-3">
+                <li class="nav-item">
+                    <a href="/support/dashboard" class="nav-link text-white">
+                        <i class="fas fa-tools me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/support/schedules/add" class="nav-link text-white">
+                        <i class="fas fa-calendar-plus me-2"></i>New Visit
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/support/calendar" class="nav-link active text-white">
+                        <i class="fas fa-calendar-days me-2"></i>Calendar
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 content-wrapper d-flex flex-column">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+            <div class="container-fluid px-4">
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="ms-auto">
+                    <a href="/logout" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fas fa-calendar-days me-2"></i>Team Calendar</h4>
+                <a href="/calendar.ics" class="btn btn-outline-secondary">
+                    <i class="fas fa-download me-1"></i>Subscribe (ICS)
+                </a>
+            </div>
+
+            <!-- Calendar -->
+            <div id="calendar"></div>
+        </div>
+
+        <footer class="bg-light text-center py-2 mt-auto">&copy; 2025 BBOXX Rwanda.</footer>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@5.11.3/main.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            plugins: [
+                FullCalendar.dayGridPlugin,
+                FullCalendar.interactionPlugin
+            ],
+            initialView: 'dayGridMonth',
+            editable: true,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,dayGridWeek,dayGridDay'
+            },
+            events: '/api/calendar/events',  // corrected URL
+            eventDrop: function(info) {
+                fetch(`/api/calendar/events/${info.event.extendedProps.type}/${info.event.id}`, {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                    body: `start=${info.event.start.toISOString()}&end=${(info.event.end||info.event.start).toISOString()}`
+                });
+            },
+            eventResize: function(info) {
+                fetch(`/api/calendar/events/${info.event.extendedProps.type}/${info.event.id}`, {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                    body: `start=${info.event.start.toISOString()}&end=${info.event.end.toISOString()}`
+                });
+            }
+        });
+        calendar.render();
+    });
+</script>
+</body>
+</html>

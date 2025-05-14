@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Geofence Management - BBOXXTrack</title>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+    <!-- Leaflet & Draw -->
+    <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" rel="stylesheet"/>
+
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --primary-hover: #004494;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --sidebar-bg: #212529;
+            --sidebar-active: #0d6efd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        #sidebar-wrapper {
+            min-height: 100vh;
+            width: 250px;
+            transition: margin .25s ease-out;
+        }
+
+        #sidebar-wrapper .sidebar-heading {
+            background-color: #000;
+        }
+
+        .logo-img {
+            height: 40px;
+            max-width: 100%;
+        }
+
+        .sidebar-menu .nav-link {
+            padding: 0.75rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-menu .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-menu .nav-link.active {
+            background-color: var(--sidebar-active);
+            font-weight: 500;
+        }
+
+        .content-wrapper {
+            min-height: 100vh;
+        }
+
+        .top-navbar {
+            border-bottom: 1px solid #eee;
+        }
+
+        #map {
+            height: 600px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .zone-card {
+            transition: transform 0.2s;
+        }
+
+        .zone-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .zone-actions .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .leaflet-control-zoom-in,
+        .leaflet-control-zoom-out {
+            border-radius: 4px !important;
+            color: #333 !important;
+        }
+
+        .leaflet-draw-toolbar a {
+            background-color: white;
+        }
+
+        .stats-card {
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.2s;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .zone-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .map-toolbar {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 8px;
+        }
+
+        .map-overlay {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="border-end bg-dark" id="sidebar-wrapper">
+        <div class="sidebar-heading text-center py-4">
+            <a href="/admin/dashboard" class="d-block mb-2">
+                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img"/>
+            </a>
+            <h5 class="text-white mb-0">Admin Panel</h5>
+        </div>
+        <div class="sidebar-menu px-2">
+            <ul class="nav flex-column mt-3">
+                <li class="nav-item">
+                    <a href="/admin/dashboard" class="nav-link text-white">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/customers" class="nav-link text-white">
+                        <i class="fas fa-users me-2"></i>Customers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/users" class="nav-link text-white">
+                        <i class="fas fa-user-shield me-2"></i>Manage Users
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/projects" class="nav-link text-white">
+                        <i class="fas fa-project-diagram me-2"></i>Projects
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/tasks" class="nav-link text-white">
+                        <i class="fas fa-tasks me-2"></i>Tasks
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/inventory" class="nav-link text-white">
+                        <i class="fas fa-box me-2"></i>Inventory
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/zones" class="nav-link active text-white">
+                        <i class="fas fa-map-marked-alt me-2"></i>Geofences
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/reports" class="nav-link text-white">
+                        <i class="fas fa-chart-bar me-2"></i>Reports
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 content-wrapper d-flex flex-column">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
+            <div class="container-fluid px-4">
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <span class="navbar-brand mb-0 h5">Geofence Management</span>
+                <div class="ms-auto">
+                    <a href="/admin/dashboard" class="btn btn-outline-secondary btn-sm me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Back
+                    </a>
+                    <a href="/logout" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Section -->
+        <div class="container-fluid px-4 py-4 flex-grow-1">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stats-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted mb-0">Total Geofences</h6>
+                                    <h2 class="mt-2 mb-0" th:text="${zones.size()}">0</h2>
+                                </div>
+                                <div class="bg-light p-3 rounded">
+                                    <i class="fas fa-map-marked-alt text-primary fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted mb-0">Active Alerts</h6>
+                                    <h2 class="mt-2 mb-0">0</h2>
+                                </div>
+                                <div class="bg-light p-3 rounded">
+                                    <i class="fas fa-bell text-warning fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted mb-0">Active Boundaries</h6>
+                                    <h2 class="mt-2 mb-0" th:text="${zones.size()}">0</h2>
+                                </div>
+                                <div class="bg-light p-3 rounded">
+                                    <i class="fas fa-border-style text-success fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted mb-0">Tracked Assets</h6>
+                                    <h2 class="mt-2 mb-0">0</h2>
+                                </div>
+                                <div class="bg-light p-3 rounded">
+                                    <i class="fas fa-truck text-info fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Map Section -->
+                <div class="col-lg-8">
+                    <div class="card map-card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                            <h5 class="mb-0">Geofence Map</h5>
+                            <div>
+                                <button id="centerMapBtn" class="btn btn-sm btn-outline-secondary" title="Center Map">
+                                    <i class="fas fa-crosshairs"></i>
+                                </button>
+                                <button id="satelliteViewBtn" class="btn btn-sm btn-outline-secondary" title="Toggle Satellite View">
+                                    <i class="fas fa-satellite"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0 position-relative">
+                            <div id="map"></div>
+                            <div class="map-overlay">
+                                <strong><i class="fas fa-info-circle me-1"></i> Instructions:</strong>
+                                <span>Draw a polygon to create a geofence. Click on a geofence to view details.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zones List -->
+                <div class="col-lg-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Geofence Zones</h5>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addZoneModal">
+                                <i class="fas fa-plus me-1"></i>Add Zone
+                            </button>
+                        </div>
+                        <div class="card-body zone-list p-0">
+                            <div class="list-group list-group-flush" th:if="${!zones.isEmpty()}">
+                                <div th:each="zone : ${zones}" class="list-group-item list-group-item-action px-3 py-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1" th:text="${zone.name}">Zone Name</h6>
+<!--                                        <small class="text-muted">-->
+<!--                                            <i class="fas fa-map-pin me-1"></i>-->
+<!--                                            <span th:if="${zone.description}" th:text="${zone.description}">Zone description</span>-->
+<!--                                            <span th:unless="${zone.description}">No description</span>-->
+<!--                                        </small>-->
+                                    </div>
+                                    <div class="zone-actions">
+                                        <button class="btn btn-sm btn-outline-primary zoom-to-zone" th:data-zone-id="${zone.id}" title="Zoom to Zone">
+                                            <i class="fas fa-search-location"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary edit-zone" th:data-zone-id="${zone.id}" title="Edit Zone">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger delete-zone" th:data-zone-id="${zone.id}" title="Delete Zone">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${zones.isEmpty()}" class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fas fa-map-marked-alt fa-3x text-muted"></i>
+                                </div>
+                                <h5>No Geofences Defined</h5>
+                                <p class="text-muted">Use the map drawing tools to create your first geofence</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Card -->
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary">
+                                    <i class="fas fa-file-export me-2"></i>Export All Geofences
+                                </button>
+                                <button class="btn btn-outline-secondary">
+                                    <i class="fas fa-file-import me-2"></i>Import Geofences
+                                </button>
+                                <button class="btn btn-outline-info">
+                                    <i class="fas fa-cog me-2"></i>Geofence Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-light text-center p-3 mt-auto">
+            <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
+        </footer>
+    </div>
+</div>
+
+<!-- Add/Edit Zone Modal -->
+<div class="modal fade" id="addZoneModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="zoneModalTitle">Add New Geofence Zone</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="zoneForm">
+                    <input type="hidden" id="zoneId" name="id">
+                    <input type="hidden" id="polygonGeoJson" name="polygonGeoJson">
+
+                    <div class="mb-3">
+                        <label for="zoneName" class="form-label">Zone Name*</label>
+                        <input type="text" class="form-control" id="zoneName" name="name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="zoneDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="zoneDescription" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="zoneColor" class="form-label">Color</label>
+                        <input type="color" class="form-control form-control-color" id="zoneColor" name="color" value="#0d6efd">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Alert Settings</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableEntryAlert" name="enableEntryAlert">
+                            <label class="form-check-label" for="enableEntryAlert">
+                                Alert on Entry
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableExitAlert" name="enableExitAlert">
+                            <label class="form-check-label" for="enableExitAlert">
+                                Alert on Exit
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveZoneBtn">Save Zone</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteZoneModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this geofence zone? This action cannot be undone.</p>
+                <input type="hidden" id="deleteZoneId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet & Draw JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Initialize map
+    var map = L.map('map', {
+        zoomControl: false  // We'll add our custom zoom control
+    }).setView([-1.95, 30.0589], 12);
+
+    // Add custom zoom control
+    L.control.zoom({
+        position: 'bottomright'
+    }).addTo(map);
+
+    // Define tile layers
+    var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+    var currentLayer = osmLayer;
+    var isSatelliteView = false;
+
+    // FeatureGroup to hold drawn zones
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    // Draw control
+    var drawControl = new L.Control.Draw({
+        position: 'topright',
+        edit: {
+            featureGroup: drawnItems,
+            poly: {
+                allowIntersection: false
+            }
+        },
+        draw: {
+            circle: false,
+            polyline: false,
+            rectangle: true,
+            marker: false,
+            circlemarker: false,
+            polygon: {
+                allowIntersection: false,
+                showArea: true
+            }
+        }
+    });
+    map.addControl(drawControl);
+
+    // Helper function to get random color
+    function getRandomColor() {
+        const colors = ['#0d6efd', '#198754', '#dc3545', '#6f42c1', '#fd7e14', '#0dcaf0'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // Load existing zones with styling
+    var zones = /*[[${zones}]]*/ [];
+    var zoneIdToLayer = {};
+
+    zones.forEach(function(z) {
+        if (z.polygonGeoJson) {
+            try {
+                // Apply custom styling to each zone
+                const color = z.color || getRandomColor();
+
+                var layer = L.geoJSON(JSON.parse(z.polygonGeoJson), {
+                    style: {
+                        color: color,
+                        weight: 3,
+                        opacity: 0.8,
+                        fillColor: color,
+                        fillOpacity: 0.2
+                    }
+                }).addTo(drawnItems);
+
+                // Store zone id and layer mapping
+                layer.zoneId = z.id;
+                zoneIdToLayer[z.id] = layer;
+
+                // Add popup with info
+                layer.bindPopup(
+                    `<div class="p-2">
+                        <h6>${z.name}</h6>
+                        <p class="mb-1 text-muted">${z.description || 'No description'}</p>
+                        <small class="text-muted">Created on ${z.createdDate || 'N/A'}</small>
+                    </div>`
+                );
+
+                // Add click event to highlight
+                layer.on('click', function(e) {
+                    highlightZone(z.id);
+                });
+            } catch (error) {
+                console.error("Error loading zone:", error);
+            }
+        }
+    });
+
+    // Function to highlight a zone
+    function highlightZone(zoneId) {
+        // Reset all zones to original style
+        Object.values(zoneIdToLayer).forEach(layer => {
+            drawnItems.resetStyle(layer);
+        });
+
+        // Highlight selected zone
+        if (zoneIdToLayer[zoneId]) {
+            const layer = zoneIdToLayer[zoneId];
+            layer.setStyle({
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.4
+            });
+
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+
+            // Open popup
+            layer.openPopup();
+        }
+    }
+
+    // On create: open modal to get details
+    map.on('draw:created', function(e) {
+        var layer = e.layer;
+
+        // Show modal to collect zone information
+        const addZoneModal = new bootstrap.Modal(document.getElementById('addZoneModal'));
+
+        // Clear previous values
+        document.getElementById('zoneId').value = '';
+        document.getElementById('zoneName').value = '';
+        document.getElementById('zoneDescription').value = '';
+        document.getElementById('zoneColor').value = '#0d6efd';
+        document.getElementById('enableEntryAlert').checked = false;
+        document.getElementById('enableExitAlert').checked = false;
+
+        // Store geometry in hidden field
+        document.getElementById('polygonGeoJson').value = JSON.stringify(layer.toGeoJSON().geometry);
+
+        addZoneModal.show();
+
+        // Add temporary layer
+        drawnItems.addLayer(layer);
+    });
+
+    // Delete a layer after edit
+    map.on('draw:deleted', function(e) {
+        var layers = e.layers;
+        layers.eachLayer(function(layer) {
+            if (layer.zoneId) {
+                // Send delete request to server
+                fetch('/admin/zones/delete/' + layer.zoneId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                    }
+                }).then(function(response) {
+                    if (response.ok) {
+                        // Remove from our tracking
+                        delete zoneIdToLayer[layer.zoneId];
+                        // Show success message
+                        alert('Zone deleted successfully');
+                    } else {
+                        alert('Error deleting zone');
+                    }
+                });
+            }
+        });
+    });
+
+    // Update geometry after edit
+    map.on('draw:edited', function(e) {
+        var layers = e.layers;
+        layers.eachLayer(function(layer) {
+            if (layer.zoneId) {
+                // Send update request to server
+                fetch('/admin/zones/update-geometry/' + layer.zoneId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        polygonGeoJson: JSON.stringify(layer.toGeoJSON().geometry)
+                    })
+                }).then(function(response) {
+                    if (response.ok) {
+                        // Show success message
+                        alert('Zone geometry updated successfully');
+                    } else {
+                        alert('Error updating zone geometry');
+                    }
+                });
+            }
+        });
+    });
+
+    // Toggle satellite view
+    document.getElementById('satelliteViewBtn').addEventListener('click', function() {
+        if (isSatelliteView) {
+            map.removeLayer(satelliteLayer);
+            map.addLayer(osmLayer);
+            currentLayer = osmLayer;
+            isSatelliteView = false;
+        } else {
+            map.removeLayer(osmLayer);
+            map.addLayer(satelliteLayer);
+            currentLayer = satelliteLayer;
+            isSatelliteView = true;
+        }
+    });
+
+    // Reset map view
+    document.getElementById('centerMapBtn').addEventListener('click', function() {
+        map.setView([-1.95, 30.0589], 12);
+    });
+
+    // Save zone form submission
+    document.getElementById('saveZoneBtn').addEventListener('click', function() {
+        const form = document.getElementById('zoneForm');
+        const formData = new FormData(form);
+
+        // Validate form
+        if (!formData.get('name')) {
+            alert('Zone name is required');
+            return;
+        }
+
+        // Convert to URL params
+        const urlParams = new URLSearchParams(formData);
+
+        // Determine if this is an add or update
+        const zoneId = formData.get('id');
+        const url = zoneId ? '/admin/zones/update/' + zoneId : '/admin/zones/add';
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+            },
+            body: urlParams
+        }).then(function(response) {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Failed to save zone');
+        }).then(function(data) {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('addZoneModal')).hide();
+
+            // Show success message
+            alert(zoneId ? 'Zone updated successfully' : 'Zone created successfully');
+
+            // If this was a new zone, refresh the page to show it in the list
+            if (!zoneId) {
+                window.location.reload();
+                return;
+            }
+
+            // If update, update the layer styles and popup content
+            if (zoneId && zoneIdToLayer[zoneId]) {
+                const layer = zoneIdToLayer[zoneId];
+
+                // Update styling
+                layer.setStyle({
+                    color: formData.get('color'),
+                    fillColor: formData.get('color')
+                });
+
+                // Update popup content
+                layer.bindPopup(
+                    `<div class="p-2">
+                        <h6>${formData.get('name')}</h6>
+                        <p class="mb-1 text-muted">${formData.get('description') || 'No description'}</p>
+                        <small class="text-muted">Updated just now</small>
+                    </div>`
+                );
+            }
+        }).catch(function(error) {
+            console.error('Error:', error);
+            alert('Failed to save zone: ' + error.message);
+        });
+    });
+
+    // Zoom to zone event handler
+    document.querySelectorAll('.zoom-to-zone').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const zoneId = this.getAttribute('data-zone-id');
+            const layer = zoneIdToLayer[zoneId];
+
+            if (layer) {
+                map.fitBounds(layer.getBounds());
+                highlightZone(zoneId);
+            }
+        });
+    });
+
+    // Edit zone handler
+    document.querySelectorAll('.edit-zone').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const zoneId = this.getAttribute('data-zone-id');
+            const zone = zones.find(z => z.id == zoneId);
+
+            if (zone) {
+                // Populate form with zone data
+                document.getElementById('zoneId').value = zone.id;
+                document.getElementById('zoneName').value = zone.name;
+                document.getElementById('zoneDescription').value = zone.description || '';
+                document.getElementById('zoneColor').value = zone.color || '#0d6efd';
+                document.getElementById('enableEntryAlert').checked = zone.enableEntryAlert || false;
+                document.getElementById('enableExitAlert').checked = zone.enableExitAlert || false;
+                document.getElementById('polygonGeoJson').value = zone.polygonGeoJson;
+
+                // Update modal title
+                document.getElementById('zoneModalTitle').textContent = 'Edit Geofence Zone';
+
+                // Show modal
+                const editZoneModal = new bootstrap.Modal(document.getElementById('addZoneModal'));
+                editZoneModal.show();
+            }
+        });
+    });
+
+    // Delete zone handler
+    document.querySelectorAll('.delete-zone').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const zoneId = this.getAttribute('data-zone-id');
+            document.getElementById('deleteZoneId').value = zoneId;
+
+            // Show confirmation modal
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteZoneModal'));
+            deleteModal.show();
+        });
+    });
+
+    // Confirm delete handler
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        const zoneId = document.getElementById('deleteZoneId').value;
+
+        if (zoneId) {
+            fetch('/admin/zones/delete/' + zoneId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                }
+            }).then(function(response) {
+                if (response.ok) {
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('deleteZoneModal')).hide();
+
+                    // Remove from map
+                    if (zoneIdToLayer[zoneId]) {
+                        drawnItems.removeLayer(zoneIdToLayer[zoneId]);
+                        delete zoneIdToLayer[zoneId];
+                    }
+
+                    // Show success message
+                    alert('Zone deleted successfully');
+
+                    // Refresh the page to update the list
+                    window.location.reload();
+                } else {
+                    alert('Error deleting zone');
+                }
+            }).catch(function(error) {
+                console.error('Error:', error);
+                alert('Failed to delete zone: ' + error.message);
+            });
+        }
+    });
+
+    // Sidebar toggle
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+        document.getElementById('wrapper').classList.toggle('toggled');
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 300); // After transition completes
+    });
+
+    // Example of how to search for zones that contain a point
+    function findZonesContainingPoint(lat, lng) {
+        const results = [];
+        const point = {
+            type: 'Point',
+            coordinates: [lng, lat]
+        };
+
+        // Check each zone
+        zones.forEach(function(zone) {
+            if (zone.polygonGeoJson) {
+                const polygon = JSON.parse(zone.polygonGeoJson);
+
+                // Use turf.js or similar library here for proper point-in-polygon check
+                // This is a placeholder for the actual implementation
+                if (pointInPolygon(point, polygon)) {
+                    results.push(zone);
+                }
+            }
+        });
+
+        return results;
+    }
+
+    // Placeholder for point-in-polygon check
+    // In a real implementation, use a library like Turf.js
+    function pointInPolygon(point, polygon) {
+        // This is a placeholder - implement with proper algorithm or library
+        return false;
+    }
+
+    // Event listener for map clicks to demonstrate point checking
+    map.on('click', function(e) {
+        // Example of how to use the point-in-zone function
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        console.log(`Clicked at: ${lat}, ${lng}`);
+        console.log('Containing zones:', findZonesContainingPoint(lat, lng));
+    });
+
+    // Add notification handler for example
+    function showNotification(title, message, type = 'info') {
+        // In a real app, implement with toast notifications
+        console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
+    }
+
+    // Example of geofence alert simulation
+    function simulateGeofenceAlert(zoneId, eventType) {
+        const zone = zones.find(z => z.id == zoneId);
+        if (!zone) return;
+
+        const eventText = eventType === 'entry' ? 'entered' : 'exited';
+        const alertClass = eventType === 'entry' ? 'success' : 'warning';
+
+        showNotification(
+            'Geofence Alert',
+            `Asset "Truck-A01" has ${eventText} zone "${zone.name}"`,
+            alertClass
+        );
+    }
+
+    // Example: Add a custom loading indicator
+    const mapLoading = function() {
+        const loadingControl = L.Control.extend({
+            options: {
+                position: 'bottomleft'
+            },
+            onAdd: function() {
+                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+                container.innerHTML = `
+                    <div id="map-loading" style="display:none; background: white; padding: 8px; border-radius: 4px;">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <span class="ms-2">Loading...</span>
+                    </div>`;
+                return container;
+            }
+        });
+
+        return new loadingControl();
+    }();
+
+    map.addControl(mapLoading);
+
+    // Function to show/hide loading indicator
+    function showMapLoading(show) {
+        document.getElementById('map-loading').style.display = show ? 'block' : 'none';
+    }
+
+    // Initialize tooltips and popovers
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+    /*]]>*/
+</script>
+</body>
+</html>

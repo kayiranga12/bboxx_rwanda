@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>My Tasks – Technician | BBOXXTrack</title>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+    <!-- Custom CSS -->
+    <link href="/css/style.css" rel="stylesheet"/>
+
+    <!-- Chart.js for status breakdown -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Filter form styling */
+        .filter-form {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e9ecef;
+        }
+
+        .filter-form .form-control,
+        .filter-form .form-select {
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            padding: 10px 15px;
+            height: 42px;
+            box-shadow: none;
+            transition: all 0.3s;
+        }
+
+        .filter-form .form-control:focus,
+        .filter-form .form-select:focus {
+            border-color: #4dabf7;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+        }
+
+        .filter-form .btn {
+            height: 42px;
+            padding: 0 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .filter-form .btn-outline-primary {
+            border-width: 2px;
+        }
+
+        .filter-form .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            transform: translateY(-1px);
+        }
+
+        /* KPI Card styling */
+        .kpi-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-card .card-header {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            padding: 15px 20px;
+            font-weight: 600;
+            border-bottom: none;
+        }
+
+        .kpi-card .card-body {
+            padding: 20px;
+            background-color: white;
+        }
+
+        .kpi-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .kpi-stat-item {
+            padding: 10px;
+        }
+
+        .kpi-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Task Table styling */
+        .task-table-card {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .task-table {
+            margin-bottom: 0;
+        }
+
+        .task-table thead {
+            background-color: #f8fafc;
+        }
+
+        .task-table th {
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding: 14px 16px;
+            font-size: 0.95rem;
+        }
+
+        .task-table td {
+            vertical-align: middle;
+            padding: 16px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .task-table tbody tr {
+            transition: background-color 0.15s;
+        }
+
+        .task-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .task-name {
+            font-weight: 600;
+            color: #343a40;
+        }
+
+        .task-desc {
+            color: #6c757d;
+            max-width: 350px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .task-badge {
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .task-badge.bg-success {
+            background-color: #d1e7dd !important;
+            color: #0f5132;
+        }
+
+        .task-badge.bg-warning {
+            background-color: #fff3cd !important;
+            color: #856404;
+        }
+
+        .task-badge.bg-secondary {
+            background-color: #e2e3e5 !important;
+            color: #41464b;
+        }
+
+        .task-due {
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .task-due.overdue {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .task-action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .task-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Update Task Modal styling */
+        .task-modal .modal-content {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .task-modal .modal-header {
+            background: linear-gradient(135deg, #4dabf7, #3b82f6);
+            color: white;
+            border-bottom: none;
+            padding: 18px 24px;
+        }
+
+        .task-modal .modal-body {
+            padding: 24px;
+        }
+
+        .task-modal .modal-footer {
+            border-top: 1px solid #f1f3f5;
+            padding: 16px 24px;
+        }
+
+        .task-modal .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .task-modal .form-control,
+        .task-modal .form-select {
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .task-modal .btn-success {
+            background: linear-gradient(135deg, #20c997, #198754);
+            border: none;
+            padding: 8px 20px;
+            font-weight: 500;
+        }
+
+        .task-modal .attachment-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .task-modal .attachment-item {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .task-modal .attachment-item img {
+            height: 70px;
+            width: auto;
+            object-fit: cover;
+        }
+
+        .task-empty-state {
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .task-empty-icon {
+            font-size: 48px;
+            color: #dee2e6;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar - KEEPING UNCHANGED -->
+    <nav id="sidebar-wrapper" class="bg-dark">
+        <div class="sidebar-heading text-center py-4">
+            <a href="/technician/dashboard">
+                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img mb-2"/>
+            </a>
+            <div class="text-white fw-bold">Technician Panel</div>
+        </div>
+        <ul class="sidebar-menu list-unstyled">
+            <li class="mb-2">
+                <a href="/technician/dashboard" class="nav-link text-white">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+            </li>
+            <li class="mb-2">
+                <a href="/technician/tasks" class="nav-link text-white active">
+                    <i class="fas fa-tasks me-2"></i>My Tasks
+                </a>
+            </li>
+            <li class="mb-2">
+                <a href="/technician/tracker" class="nav-link text-white">
+                    <i class="fas fa-map-marker-alt me-2"></i>GPS Tracker
+                </a>
+            </li>
+            <li class="mt-auto mb-3">
+                <a href="/logout" class="nav-link text-white">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 d-flex flex-column">
+        <!-- Header - KEEPING UNCHANGED -->
+        <header class="top-navbar bg-white shadow-sm d-flex align-items-center px-4">
+            <button class="btn btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h5 class="mb-0">My Assigned Tasks</h5>
+            <div class="ms-auto">
+                <a href="/technician/tasks/export" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-file-csv me-1"></i>Export CSV
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+            <!-- Redesigned Filter Form -->
+            <form class="filter-form row g-3 mb-4" th:action="@{/technician/tasks}" method="get">
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-filter text-primary"></i>
+                        </span>
+                        <select name="status" class="form-select border-start-0">
+                            <option value="">All Status</option>
+                            <option value="Assigned" th:selected="${filterStatus=='Assigned'}">Assigned</option>
+                            <option value="In Progress" th:selected="${filterStatus=='In Progress'}">In Progress</option>
+                            <option value="Done" th:selected="${filterStatus=='Done'}">Done</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-primary"></i>
+                        </span>
+                        <input type="text" name="q" class="form-control border-start-0" placeholder="Search by task name or description..."
+                               th:value="${searchQuery}"/>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-filter me-1"></i>Apply Filters
+                    </button>
+                    <a href="/technician/tasks" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo-alt me-1"></i>Reset
+                    </a>
+                </div>
+            </form>
+
+            <!-- Redesigned KPI and Status Breakdown -->
+            <div class="row mb-4">
+                <div class="col-lg-4">
+                    <div class="card kpi-card h-100">
+                        <div class="card-header bg-primary text-white d-flex align-items-center">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            <span>Task Status Overview</span>
+                            <span class="badge bg-white text-primary ms-auto rounded-pill">Live</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div style="padding: 15px 20px 5px;">
+                                <canvas id="statusChart" height="180"></canvas>
+                            </div>
+                            <div class="kpi-stats">
+                                <div class="kpi-stat-item">
+                                    <span class="kpi-number text-secondary" th:text="${assignedCount ?: 0}">0</span>
+                                    <span class="kpi-label">Assigned</span>
+                                </div>
+                                <div class="kpi-stat-item">
+                                    <span class="kpi-number text-warning" th:text="${inProgressCount ?: 0}">0</span>
+                                    <span class="kpi-label">In Progress</span>
+                                </div>
+                                <div class="kpi-stat-item">
+                                    <span class="kpi-number text-success" th:text="${doneCount ?: 0}">0</span>
+                                    <span class="kpi-label">Completed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card kpi-card h-100">
+                        <div class="card-header bg-primary text-white d-flex align-items-center">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            <span>Task Performance Metrics</span>
+                        </div>
+                        <div class="card-body d-flex flex-column justify-content-center">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="p-3">
+                                        <div class="display-6 fw-bold text-primary" th:text="${totalTasks ?: 0}">0</div>
+                                        <div class="text-muted">Total Tasks</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3">
+                                        <div class="display-6 fw-bold text-danger" th:text="${overdueTasks ?: 0}">0</div>
+                                        <div class="text-muted">Overdue</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3">
+                                        <div class="display-6 fw-bold text-warning" th:text="${dueTodayTasks ?: 0}">0</div>
+                                        <div class="text-muted">Due Today</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3">
+                                        <div class="display-6 fw-bold text-success" th:text="${completionRate ?: '0%'}">0%</div>
+                                        <div class="text-muted">Completion Rate</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Redesigned Task Table -->
+            <div class="card task-table-card shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-primary">
+                        <i class="fas fa-clipboard-list me-2"></i>My Task List
+                    </h6>
+                    <div>
+                        <span class="badge bg-primary rounded-pill" th:text="${#lists.size(tasks) ?: 0} + ' Tasks'">0 Tasks</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table task-table mb-0">
+                            <thead>
+                            <tr>
+                                <th style="width: 25%">Task</th>
+                                <th style="width: 35%">Description</th>
+                                <th style="width: 15%">Status</th>
+                                <th style="width: 15%">Due Date</th>
+                                <th style="width: 10%">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="task : ${tasks}">
+                                <td>
+                                    <div class="task-name" th:text="${task.taskName}"></div>
+                                </td>
+                                <td>
+                                    <div class="task-desc" th:text="${task.description}" th:title="${task.description}"></div>
+                                </td>
+                                <td>
+                                    <span class="task-badge badge"
+                                          th:text="${task.status}"
+                                          th:classappend="${
+                                            task.status=='Done'        ? ' bg-success' :
+                                            task.status=='In Progress' ? ' bg-warning' :
+                                                                          ' bg-secondary'
+                                          }"></span>
+                                </td>
+                                <td>
+                                    <div class="task-due d-flex align-items-center"
+                                         th:classappend="${#temporals.createToday().isAfter(task.dueDate) && task.status != 'Done' ? 'overdue' : ''}">
+                                        <i class="far fa-calendar-alt me-2"></i>
+                                        <span th:text="${#temporals.format(task.dueDate,'MMM dd, yyyy')}"></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary task-action-btn" data-bs-toggle="modal"
+                                            th:data-bs-target="'#updateModal' + ${task.id}">
+                                        <i class="fas fa-edit me-1"></i>Update
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(tasks)}">
+                                <td colspan="5">
+                                    <div class="task-empty-state">
+                                        <div class="task-empty-icon">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </div>
+                                        <h5 class="text-muted">No tasks assigned yet</h5>
+                                        <p class="text-muted mb-0">Tasks assigned to you will appear here</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Redesigned Update Task Modal -->
+            <div th:each="task : ${tasks}" class="modal fade task-modal" th:id="'updateModal' + ${task.id}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form th:action="@{/technician/tasks/update}" method="post" enctype="multipart/form-data">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-edit me-2"></i>Update Task Status
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body row g-3">
+                                <input type="hidden" name="id" th:value="${task.id}"/>
+
+                                <div class="col-12">
+                                    <div class="bg-light p-3 rounded mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="fw-bold mb-1" th:text="${task.taskName}"></h6>
+                                                <p class="text-muted small mb-0" th:text="${task.description}"></p>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="text-muted small" th:text="'Due: ' + ${#temporals.format(task.dueDate,'MMM dd, yyyy')}"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Update Status</label>
+                                    <select name="status" class="form-select">
+                                        <option value="In Progress" th:selected="${task.status=='In Progress'}">In Progress</option>
+                                        <option value="Done" th:selected="${task.status=='Done'}">Done</option>
+                                    </select>
+                                    <div class="form-text text-muted">Change task status to reflect your current progress</div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Upload Proof of Work</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white">
+                                            <i class="fas fa-paperclip text-primary"></i>
+                                        </span>
+                                        <input type="file" name="files" multiple accept="image/*,application/pdf"
+                                               class="form-control"/>
+                                    </div>
+                                    <div class="form-text">Upload photos or PDF documents as proof of completed work (Max: 5MB per file)</div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Current Attachments</label>
+                                    <div class="attachment-preview"
+                                         th:if="${!#lists.isEmpty(@documentService.getByRef('TASK', task.id))}">
+                                        <div class="attachment-item"
+                                             th:each="doc : ${@documentService.getByRef('TASK', task.id)}">
+                                            <img th:if="${doc.contentType.startsWith('image/')}"
+                                                 th:src="@{/attachments/{id}(id=${doc.id})}"
+                                                 class="img-thumbnail"/>
+                                            <a th:if="${!doc.contentType.startsWith('image/')}"
+                                               th:href="@{/attachments/{id}(id=${doc.id})}"
+                                               class="btn btn-sm btn-light d-block text-center p-2" target="_blank">
+                                                <i class="fas fa-file-pdf text-danger fa-2x mb-1"></i>
+                                                <span class="d-block small">View PDF</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="text-muted fst-italic small"
+                                         th:if="${#lists.isEmpty(@documentService.getByRef('TASK', task.id))}">
+                                        No attachments uploaded yet
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-1"></i>Save Changes
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer - KEEPING UNCHANGED -->
+        <footer class="bg-white text-center py-3 shadow-sm mt-auto">
+            <small class="text-muted">&copy; 2025 BBOXX Rwanda. All rights reserved.</small>
+        </footer>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Chart initialization - Improved -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const ctx = document.getElementById('statusChart').getContext('2d');
+
+    // Enhanced chart with better colors and options
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [[${statusLabels}]],
+            datasets: [{
+                data: [[${statusData}]],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',  // Success - Done
+                    'rgba(255, 193, 7, 0.8)',  // Warning - In Progress
+                    'rgba(108, 117, 125, 0.8)' // Secondary - Assigned
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(108, 117, 125, 1)'
+                ],
+                borderWidth: 1,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.raw;
+                            let total = context.dataset.data.reduce((acc, data) => acc + data, 0);
+                            let percentage = Math.round((value / total) * 100) + '%';
+                            return `${context.label}: ${value} (${percentage})`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

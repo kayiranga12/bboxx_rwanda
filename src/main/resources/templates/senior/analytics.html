@@ -1,0 +1,168 @@
+<!-- src/main/resources/templates/senior/analytics.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Analytics & Trends | BBOXXTrack</title>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          rel="stylesheet"/>
+    <link href="/css/style.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar-wrapper" class="bg-dark text-white">
+        <div class="sidebar-heading text-center py-4">
+            <a href="/senior/reports"><img src="/images/bboxx.png" class="logo-img mb-2" alt="BBOXX"/></a>
+            <div class="fw-bold">Executive Panel</div>
+        </div>
+        <div class="sidebar-menu">
+            <ul class="nav flex-column mt-4">
+                <li class="nav-item">
+                    <a href="/senior/dashboard" class="nav-link active text-white">
+                        <i class="fas fa-chart-pie me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/senior/reports" class="nav-link text-white">
+                        <i class="fas fa-file-alt me-2"></i>Reports
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/senior/analytics" class="nav-link text-white">
+                        <i class="fas fa-chart-line me-2"></i>Analytics
+                    </a>
+                </li>
+                <li class="mt-auto mb-3">
+                    <a href="/logout" class="nav-link text-white">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 d-flex flex-column">
+        <!-- Header -->
+        <header class="top-navbar bg-white shadow-sm px-4 d-flex align-items-center">
+            <h4 class="mb-0">Analytics & Trends</h4>
+            <div class="ms-auto">
+                <a th:href="@{/senior/analytics/export/csv}"
+                   class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-file-csv me-1"></i>Export CSV
+                </a>
+            </div>
+        </header>
+
+        <!-- Main -->
+        <main class="container-fluid px-4 py-4 flex-grow-1">
+            <!-- Summary Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-project-diagram fa-2x text-primary mb-2"></i>
+                            <h5 class="card-title">Total Projects</h5>
+                            <h2 class="card-text" th:text="${totalProjects}">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
+                            <h5 class="card-title">Total Tasks</h5>
+                            <h2 class="card-text" th:text="${totalTasks}">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tools fa-2x text-success mb-2"></i>
+                            <h5 class="card-title">Total Visits</h5>
+                            <h2 class="card-text" th:text="${totalVisits}">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-chart-bar me-2"></i>Projects by Month
+                        </div>
+                        <div class="card-body">
+                            <canvas id="projChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-warning text-white">
+                            <i class="fas fa-chart-line me-2"></i>Tasks by Month
+                        </div>
+                        <div class="card-body">
+                            <canvas id="taskChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-chart-area me-2"></i>Completed Visits by Month
+                        </div>
+                        <div class="card-body">
+                            <canvas id="visitChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-light text-center py-3 shadow-sm mt-auto">
+            <small class="text-muted">&copy; 2025 BBOXX Rwanda. All rights reserved.</small>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+
+    const lbls = [[${monthLabels}]] ;
+    const pData = [[${projData}]] ;
+    const tData = [[${taskData}]] ;
+    const vData = [[${visitData}]];
+
+    new Chart(document.getElementById('projChart'), {
+        type: 'bar',
+        data: { labels: lbls, datasets: [{ label:'Projects', data:pData, backgroundColor:'#007bff' }] },
+        options: { scales:{ y:{ beginAtZero:true } } }
+    });
+
+    new Chart(document.getElementById('taskChart'), {
+        type: 'line',
+        data: { labels: lbls, datasets: [{ label:'Tasks', data:tData, borderColor:'#ffc107', fill:false }] }
+    });
+
+    new Chart(document.getElementById('visitChart'), {
+        type: 'line',
+        data: { labels: lbls, datasets: [{ label:'Visits', data:vData, borderColor:'#28a745', fill:true }] },
+        options: { plugins:{ filler:{ propagate:true } } }}
+    );
+    ]]>
+</script>
+</body>
+</html>

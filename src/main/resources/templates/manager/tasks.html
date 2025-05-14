@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Task Assignment – Project Manager | BBOXXTrack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/script.js" defer></script>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="border-end" id="sidebar-wrapper">
+        <div class="sidebar-heading text-center py-4">
+            <a href="/manager/dashboard" class="d-block mb-2">
+                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img">
+            </a>
+            <h5 class="text-white mb-0">Manager Panel</h5>
+        </div>
+        <div class="sidebar-menu">
+            <ul class="nav flex-column mt-4">
+                <li class="nav-item">
+                    <a href="/manager/dashboard" class="nav-link text-white">
+                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/manager/projects" class="nav-link text-white">
+                        <i class="fas fa-project-diagram me-2"></i>Projects
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/manager/tasks" class="nav-link active text-white">
+                        <i class="fas fa-tasks me-2"></i>Assign Tasks
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="/manager/kanban" class="nav-link text-white">
+                        <i class="fas fa-columns me-2"></i>Kanban Board
+                    </a>
+                </li>
+                <li class="mt-auto nav-item">
+                    <a href="/logout" class="nav-link text-white">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 content-wrapper">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
+            <div class="container-fluid px-4">
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="navbar-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Filter tasks...">
+                </div>
+                <div class="ms-auto d-flex align-items-center">
+                    <a href="/logout" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Section -->
+        <div class="container-fluid px-4 py-4">
+            <!-- Filter & Export -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <form class="d-flex" method="get" th:action="@{/manager/tasks}">
+                    <select class="form-select me-2" name="status" style="width: 180px;">
+                        <option value="">All Status</option>
+                        <option value="Assigned" th:selected="${filterStatus=='Assigned'}">Assigned</option>
+                        <option value="In Progress" th:selected="${filterStatus=='In Progress'}">In Progress</option>
+                        <option value="Done" th:selected="${filterStatus=='Done'}">Done</option>
+                    </select>
+                    <button class="btn btn-outline-primary me-2">Filter</button>
+                    <a href="/manager/tasks/export" class="btn btn-outline-success">Export CSV</a>
+                </form>
+            </div>
+
+            <!-- Assign Task Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-plus me-2"></i>Assign New Task
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/manager/tasks/add}" method="post" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Task Name</label>
+                            <input type="text" name="taskName" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Project</label>
+                            <select name="projectId" class="form-select" required>
+                                <option value="">Select Project</option>
+                                <option th:each="p : ${projects}" th:value="${p.id}" th:text="${p.projectTitle}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Technician</label>
+                            <select name="assignedToUserId" class="form-select" required>
+                                <option value="">Select Technician</option>
+                                <option th:each="t : ${technicians}" th:value="${t.id}" th:text="${t.fullName}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" name="dueDate" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Assign Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Task List Card -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fas fa-list me-2"></i>Assigned Tasks
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Task</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="t : ${tasks}">
+                            <td th:text="${t.taskName}">Task Name</td>
+                            <td th:text="${t.status}">Status</td>
+                            <td th:text="${#temporals.format(t.dueDate,'yyyy-MM-dd')}">Due</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1"
+                                        data-bs-toggle="modal"
+                                        th:data-bs-target="'#editModal' + ${t.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <a th:href="@{'/manager/tasks/delete/' + ${t.id}}"
+                                   class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(tasks)}">
+                            <td colspan="4" class="text-center text-muted">No tasks assigned.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Edit Task Modals -->
+            <div th:each="t : ${tasks}">
+                <div class="modal fade" th:id="'editModal' + ${t.id}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <form th:action="@{/manager/tasks/edit}" method="post">
+                                <input type="hidden" name="id" th:value="${t.id}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Task</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Task Name</label>
+                                        <input type="text" name="taskName" class="form-control" th:value="${t.taskName}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Status</label>
+                                        <select name="status" class="form-select">
+                                            <option th:selected="${t.status=='Assigned'}">Assigned</option>
+                                            <option th:selected="${t.status=='In Progress'}">In Progress</option>
+                                            <option th:selected="${t.status=='Done'}">Done</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Due Date</label>
+                                        <input type="date" name="dueDate" class="form-control"
+                                               th:value="${#temporals.format(t.dueDate,'yyyy-MM-dd')}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Technician</label>
+                                        <select name="assignedToUserId" class="form-select">
+                                            <option th:each="tech : ${technicians}"
+                                                    th:value="${tech.id}"
+                                                    th:text="${tech.fullName}"
+                                                    th:selected="${tech.id==t.assignedToUserId}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Description</label>
+                                        <textarea name="description" class="form-control" rows="3"
+                                                  th:text="${t.description}"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-light text-center p-3 mt-auto">
+            <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

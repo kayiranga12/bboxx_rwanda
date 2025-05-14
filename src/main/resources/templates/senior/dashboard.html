@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Executive Dashboard – BBOXXTrack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="/js/script.js" defer></script>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="border-end" id="sidebar-wrapper">
+        <div class="sidebar-heading text-center py-4">
+            <a href="/senior/dashboard" class="d-block mb-2">
+                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img">
+            </a>
+            <h5 class="text-white mb-0">Senior Management</h5>
+        </div>
+        <div class="sidebar-menu">
+            <ul class="nav flex-column mt-4">
+                <li class="nav-item">
+                    <a href="/senior/dashboard" class="nav-link active text-white">
+                        <i class="fas fa-chart-pie me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/senior/reports" class="nav-link text-white">
+                        <i class="fas fa-file-alt me-2"></i>Reports
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/senior/analytics" class="nav-link text-white">
+                        <i class="fas fa-chart-line me-2"></i>Analytics
+                    </a>
+                </li>
+                <li class="mt-auto mb-3">
+                    <a href="/logout" class="nav-link text-white">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 content-wrapper">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
+            <div class="container-fluid px-4">
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="navbar-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Search metrics...">
+                </div>
+                <div class="ms-auto d-flex align-items-center">
+                    <a href="/logout" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Section -->
+        <div class="container-fluid px-4 py-4">
+            <div class="page-header mb-4">
+                <h4 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Executive Overview</h4>
+            </div>
+
+            <div class="row g-4">
+                <!-- Metrics Cards -->
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="card-body">
+                            <div class="icon-bg bg-primary bg-opacity-10">
+                                <i class="fas fa-users fa-2x text-primary"></i>
+                            </div>
+                            <h6 class="card-title mt-2">Total Users</h6>
+                            <h2 class="card-value" th:text="${totalUsers}">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="card-body">
+                            <div class="icon-bg bg-info bg-opacity-10">
+                                <i class="fas fa-project-diagram fa-2x text-info"></i>
+                            </div>
+                            <h6 class="card-title mt-2">Total Projects</h6>
+                            <h2 class="card-value" th:text="${totalProjects}">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="card-body">
+                            <div class="icon-bg bg-success bg-opacity-10">
+                                <i class="fas fa-boxes fa-2x text-success"></i>
+                            </div>
+                            <h6 class="card-title mt-2">Inventory Items</h6>
+                            <h2 class="card-value" th:text="${totalInventory}">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="card-body">
+                            <div class="icon-bg bg-warning bg-opacity-10">
+                                <i class="fas fa-tasks fa-2x text-warning"></i>
+                            </div>
+                            <h6 class="card-title mt-2">Total Tasks</h6>
+                            <h2 class="card-value" th:text="${totalTasks}">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="card-body">
+                            <div class="icon-bg bg-danger bg-opacity-10">
+                                <i class="fas fa-check-circle fa-2x text-danger"></i>
+                            </div>
+                            <h6 class="card-title mt-2">Tasks Completed</h6>
+                            <h2 class="card-value" th:text="${doneTasks}">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="card-body">
+                            <div class="icon-bg bg-secondary bg-opacity-10">
+                                <i class="fas fa-hourglass-half fa-2x text-secondary"></i>
+                            </div>
+                            <h6 class="card-title mt-2">Tasks Pending</h6>
+                            <h2 class="card-value" th:text="${pendingTasks}">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row mt-4 g-4">
+                <div class="col-lg-6">
+                    <div class="chart-card">
+                        <div class="card-header">Project Status Breakdown</div>
+                        <div class="card-body">
+                            <canvas id="projectStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-card">
+                        <div class="card-header">Task Completion Rate</div>
+                        <div class="card-body">
+                            <canvas id="taskCompletionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Reports -->
+            <div class="mt-4 text-end">
+                <a href="/senior/reports/export" class="btn btn-download">
+                    <i class="fas fa-download me-1"></i>Download Full Report
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-light text-center p-3 mt-auto">
+            <div class="container">
+                <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Chart.js examples (data-binding via Thymeleaf)
+    const projCtx = document.getElementById('projectStatusChart').getContext('2d');
+    new Chart(projCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Ongoing','Completed','Upcoming'],
+            datasets: [{
+                data: [
+                    /*[[${ongoingProjects}]],[[${doneTasks}]],[[${pendingTasks}]]*/
+                    /* replace placeholders with Thymeleaf fragments if needed */
+                ],
+                backgroundColor: ['#0d6efd','#198754','#ffc107'],
+            }]
+        }
+    });
+
+    const taskCtx = document.getElementById('taskCompletionChart').getContext('2d');
+    new Chart(taskCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Done','Pending'],
+            datasets: [{
+                data: [/*[[${doneTasks}]],[[${pendingTasks}]]*/],
+                backgroundColor: ['#198754','#6c757d'],
+            }]
+        }
+    });
+</script>
+</body>
+</html>

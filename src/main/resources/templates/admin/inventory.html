@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manage Inventory – Admin | BBOXXTrack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="border-end" id="sidebar-wrapper">
+        <div class="sidebar-heading text-center py-4">
+            <a href="/admin/dashboard" class="d-block mb-2">
+                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img">
+            </a>
+            <h5 class="text-white mb-0">Admin Panel</h5>
+        </div>
+        <div class="sidebar-menu px-2">
+            <ul class="nav flex-column mt-3">
+                <li class="nav-item">
+                    <a href="/admin/dashboard" class="nav-link text-white">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/customers" class="nav-link text-white">
+                        <i class="fas fa-users me-2"></i>Customers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/users" class="nav-link text-white">
+                        <i class="fas fa-user-shield me-2"></i>Manage Users
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/projects" class="nav-link text-white">
+                        <i class="fas fa-project-diagram me-2"></i>Projects
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/tasks" class="nav-link text-white">
+                        <i class="fas fa-tasks me-2"></i>Tasks
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/inventory" class="nav-link active text-white">
+                        <i class="fas fa-box me-2"></i>Inventory
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/zones" class="nav-link text-white">
+                        <i class="fas fa-map-marked-alt me-2"></i>Geofences
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/reports" class="nav-link text-white">
+                        <i class="fas fa-chart-bar me-2"></i>Reports
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 content-wrapper">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
+            <div class="container-fluid px-4">
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="ms-auto">
+                    <a href="/logout" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Section -->
+        <div class="container-fluid px-4 py-4">
+            <div class="page-header mb-4">
+                <h4 class="mb-0"><i class="fas fa-boxes me-2"></i>Manage Inventory</h4>
+            </div>
+
+            <div class="row g-4">
+                <!-- Add Item Card -->
+                <div class="col-lg-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-plus me-2"></i>Add Inventory Item
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/admin/inventory/add}" method="post" class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Item Name</label>
+                                    <input type="text" name="itemName" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Item Code</label>
+                                    <input type="text" name="itemCode" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" name="quantityAvailable" class="form-control" min="0" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" name="location" class="form-control" required>
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save me-1"></i>Save Item
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory List Card -->
+                <div class="col-lg-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-secondary text-white">
+                            <i class="fas fa-list me-2"></i>Inventory List
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Code</th>
+                                    <th>Quantity</th>
+                                    <th>Location</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item : ${inventoryList}">
+                                    <td th:text="${item.itemName}">Sample</td>
+                                    <td th:text="${item.itemCode}">CODE</td>
+                                    <td th:text="${item.quantityAvailable}">0</td>
+                                    <td th:text="${item.location}">Warehouse</td>
+                                    <td>
+                                        <a th:href="@{'/admin/inventory/delete/' + ${item.id}}"
+                                           class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(inventoryList)}">
+                                    <td colspan="5" class="text-center text-muted">No items in inventory.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-light text-center p-3 mt-auto">
+            <div class="container">
+                <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

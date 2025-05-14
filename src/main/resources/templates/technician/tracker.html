@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>GPS Tracker – Technician | BBOXXTrack</title>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+    <!-- Leaflet -->
+    <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
+
+    <!-- Your custom styles -->
+    <link href="/css/style.css" rel="stylesheet"/>
+
+    <style>
+        /* Map enhancements */
+        #map {
+            height: 400px !important;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        /* Form styling */
+        .form-card {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .form-card .card-header {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-bottom: 0;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            border-radius: 6px;
+            padding: 10px 14px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 0.25rem rgba(66, 133, 244, 0.15);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Table styling */
+        .table-card {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table-card .card-header {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border-bottom: 0;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        .tracker-table {
+            margin-bottom: 0;
+        }
+
+        .tracker-table thead {
+            background-color: #f8fafc;
+        }
+
+        .tracker-table th {
+            border-top: none;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .tracker-table td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .tracker-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .gps-badge {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .status-text {
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .timestamp {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Map popup styling */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+
+        .leaflet-popup-content {
+            margin: 12px 14px;
+            line-height: 1.5;
+        }
+
+        .map-popup-status {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .map-popup-time {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="border-end" id="sidebar-wrapper">
+        <div class="sidebar-heading text-center py-4">
+            <a href="/technician/dashboard" class="d-block mb-2">
+                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img"/>
+            </a>
+            <h5 class="text-white mb-0">Technician Panel</h5>
+        </div>
+        <div class="sidebar-menu">
+            <ul class="nav flex-column mt-4">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/technician/dashboard">
+                        <i class="fas fa-home me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/technician/tasks">
+                        <i class="fas fa-tasks me-2"></i>Your Tasks
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active text-white" href="/technician/tracker">
+                        <i class="fas fa-map-marker-alt me-2"></i>GPS Tracker
+                    </a>
+                </li>
+                <li class="mt-auto mb-3">
+                    <a href="/logout" class="nav-link text-white">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="flex-grow-1 content-wrapper">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
+            <div class="container-fluid px-4">
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="ms-auto d-flex align-items-center">
+                    <a href="/technician/tracker/export" class="btn btn-outline-success btn-sm me-3">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </a>
+                    <a href="/logout" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Section -->
+        <div class="container-fluid px-4 py-4">
+            <div class="page-header mb-4 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>GPS Tracker</h4>
+            </div>
+
+            <div class="row g-4">
+                <!-- Log Location Form -->
+                <div class="col-lg-4">
+                    <div class="card form-card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-plus-circle me-2"></i>Log Location
+                        </div>
+                        <div class="card-body p-4">
+                            <form th:action="@{/technician/tracker/add}"
+                                  th:object="${newTracker}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">GPS Coordinates</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-map-pin text-primary"></i>
+                                        </span>
+                                        <input type="text"
+                                               th:field="*{gpsCoordinates}"
+                                               class="form-control border-start-0"
+                                               placeholder="e.g. -1.9500, 30.0589"
+                                               required/>
+                                    </div>
+                                    <small class="text-muted mt-1 d-block">Format: latitude, longitude</small>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Status Update</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="fas fa-info-circle text-primary"></i>
+                                        </span>
+                                        <textarea th:field="*{statusUpdate}"
+                                                  class="form-control border-start-0" rows="3"
+                                                  placeholder="e.g. On-site installation complete, device functioning properly"
+                                                  required></textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-submit w-100">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Location
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map & History -->
+                <div class="col-lg-8">
+                    <!-- Map Container -->
+                    <div id="map" class="mb-4"></div>
+
+                    <!-- Location Legend -->
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="bg-white px-3 py-2 rounded shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                    <span class="text-muted">Current Location</span>
+                                </div>
+                                <div>
+                                    <i class="fas fa-history text-primary me-1"></i>
+                                    <span class="text-muted">Previous Locations</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- History Table -->
+                    <div class="card table-card">
+                        <div class="card-header bg-secondary text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-history me-2"></i>Location History
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-light" title="Refresh">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-light" title="Filter">
+                                        <i class="fas fa-filter"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table tracker-table table-hover mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 25%">GPS Coordinates</th>
+                                        <th style="width: 50%">Status Update</th>
+                                        <th style="width: 25%">Timestamp</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="t : ${trackers}">
+                                        <td>
+                                            <span class="gps-badge">
+                                                <i class="fas fa-map-marker-alt me-1"></i>
+                                                <span th:text="${t.gpsCoordinates}"></span>
+                                            </span>
+                                        </td>
+                                        <td class="status-text" th:text="${t.statusUpdate}"></td>
+                                        <td>
+                                            <span class="timestamp">
+                                                <i class="far fa-clock me-1"></i>
+                                                <span th:text="${#temporals.format(t.timestamp,'yyyy-MM-dd HH:mm')}"></span>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(trackers)}">
+                                        <td colspan="3" class="text-center py-4">
+                                            <div class="text-muted">
+                                                <i class="fas fa-map-marked-alt fa-2x mb-2"></i>
+                                                <p class="mb-0">No location records yet.</p>
+                                                <small>Your logged locations will appear here.</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-light text-center p-3 mt-auto">
+            <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
+        </footer>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Initialize map
+    var map = L.map('map').setView([0, 0], 2);
+
+    // Use a nicer map tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
+
+    // Custom icon for current location
+    var currentIcon = L.icon({
+        iconUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-icon.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png',
+        shadowSize: [41, 41]
+    });
+
+    // Create a polyline for the path
+    var points = /*[[${points}]]*/ [];
+    var pathCoordinates = [];
+    var bounds = [];
+
+    if (points && points.length) {
+        points.forEach(function(p, index) {
+            var latlng = [p.lat, p.lng];
+            pathCoordinates.push(latlng);
+            bounds.push(latlng);
+
+            // Create marker
+            var marker = L.marker(latlng).addTo(map);
+
+            // Special styling for current location (first point)
+            if (index === 0) {
+                marker.setIcon(currentIcon);
+            }
+
+            // Create custom popup content
+            var popupContent = `
+                <div class="map-popup">
+                    <div class="map-popup-status">${p.status}</div>
+                    <div class="map-popup-time">${p.time}</div>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+        });
+
+        // Create a path line connecting all points
+        if (pathCoordinates.length > 1) {
+            var path = L.polyline(pathCoordinates, {
+                color: '#3b82f6',
+                weight: 3,
+                opacity: 0.7,
+                dashArray: '5, 8'
+            }).addTo(map);
+        }
+
+        // Set view to fit all points
+        if (bounds.length) {
+            map.fitBounds(bounds);
+        } else {
+            // If only one point, center on it
+            map.setView(pathCoordinates[0], 13);
+        }
+    }
+
+    // Sidebar toggle functionality
+    document.getElementById('sidebarToggle').addEventListener('click', function(){
+        document.getElementById('wrapper').classList.toggle('toggled');
+    });
+    /*]]>*/
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
