@@ -3,113 +3,987 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Manage Projects – Admin | BBOXXTrack</title>
+  <title>Solar Projects Management | BBOXXTrack</title>
 
   <!-- Bootstrap & FontAwesome -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 
-  <!-- Custom CSS -->
-  <link href="/css/style.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --bboxx-orange: #0d6efd;
+      --bboxx-dark-orange: #295391;
+      --bboxx-blue: #1B365D;
+      --bboxx-dark-blue: #0F1F35;
+      --bboxx-light-blue: #2E5984;
+      --bboxx-green: #4CAF50;
+      --bboxx-yellow: #FFC107;
+      --bboxx-red: #DC3545;
+      --bboxx-gray: #F8F9FA;
+      --bboxx-dark-gray: #333333;
+      --sidebar-width: 280px;
+      --header-height: 70px;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bboxx-gray);
+      color: var(--bboxx-dark-gray);
+      overflow-x: hidden;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: linear-gradient(180deg, var(--bboxx-blue) 0%, var(--bboxx-dark-blue) 100%);
+      z-index: 1000;
+      transition: all 0.3s ease;
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.collapsed {
+      width: 80px;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+    }
+
+    .logo {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 900;
+      text-decoration: none;
+      display: block;
+      transition: all 0.3s ease;
+    }
+
+    .logo .track {
+      color: var(--bboxx-orange);
+      font-weight: 400;
+    }
+
+    .sidebar.collapsed .logo .track {
+      display: none;
+    }
+
+    .sidebar-menu {
+      padding: 1rem 0;
+      height: calc(100vh - 140px);
+      overflow-y: auto;
+    }
+
+    .sidebar-menu::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-menu::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-menu::-webkit-scrollbar-thumb {
+      background: var(--bboxx-orange);
+      border-radius: 2px;
+    }
+
+    .nav-item {
+      margin: 0.2rem 1rem;
+    }
+
+    .nav-link {
+      color: rgba(255, 255, 255, 0.8) !important;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .nav-link:hover::before {
+      left: 100%;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: rgba(255, 107, 53, 0.15);
+      color: white !important;
+      transform: translateX(5px);
+    }
+
+    .nav-link.active {
+      background: #0d6efd;
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    }
+
+    .nav-link i {
+      width: 20px;
+      margin-right: 0.75rem;
+      font-size: 1.1rem;
+    }
+
+    .sidebar.collapsed .nav-link span {
+      display: none;
+    }
+
+    .sidebar.collapsed .nav-link {
+      justify-content: center;
+      margin: 0.2rem 0.5rem;
+    }
+
+    .sidebar.collapsed .nav-link i {
+      margin-right: 0;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      transition: all 0.3s ease;
+      min-height: 100vh;
+    }
+
+    .main-content.expanded {
+      margin-left: 80px;
+    }
+
+    /* Top Navigation */
+    .top-navbar {
+      background: white;
+      height: var(--header-height);
+      padding: 0 2rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    .navbar-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar-toggle {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--bboxx-dark-gray);
+      padding: 0.5rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      margin-right: 1rem;
+    }
+
+    .sidebar-toggle:hover {
+      background: #0d6efd;
+      color: #0d6efd;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--bboxx-dark-blue);
+      margin: 0;
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .user-menu:hover {
+      background: var(--bboxx-gray);
+    }
+
+    .user-avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0d6efd, #0d6efd);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    /* Main Content Area */
+    .dashboard-content {
+      padding: 2rem;
+    }
+
+    .page-header {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+    }
+
+    .header-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--bboxx-dark-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .header-subtitle {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .stats-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+
+    .stat-card.ongoing::before {
+      background: #0d6efd;
+    }
+
+    .stat-card.completed::before {
+      background: var(--bboxx-green);
+    }
+
+    .stat-card.upcoming::before {
+      background: var(--bboxx-blue);
+    }
+
+    .stat-card.total::before {
+      background: linear-gradient(90deg, #0d6efd,#0d6efd);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    /* Project Creation Section */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .create-project-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+      color: white;
+      padding: 1.5rem 2rem;
+      border: none;
+    }
+
+    .card-header h5 {
+      margin: 0;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+
+    .form-floating {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-control, .form-select {
+      border: 2px solid #E1E5E9;
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      transition: all 0.3s ease;
+      background: #FAFBFC;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--bboxx-orange);
+      box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+      background: white;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: var(--bboxx-dark-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .file-upload-area {
+      border: 2px dashed #E1E5E9;
+      border-radius: 10px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+    }
+
+    .file-upload-area:hover {
+      border-color: var(--bboxx-orange);
+      background: rgba(255, 107, 53, 0.02);
+    }
+
+    .file-upload-area.dragover {
+      border-color: var(--bboxx-orange);
+      background: rgba(255, 107, 53, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      color: var(--bboxx-orange);
+      margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+    }
+
+    /* Projects List */
+    .projects-list-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .projects-header {
+      background: var(--bboxx-blue);
+      color: white;
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: between;
+      align-items: center;
+    }
+
+    .projects-header h5 {
+      margin: 0;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .search-filter-bar {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #E1E5E9;
+      background: #FAFBFC;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.6rem 1rem 0.6rem 2.5rem;
+      border: 2px solid #E1E5E9;
+      border-radius: 25px;
+      background: white;
+      transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--bboxx-orange);
+      box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+      outline: none;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9CA3AF;
+    }
+
+    .filter-select {
+      border: 2px solid #E1E5E9;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      background: white;
+      min-width: 150px;
+    }
+
+    .projects-table {
+      background: white;
+    }
+
+    .table {
+      margin: 0;
+    }
+
+    .table thead th {
+      background: var(--bboxx-gray);
+      border: none;
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      color: var(--bboxx-dark-blue);
+    }
+
+    .table tbody td {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: middle;
+    }
+
+    .table tbody tr:hover {
+      background: rgba(255, 107, 53, 0.02);
+    }
+
+    .project-title {
+      font-weight: 600;
+      color: var(--bboxx-dark-blue);
+      margin-bottom: 0.25rem;
+    }
+
+    .project-description {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .status-badge {
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-ongoing {
+      background: rgba(255, 107, 53, 0.1);
+      color: #0d6efd;
+    }
+
+    .status-completed {
+      background: rgba(76, 175, 80, 0.1);
+      color: var(--bboxx-green);
+    }
+
+    .status-upcoming {
+      background: rgba(27, 54, 93, 0.1);
+      color: var(--bboxx-blue);
+    }
+
+    .location-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .location-icon {
+      color: var(--bboxx-orange);
+    }
+
+    .date-range {
+      font-size: 0.9rem;
+    }
+
+    .date-start {
+      color: var(--bboxx-dark-blue);
+      font-weight: 500;
+    }
+
+    .date-end {
+      color: #666;
+    }
+
+    .attachments-preview {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .attachment-item {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .attachment-img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid #E1E5E9;
+      transition: all 0.3s ease;
+    }
+
+    .attachment-img:hover {
+      border-color: var(--bboxx-orange);
+      transform: scale(1.1);
+    }
+
+    .attachment-file {
+      width: 40px;
+      height: 40px;
+      background: var(--bboxx-orange);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .attachment-file:hover {
+      background: var(--bboxx-dark-orange);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .project-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .btn-edit {
+      background: rgba(255, 193, 7, 0.1);
+      color: var(--bboxx-yellow);
+    }
+
+    .btn-edit:hover {
+      background: var(--bboxx-yellow);
+      color: white;
+    }
+
+    .btn-view {
+      background: rgba(27, 54, 93, 0.1);
+      color: var(--bboxx-blue);
+    }
+
+    .btn-view:hover {
+      background: var(--bboxx-blue);
+      color: white;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #666;
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      color: #E1E5E9;
+      margin-bottom: 1rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.show {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .top-navbar {
+        padding: 0 1rem;
+      }
+
+      .dashboard-content {
+        padding: 1rem;
+      }
+
+      .page-header {
+        padding: 1.5rem;
+      }
+
+      .header-title {
+        font-size: 1.5rem;
+      }
+
+      .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .search-filter-bar {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .table-responsive {
+        font-size: 0.85rem;
+      }
+
+      .project-actions {
+        flex-direction: column;
+      }
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 107, 53, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--bboxx-orange);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bboxx-orange);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--bboxx-dark-orange);
+    }
+  </style>
 </head>
 <body>
-<div class="d-flex" id="wrapper">
-  <!-- Sidebar -->
-  <div class="border-end bg-dark" id="sidebar-wrapper">
-    <div class="sidebar-heading text-center py-4">
-      <a href="/admin/dashboard" class="d-block mb-2">
-        <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img"/>
-      </a>
-      <h5 class="text-white mb-0">Admin Panel</h5>
-    </div>
-    <div class="sidebar-menu px-2">
-      <ul class="nav flex-column mt-3">
-        <li class="nav-item">
-          <a href="/admin/dashboard" class="nav-link text-white">
-            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/admin/customers" class="nav-link text-white">
-            <i class="fas fa-users me-2"></i>Customers
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/admin/users" class="nav-link text-white">
-            <i class="fas fa-user-shield me-2"></i>Manage Users
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/admin/projects" class="nav-link active text-white">
-            <i class="fas fa-project-diagram me-2"></i>Projects
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/admin/tasks" class="nav-link text-white">
-            <i class="fas fa-tasks me-2"></i>Tasks
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/admin/inventory" class="nav-link text-white">
-            <i class="fas fa-box me-2"></i>Inventory
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/admin/reports" class="nav-link text-white">
-            <i class="fas fa-chart-bar me-2"></i>Reports
-          </a>
-        </li>
-      </ul>
-    </div>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="/admin/dashboard" class="logo">
+      BBOXX<span class="track">Track</span>
+    </a>
   </div>
 
-  <!-- Page Content -->
-  <div class="flex-grow-1 content-wrapper d-flex flex-column">
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
-      <div class="container-fluid px-4">
-        <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
-          <i class="fas fa-bars"></i>
+  <div class="sidebar-menu">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a href="/admin/dashboard" class="nav-link">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/projects" class="nav-link active">
+          <i class="fas fa-solar-panel"></i>
+          <span>Solar Projects</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/customers" class="nav-link">
+          <i class="fas fa-users"></i>
+          <span>Customers</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/users" class="nav-link">
+          <i class="fas fa-user-shield"></i>
+          <span>Team Management</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/tasks" class="nav-link">
+          <i class="fas fa-tasks"></i>
+          <span>Field Tasks</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/inventory" class="nav-link">
+          <i class="fas fa-boxes"></i>
+          <span>Inventory</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/zones" class="nav-link">
+          <i class="fas fa-map-marked-alt"></i>
+          <span>Service Areas</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a href="/admin/reports" class="nav-link">
+          <i class="fas fa-file-chart"></i>
+          <span>Reports</span>
+        </a>
+      </li>
+      <li class="nav-item mt-auto">
+        <a href="/logout" class="nav-link">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+  <!-- Top Navigation -->
+  <nav class="top-navbar">
+    <div class="navbar-left">
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search projects, customers, tasks...">
+      </div>
+    </div>
+
+    <div class="navbar-right">
+      <div class="quick-actions">
+        <a href="/admin/projects/new" class="quick-action-btn">
+          <i class="fas fa-plus"></i>
+          <span>New Project</span>
+        </a>
+        <a href="/admin/tasks/urgent" class="quick-action-btn">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Urgent Tasks</span>
+        </a>
+      </div>
+
+      <div class="notifications">
+        <button class="notification-btn" data-bs-toggle="dropdown">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge">5</span>
         </button>
-        <span class="navbar-brand mb-0 h5">Manage Projects</span>
-        <div class="ms-auto">
-          <a href="/logout" class="btn btn-outline-danger btn-sm">
-            <i class="fas fa-sign-out-alt me-1"></i>Logout
+        <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px;">
+          <div class="p-3 border-bottom">
+            <h6 class="mb-0">Notifications</h6>
+          </div>
+          <div class="p-2">
+            <div class="d-flex align-items-center p-2 rounded hover-bg">
+              <div class="me-3">
+                <div class="bg-success rounded-circle p-2">
+                  <i class="fas fa-check text-white"></i>
+                </div>
+              </div>
+              <div>
+                <div class="fw-semibold">Installation Complete</div>
+                <small class="text-muted">Nyarugenge District - 15 homes connected</small>
+              </div>
+            </div>
+            <div class="d-flex align-items-center p-2 rounded hover-bg">
+              <div class="me-3">
+                <div class="bg-warning rounded-circle p-2">
+                  <i class="fas fa-exclamation text-white"></i>
+                </div>
+              </div>
+              <div>
+                <div class="fw-semibold">Low Inventory Alert</div>
+                <small class="text-muted">Solar panels running low - 12 units left</small>
+              </div>
+            </div>
+          </div>
+          <div class="p-2 border-top text-center">
+            <a href="/admin/notifications" class="text-decoration-none">View all notifications</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-menu" data-bs-toggle="dropdown">
+        <div class="user-avatar">AD</div>
+        <div class="user-info">
+          <div class="user-name">Admin User</div>
+          <div class="user-role">System Administrator</div>
+        </div>
+        <i class="fas fa-chevron-down ms-2"></i>
+        <div class="dropdown-menu dropdown-menu-end">
+          <a class="dropdown-item" href="/admin/profile">
+            <i class="fas fa-user me-2"></i> My Profile
+          </a>
+          <a class="dropdown-item" href="/admin/settings">
+            <i class="fas fa-cog me-2"></i> Settings
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="/logout">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
           </a>
         </div>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <!-- Main Section -->
-    <div class="container-fluid px-4 py-4 flex-grow-1">
-      <div class="row">
-        <!-- Create Project Form -->
-        <div class="col-md-6">
-          <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-              <i class="fas fa-plus me-2"></i>Create New Project
-            </div>
-            <div class="card-body">
-              <form th:action="@{/admin/projects/add}"
-                    method="post"
-                    enctype="multipart/form-data"
-                    class="row g-3">
-                <div class="col-12">
-                  <label class="form-label">Project Title</label>
-                  <input type="text" name="projectTitle" class="form-control" required/>
-                </div>
+  <!-- Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h2 class="header-title">Solar Energy Projects</h2>
+      <p class="header-subtitle">Manage renewable energy installations and track progress across Rwanda</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-cards">
+      <div class="stat-card total">
+        <div class="stat-number" th:text="${projects?.size() ?: '12'}">12</div>
+        <div class="stat-label">Total Projects</div>
+      </div>
+      <div class="stat-card ongoing">
+        <div class="stat-number" th:text="${ongoingProjects ?: '7'}">7</div>
+        <div class="stat-label">Ongoing</div>
+      </div>
+      <div class="stat-card completed">
+        <div class="stat-number" th:text="${completedProjects ?: '3'}">3</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="stat-card upcoming">
+        <div class="stat-number" th:text="${upcomingProjects ?: '2'}">2</div>
+        <div class="stat-label">Upcoming</div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+      <!-- Create Project Form -->
+        <div class="create-project-card">
+          <div class="card-header">
+            <h5><i class="fas fa-plus-circle"></i> Create New Solar Project</h5>
+          </div>
+          <div class="card-body">
+            <form th:action="@{/admin/projects/add}" method="post" enctype="multipart/form-data" id="projectForm">
+              <div class="form-group">
+                <label class="form-label">Project Title</label>
+                <input type="text" name="projectTitle" class="form-control"
+                       placeholder="e.g., Nyarugenge Solar Electrification Phase 2" required/>
+              </div>
+
+              <div class="row">
                 <div class="col-md-6">
-                  <label class="form-label">Status</label>
+                  <label class="form-label">Project Status</label>
                   <select name="status" class="form-select" required>
+                    <option value="">Select Status</option>
+                    <option value="Upcoming">Upcoming</option>
                     <option value="Ongoing">Ongoing</option>
                     <option value="Completed">Completed</option>
-                    <option value="Upcoming">Upcoming</option>
                   </select>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Location</label>
-                  <input type="text" name="location" class="form-control" required/>
+                  <input type="text" name="location" class="form-control"
+                         placeholder="e.g., Kigali, Nyarugenge District" required/>
                 </div>
+              </div>
+
+              <div class="row">
                 <div class="col-md-6">
                   <label class="form-label">Start Date</label>
                   <input type="date" name="startDate" class="form-control" required/>
@@ -118,95 +992,584 @@
                   <label class="form-label">End Date</label>
                   <input type="date" name="endDate" class="form-control" required/>
                 </div>
-                <div class="col-12">
-                  <label class="form-label">Attachments</label>
-                  <input type="file"
-                         name="files"
-                         multiple
-                         accept="image/*,application/pdf"
-                         class="form-control"/>
-                  <div class="form-text">
-                    Site surveys, signed agreements, etc.
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Project Attachments</label>
+                <div class="file-upload-area" id="fileUploadArea">
+                  <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
                   </div>
+                  <h6>Drag & drop files here or click to browse</h6>
+                  <p class="text-muted mb-0">Site surveys, agreements, photos (PDF, Images)</p>
+                  <input type="file" name="files" multiple accept="image/*,application/pdf"
+                         class="d-none" id="fileInput"/>
                 </div>
-                <div class="col-12 text-end">
-                  <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save me-1"></i>Save Project
-                  </button>
-                </div>
-              </form>
-            </div>
+                <div id="filePreview" class="mt-2"></div>
+              </div>
+
+              <div class="text-end">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save me-2"></i>Create Project
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
-        <!-- Project List -->
-        <div class="col-md-6">
-          <div class="card mb-4">
-            <div class="card-header bg-secondary text-white">
-              <i class="fas fa-list me-2"></i>Existing Projects
+      <!-- Projects List -->
+      <div class="projects-list-card">
+        <div class="projects-header">
+          <h5><i class="fas fa-list-ul"></i> Active Solar Projects</h5>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-bar">
+          <div class="d-flex gap-3 align-items-center">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Search projects..." id="projectSearch"/>
             </div>
-            <div class="card-body p-0">
-              <table class="table table-hover mb-0">
-                <thead class="table-light">
-                <tr>
-                  <th>Title</th>
-                  <th>Status</th>
-                  <th>Location</th>
-                  <th>Span</th>
-                  <th>Attachments</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="p : ${projects}">
-                  <td th:text="${p.projectTitle}">Title</td>
-                  <td>
-                        <span class="badge"
-                              th:text="${p.status}"
-                              th:classappend="${
-                                p.status=='Completed' ? ' bg-success' :
-                                p.status=='Ongoing'   ? ' bg-warning' :
-                                                        ' bg-info'
-                              }"></span>
-                  </td>
-                  <td th:text="${p.location}">Location</td>
-                  <td>
-                    <span th:text="${#temporals.format(p.startDate,'yyyy-MM-dd')}"></span>
-                    &nbsp;–&nbsp;
-                    <span th:text="${#temporals.format(p.endDate,'yyyy-MM-dd')}"></span>
-                  </td>
-                  <td>
+            <select class="filter-select" id="statusFilter">
+              <option value="">All Status</option>
+              <option value="Ongoing">Ongoing</option>
+              <option value="Completed">Completed</option>
+              <option value="Upcoming">Upcoming</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Projects Table -->
+        <div class="projects-table">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+              <tr>
+                <th>Project Details</th>
+                <th>Status</th>
+                <th>Location</th>
+                <th>Timeline</th>
+                <th>Attachments</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody id="projectsTableBody">
+              <tr th:each="p : ${projects}">
+                <td>
+                  <div class="project-title" th:text="${p.projectTitle}">
+                    Nyarugenge Solar Installation
+                  </div>
+                  <div class="project-description">
+                    Solar energy project for rural communities
+                  </div>
+                </td>
+                <td>
+                                            <span class="status-badge"
+                                                  th:text="${p.status}"
+                                                  th:classappend="${
+                                                    p.status=='Completed' ? ' status-completed' :
+                                                    p.status=='Ongoing'   ? ' status-ongoing' :
+                                                                            ' status-upcoming'
+                                                  }">Ongoing</span>
+                </td>
+                <td>
+                  <div class="location-info">
+                    <i class="fas fa-map-marker-alt location-icon"></i>
+                    <span th:text="${p.location}">Kigali, Nyarugenge</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="date-range">
+                    <div class="date-start" th:text="${#temporals.format(p.startDate,'MMM dd, yyyy')}">
+                      Jan 15, 2025
+                    </div>
+                    <div class="date-end" th:text="${'to ' + #temporals.format(p.endDate,'MMM dd, yyyy')}">
+                      to Mar 30, 2025
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="attachments-preview">
                     <div th:each="doc : ${@documentService.getByRef('PROJECT', p.id)}"
-                         class="d-inline-block me-1">
+                         class="attachment-item">
                       <img th:if="${doc.contentType.startsWith('image/')}"
                            th:src="@{/attachments/{id}(id=${doc.id})}"
-                           class="img-thumbnail" style="height:40px;"/>
+                           class="attachment-img"
+                           th:alt="${doc.fileName}"
+                           data-bs-toggle="tooltip"
+                           th:data-bs-title="${doc.fileName}"/>
                       <a th:if="${!doc.contentType.startsWith('image/')}"
                          th:href="@{/attachments/{id}(id=${doc.id})}"
-                         class="badge bg-secondary">
+                         class="attachment-file"
+                         data-bs-toggle="tooltip"
+                         th:data-bs-title="${doc.fileName}">
                         <i class="fas fa-file-pdf"></i>
                       </a>
                     </div>
-                  </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(projects)}">
-                  <td colspan="5" class="text-center text-muted py-3">No projects found.</td>
-                </tr>
-                </tbody>
-              </table>
+                    <div th:if="${#lists.isEmpty(@documentService.getByRef('PROJECT', p.id))}"
+                         class="text-muted">
+                      <small>No attachments</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="project-actions">
+                    <a th:href="@{/admin/projects/{id}/view(id=${p.id})}"
+                       class="action-btn btn-view">
+                      <i class="fas fa-eye"></i>
+                      <span class="d-none d-lg-inline">View</span>
+                    </a>
+                    <a th:href="@{/admin/projects/{id}/edit(id=${p.id})}"
+                       class="action-btn btn-edit">
+                      <i class="fas fa-edit"></i>
+                      <span class="d-none d-lg-inline">Edit</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              <!-- Sample data for demo -->
+              <tr th:if="${#lists.isEmpty(projects)}">
+                <td>
+                  <div class="project-title">Gasabo Solar Grid Extension</div>
+                  <div class="project-description">Expanding solar infrastructure to 200 households</div>
+                </td>
+                <td>
+                  <span class="status-badge status-ongoing">Ongoing</span>
+                </td>
+                <td>
+                  <div class="location-info">
+                    <i class="fas fa-map-marker-alt location-icon"></i>
+                    <span>Kigali, Gasabo District</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="date-range">
+                    <div class="date-start">Feb 01, 2025</div>
+                    <div class="date-end">to May 15, 2025</div>
+                  </div>
+                </td>
+                <td>
+                  <div class="attachments-preview">
+                    <div class="attachment-file">
+                      <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="attachment-file">
+                      <i class="fas fa-image"></i>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="project-actions">
+                    <a href="#" class="action-btn btn-view">
+                      <i class="fas fa-eye"></i>
+                      <span class="d-none d-lg-inline">View</span>
+                    </a>
+                    <a href="#" class="action-btn btn-edit">
+                      <i class="fas fa-edit"></i>
+                      <span class="d-none d-lg-inline">Edit</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+
+              <tr th:if="${#lists.isEmpty(projects)}">
+                <td>
+                  <div class="project-title">Rusizi Hydroelectric Solar Hybrid</div>
+                  <div class="project-description">Combined renewable energy solution for rural areas</div>
+                </td>
+                <td>
+                  <span class="status-badge status-upcoming">Upcoming</span>
+                </td>
+                <td>
+                  <div class="location-info">
+                    <i class="fas fa-map-marker-alt location-icon"></i>
+                    <span>Western Province, Rusizi</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="date-range">
+                    <div class="date-start">Jun 01, 2025</div>
+                    <div class="date-end">to Sep 30, 2025</div>
+                  </div>
+                </td>
+                <td>
+                  <div class="attachments-preview">
+                    <div class="attachment-file">
+                      <i class="fas fa-file-contract"></i>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="project-actions">
+                    <a href="#" class="action-btn btn-view">
+                      <i class="fas fa-eye"></i>
+                      <span class="d-none d-lg-inline">View</span>
+                    </a>
+                    <a href="#" class="action-btn btn-edit">
+                      <i class="fas fa-edit"></i>
+                      <span class="d-none d-lg-inline">Edit</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+
+              <tr th:if="${#lists.isEmpty(projects)}">
+                <td>
+                  <div class="project-title">Huye University Campus Solar</div>
+                  <div class="project-description">Complete solar electrification of university facilities</div>
+                </td>
+                <td>
+                  <span class="status-badge status-completed">Completed</span>
+                </td>
+                <td>
+                  <div class="location-info">
+                    <i class="fas fa-map-marker-alt location-icon"></i>
+                    <span>Southern Province, Huye</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="date-range">
+                    <div class="date-start">Oct 15, 2024</div>
+                    <div class="date-end">to Dec 20, 2024</div>
+                  </div>
+                </td>
+                <td>
+                  <div class="attachments-preview">
+                    <div class="attachment-file">
+                      <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="attachment-file">
+                      <i class="fas fa-image"></i>
+                    </div>
+                    <div class="attachment-file">
+                      <i class="fas fa-chart-line"></i>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="project-actions">
+                    <a href="#" class="action-btn btn-view">
+                      <i class="fas fa-eye"></i>
+                      <span class="d-none d-lg-inline">View</span>
+                    </a>
+                    <a href="#" class="action-btn btn-edit">
+                      <i class="fas fa-edit"></i>
+                      <span class="d-none d-lg-inline">Edit</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state d-none" id="emptyState">
+            <div class="empty-icon">
+              <i class="fas fa-solar-panel"></i>
             </div>
+            <h5>No Projects Found</h5>
+            <p>Create your first solar project to get started with BBOXXTrack.</p>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Footer -->
-    <footer class="bg-light text-center p-3 mt-auto">
-      <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
-    </footer>
   </div>
 </div>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Sidebar Toggle
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.getElementById('mainContent');
+
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('expanded');
+  });
+
+  // Mobile sidebar
+  if (window.innerWidth <= 768) {
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('show');
+    });
+  }
+
+  // File Upload Handling
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const filePreview = document.getElementById('filePreview');
+
+  fileUploadArea.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileUploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    fileUploadArea.classList.add('dragover');
+  });
+
+  fileUploadArea.addEventListener('dragleave', () => {
+    fileUploadArea.classList.remove('dragover');
+  });
+
+  fileUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileUploadArea.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    displayFilePreview(e.dataTransfer.files);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    displayFilePreview(e.target.files);
+  });
+
+  function displayFilePreview(files) {
+    filePreview.innerHTML = '';
+
+    if (files.length === 0) return;
+
+    const previewContainer = document.createElement('div');
+    previewContainer.className = 'd-flex flex-wrap gap-2 mt-2';
+
+    Array.from(files).forEach((file, index) => {
+      const fileItem = document.createElement('div');
+      fileItem.className = 'file-preview-item d-flex align-items-center bg-light p-2 rounded';
+      fileItem.style.maxWidth = '200px';
+
+      const fileIcon = document.createElement('i');
+      fileIcon.className = file.type.startsWith('image/') ? 'fas fa-image text-primary' : 'fas fa-file-pdf text-danger';
+
+      const fileName = document.createElement('span');
+      fileName.className = 'ms-2 text-truncate';
+      fileName.textContent = file.name;
+      fileName.style.fontSize = '0.8rem';
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'btn btn-sm btn-outline-danger ms-auto';
+      removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+      removeBtn.onclick = () => removeFile(index);
+
+      fileItem.appendChild(fileIcon);
+      fileItem.appendChild(fileName);
+      fileItem.appendChild(removeBtn);
+      previewContainer.appendChild(fileItem);
+    });
+
+    filePreview.appendChild(previewContainer);
+  }
+
+  function removeFile(index) {
+    const dt = new DataTransfer();
+    const files = fileInput.files;
+
+    for (let i = 0; i < files.length; i++) {
+      if (i !== index) {
+        dt.items.add(files[i]);
+      }
+    }
+
+    fileInput.files = dt.files;
+    displayFilePreview(dt.files);
+  }
+
+  // Form Validation and Submission
+  const projectForm = document.getElementById('projectForm');
+
+  projectForm.addEventListener('submit', function(e) {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+
+    // Add loading state
+    submitBtn.innerHTML = '<div class="loading me-2"></div>Creating...';
+    submitBtn.disabled = true;
+
+    // Form validation
+    const title = this.querySelector('input[name="projectTitle"]').value;
+    const status = this.querySelector('select[name="status"]').value;
+    const location = this.querySelector('input[name="location"]').value;
+    const startDate = this.querySelector('input[name="startDate"]').value;
+    const endDate = this.querySelector('input[name="endDate"]').value;
+
+    if (!title || !status || !location || !startDate || !endDate) {
+      e.preventDefault();
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+
+      showAlert('Please fill in all required fields.', 'danger');
+      return;
+    }
+
+    // Date validation
+    if (new Date(startDate) >= new Date(endDate)) {
+      e.preventDefault();
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+
+      showAlert('End date must be after start date.', 'danger');
+      return;
+    }
+  });
+
+  // Search and Filter Functionality
+  const projectSearch = document.getElementById('projectSearch');
+  const statusFilter = document.getElementById('statusFilter');
+  const projectsTableBody = document.getElementById('projectsTableBody');
+
+  function filterProjects() {
+    const searchTerm = projectSearch.value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const rows = projectsTableBody.querySelectorAll('tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const title = row.querySelector('.project-title')?.textContent.toLowerCase() || '';
+      const location = row.querySelector('.location-info span')?.textContent.toLowerCase() || '';
+      const status = row.querySelector('.status-badge')?.textContent.toLowerCase() || '';
+
+      const matchesSearch = title.includes(searchTerm) || location.includes(searchTerm);
+      const matchesStatus = !statusFilter || status.includes(statusFilter.toLowerCase());
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    // Show/hide empty state
+    const emptyState = document.getElementById('emptyState');
+    if (visibleCount === 0) {
+      emptyState.classList.remove('d-none');
+    } else {
+      emptyState.classList.add('d-none');
+    }
+  }
+
+  projectSearch.addEventListener('input', filterProjects);
+  statusFilter.addEventListener('change', filterProjects);
+
+  // Alert Function
+  function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+      alertDiv.remove();
+    }, 5000);
+  }
+
+  // Initialize Tooltips
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+
+  // Responsive handling
+  function handleResize() {
+    if (window.innerWidth <= 768) {
+      sidebar.classList.add('collapsed');
+      mainContent.classList.add('expanded');
+    } else {
+      sidebar.classList.remove('show');
+    }
+  }
+
+  window.addEventListener('resize', handleResize);
+
+  // Auto-refresh projects list (simulation)
+  function refreshProjectStats() {
+    // Simulate real-time updates of project statistics
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach((stat, index) => {
+      const currentValue = parseInt(stat.textContent);
+      const variation = Math.floor(Math.random() * 3) - 1; // -1 to +1
+      const newValue = Math.max(0, currentValue + variation);
+
+      if (variation !== 0) {
+        stat.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          stat.style.transform = 'scale(1)';
+          stat.textContent = newValue;
+        }, 200);
+      }
+    });
+  }
+
+  // Refresh stats every 2 minutes
+  setInterval(refreshProjectStats, 120000);
+
+  // Add animation to cards on load
+  function animateCards() {
+    const cards = document.querySelectorAll('.stat-card, .create-project-card, .projects-list-card');
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+
+      setTimeout(() => {
+        card.style.transition = 'all 0.6s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 100);
+    });
+  }
+
+  // Run animation on page load
+  setTimeout(animateCards, 300);
+
+  // Enhanced project actions
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.action-btn')) {
+      const btn = e.target.closest('.action-btn');
+      const originalContent = btn.innerHTML;
+
+      // Add loading state
+      btn.innerHTML = '<div class="loading"></div>';
+      btn.style.pointerEvents = 'none';
+
+      setTimeout(() => {
+        btn.innerHTML = originalContent;
+        btn.style.pointerEvents = 'auto';
+      }, 1000);
+    }
+  });
+
+  // Auto-save form data to localStorage
+  const formFields = projectForm.querySelectorAll('input, select, textarea');
+  formFields.forEach(field => {
+    // Load saved data
+    const savedValue = localStorage.getItem(`project_${field.name}`);
+    if (savedValue && field.type !== 'file') {
+      field.value = savedValue;
+    }
+
+    // Save data on change
+    field.addEventListener('change', function() {
+      if (this.type !== 'file') {
+        localStorage.setItem(`project_${this.name}`, this.value);
+      }
+    });
+  });
+
+  // Clear saved data on successful form submission
+  projectForm.addEventListener('submit', function(e) {
+    if (!e.defaultPrevented) {
+      formFields.forEach(field => {
+        localStorage.removeItem(`project_${field.name}`);
+      });
+    }
+  });
+</script>
 </body>
 </html>

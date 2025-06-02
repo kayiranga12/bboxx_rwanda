@@ -1,3 +1,4 @@
+// src/main/java/com/bboxxtrack/Model/Customer.java
 package com.bboxxtrack.Model;
 
 import jakarta.persistence.*;
@@ -6,10 +7,11 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.util.List;
 
-@Getter
-@Setter
 @Entity
+@Table(name = "customer")
+@Getter @Setter
 public class Customer {
 
     @Id
@@ -17,6 +19,7 @@ public class Customer {
     private Long id;
 
     private String fullName;
+    private String email;
     private String address;
     private String phoneNumber;
     private String energyPlan;
@@ -26,16 +29,11 @@ public class Customer {
     @Column(updatable = false)
     private LocalDate registrationDate;
 
-    // Getters and Setters
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MaintenanceSchedule> schedules;
 
-
-    public LocalDate getRegistrationDate() {
-        return registrationDate;
-    }
-
-    public void setRegistrationDate(LocalDate registrationDate) {
-        this.registrationDate = registrationDate;
-    }
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Ticket> tickets;
 
     public Long getId() {
         return id;
@@ -51,6 +49,14 @@ public class Customer {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getAddress() {
@@ -83,5 +89,29 @@ public class Customer {
 
     public void setPaymentCompleted(boolean paymentCompleted) {
         this.paymentCompleted = paymentCompleted;
+    }
+
+    public LocalDate getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(LocalDate registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+
+    public List<MaintenanceSchedule> getSchedules() {
+        return schedules;
+    }
+
+    public void setSchedules(List<MaintenanceSchedule> schedules) {
+        this.schedules = schedules;
+    }
+
+    public List<Ticket> getTickets() {
+        return tickets;
+    }
+
+    public void setTickets(List<Ticket> tickets) {
+        this.tickets = tickets;
     }
 }

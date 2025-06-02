@@ -1,9 +1,13 @@
 package com.bboxxtrack.Model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+
 @Entity
+@Table(name = "task")
 public class Task {
 
     @Id
@@ -17,19 +21,16 @@ public class Task {
     private LocalDate assignedDate;
     private LocalDate dueDate;
 
-    private Long projectId;
-    private Long assignedToUserId;
-
-    @Column(name="recurrence_rule")
+    @Column(name = "recurrence_rule")
     private String recurrenceRule;
 
-    public String getRecurrenceRule() {
-        return recurrenceRule;
-    }
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 
-    public void setRecurrenceRule(String recurrenceRule) {
-        this.recurrenceRule = recurrenceRule;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to_user_id")
+    private User assignedTo;
 
     public Long getId() {
         return id;
@@ -79,19 +80,27 @@ public class Task {
         this.dueDate = dueDate;
     }
 
-    public Long getProjectId() {
-        return projectId;
+    public String getRecurrenceRule() {
+        return recurrenceRule;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setRecurrenceRule(String recurrenceRule) {
+        this.recurrenceRule = recurrenceRule;
     }
 
-    public Long getAssignedToUserId() {
-        return assignedToUserId;
+    public Project getProject() {
+        return project;
     }
 
-    public void setAssignedToUserId(Long assignedToUserId) {
-        this.assignedToUserId = assignedToUserId;
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public User getAssignedTo() {
+        return assignedTo;
+    }
+
+    public void setAssignedTo(User assignedTo) {
+        this.assignedTo = assignedTo;
     }
 }

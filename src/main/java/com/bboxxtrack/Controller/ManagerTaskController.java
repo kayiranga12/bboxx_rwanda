@@ -1,110 +1,209 @@
 package com.bboxxtrack.Controller;
 
+import com.bboxxtrack.Model.Project;
 import com.bboxxtrack.Model.Task;
+import com.bboxxtrack.Model.Ticket;
+import com.bboxxtrack.Model.TicketAssignmentDto;
+import com.bboxxtrack.Model.TicketStage;
 import com.bboxxtrack.Model.User;
 import com.bboxxtrack.Service.ProjectService;
 import com.bboxxtrack.Service.TaskService;
+import com.bboxxtrack.Service.TicketService;
 import com.bboxxtrack.Service.UserService;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/manager/tasks")
 public class ManagerTaskController {
 
-    @Autowired
-    private TaskService taskService;
-
-    @Autowired
-    private ProjectService projectService;
-
-    @Autowired
-    private UserService userService;
+    @Autowired private TaskService taskService;
+    @Autowired private ProjectService projectService;
+    @Autowired private UserService userService;
+    @Autowired private TicketService ticketService; // ← make sure this is injected
 
     @GetMapping
-    public String showTaskForm(@RequestParam(required = false) String status, Model model, HttpSession session) {
+    public String showTasks(Model model, HttpSession session) {
         User manager = (User) session.getAttribute("user");
         if (manager == null || !"Project Manager".equals(manager.getRole())) {
             return "redirect:/login";
         }
 
-        List<User> technicians = userService.getAllUsers().stream()
-                .filter(u -> "Technician".equalsIgnoreCase(u.getRole()))
-                .toList();
+        // 1) Load all projects that this manager owns
+        List<Project> projects = projectService.getProjectsByManager(manager.getId());
 
-        List<Task> allTasks = taskService.getAllTasks();
-        if (status != null && !status.isEmpty()) {
-            allTasks = allTasks.stream()
-                    .filter(t -> t.getStatus().equalsIgnoreCase(status))
-                    .toList();
-        }
+        // 2) Load all users whose role = “Technician” (exact role string must match your DB)
+        List<User> techs = userService.getUsersByRole("Technician");
 
-        model.addAttribute("technicians", technicians);
-        model.addAttribute("projects", projectService.getAllProjects());
-        model.addAttribute("tasks", allTasks);
-        model.addAttribute("filterStatus", status);
+        // 3) Load all existing tasks
+        List<Task> tasks = taskService.getAllTasks();
+
+        // 4) **Load all tickets with assignedToUserId == null** (unassigned tickets)
+        List<Ticket> unassignedTickets = ticketService.all().stream()
+                .filter(t -> t.getAssignedToUserId() == null)
+                .collect(Collectors.toList());
+
+        // Build maps for display (if you need them in the template)
+        Map<Long, String> projectNames = projects.stream()
+                .collect(Collectors.toMap(Project::getId, Project::getProjectTitle));
+        Map<Long, String> techNames = techs.stream()
+                .collect(Collectors.toMap(User::getId, User::getUsername));
+
+        model.addAttribute("projects",          projects);
+        model.addAttribute("technicians",       techs);
+        model.addAttribute("tasks",             tasks);
+        model.addAttribute("projectNames",      projectNames);
+        model.addAttribute("techNames",         techNames);
+
+        // Now add exactly these two so Thymeleaf can bind them:
+        model.addAttribute("unassignedTickets", unassignedTickets);
+        model.addAttribute("ticketAssignment",  new TicketAssignmentDto());
 
         return "manager/tasks";
     }
 
+    @PostMapping("/add")
+    public String assignTask(
+            @RequestParam String taskName,
+            @RequestParam String description,
+            @RequestParam Long projectId,
+            @RequestParam Long assignedToUserId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User manager = (User) session.getAttribute("user");
+        if (manager == null || !"Project Manager".equals(manager.getRole())) {
+            return "redirect:/login";
+        }
+
+        try {
+            Task task = new Task();
+            task.setTaskName(taskName);
+            task.setDescription(description);
+            task.setAssignedDate(java.time.LocalDate.now());
+            task.setStatus("Assigned");
+
+            task.setProject(projectService.getById(projectId));
+
+            User tech = userService.getUserById(assignedToUserId);
+            task.setAssignedTo(tech);
+
+            taskService.saveTask(task);
+            redirectAttributes.addFlashAttribute("message","Task assigned successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error","Failed to assign task: " + e.getMessage());
+        }
+        return "redirect:/manager/tasks";
+    }
+
     @PostMapping("/edit")
-    public String editTask(@ModelAttribute Task updatedTask) {
-        Task existing = taskService.getTaskById(updatedTask.getId());
-        if (existing != null) {
-            existing.setTaskName(updatedTask.getTaskName());
-            existing.setDescription(updatedTask.getDescription());
-            existing.setDueDate(updatedTask.getDueDate());
-            existing.setStatus(updatedTask.getStatus());
-            existing.setProjectId(updatedTask.getProjectId());
-            existing.setAssignedToUserId(updatedTask.getAssignedToUserId());
+    public String editTask(
+            @RequestParam Long id,
+            @RequestParam String taskName,
+            @RequestParam String description,
+            @RequestParam String status,
+            @RequestParam Long projectId,
+            @RequestParam Long assignedToUserId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User manager = (User) session.getAttribute("user");
+        if (manager == null || !"Project Manager".equals(manager.getRole())) {
+            return "redirect:/login";
+        }
+
+        try {
+            Task existing = taskService.getTaskById(id);
+            existing.setTaskName(taskName);
+            existing.setDescription(description);
+            existing.setStatus(status);
+
+            existing.setProject(projectService.getById(projectId));
+
+            User tech = userService.getUserById(assignedToUserId);
+            existing.setAssignedTo(tech);
+
             taskService.saveTask(existing);
+            redirectAttributes.addFlashAttribute("message","Task updated successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error","Failed to update task: " + e.getMessage());
         }
         return "redirect:/manager/tasks";
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteTask(@PathVariable Long id) {
-        taskService.deleteTask(id);
-        return "redirect:/manager/tasks";
-    }
-
-    @GetMapping("/export")
-    public void exportTasksToCSV(HttpServletResponse response) throws IOException {
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=tasks.csv");
-
-        List<Task> tasks = taskService.getAllTasks();
-        PrintWriter writer = response.getWriter();
-        writer.println("Task Name,Description,Status,Due Date");
-
-        for (Task t : tasks) {
-            writer.printf("\"%s\",\"%s\",\"%s\",\"%s\"%n",
-                    t.getTaskName(), t.getDescription(), t.getStatus(), t.getDueDate());
-        }
-
-        writer.flush();
-        writer.close();
-    }
-
-    @PostMapping("/add")
-    public String assignTask(@ModelAttribute Task task, HttpSession session) {
+    public String deleteTask(
+            @PathVariable Long id,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
         User manager = (User) session.getAttribute("user");
         if (manager == null || !"Project Manager".equals(manager.getRole())) {
             return "redirect:/login";
         }
 
-        task.setAssignedDate(LocalDate.now());
-        task.setStatus("Assigned");
-        taskService.saveTask(task);
+        try {
+            taskService.deleteTask(id);
+            redirectAttributes.addFlashAttribute("message","Task deleted successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error","Failed to delete task: " + e.getMessage());
+        }
+        return "redirect:/manager/tasks";
+    }
+
+    @PostMapping("/assign-ticket")
+    public String assignTicket(
+            @Valid @ModelAttribute("ticketAssignment") TicketAssignmentDto dto,
+            BindingResult bindingResult,
+            HttpSession session,
+            RedirectAttributes redirectAttributes,
+            Model model
+    ) {
+        User manager = (User) session.getAttribute("user");
+        if (manager == null || !"Project Manager".equals(manager.getRole())) {
+            return "redirect:/login";
+        }
+
+        if (bindingResult.hasErrors()) {
+            // Validation failed → re‐populate the page so errors show up
+            showTasks(model, session);
+            return "manager/tasks";
+        }
+
+        Long ticketId     = dto.getTicketId();
+        Long technicianId = dto.getTechnicianId();
+
+        Ticket ticket = ticketService.get(ticketId);
+        User tech     = userService.getUserById(technicianId);
+
+        if (ticket == null) {
+            redirectAttributes.addFlashAttribute("error","Selected ticket not found.");
+            return "redirect:/manager/tasks";
+        }
+        if (tech == null || !"Technician".equals(tech.getRole())) {
+            redirectAttributes.addFlashAttribute("error","Selected user is not a technician.");
+            return "redirect:/manager/tasks";
+        }
+
+        // Assign and advance stage:
+        ticket.setAssignedToUserId(technicianId);
+        ticket.setStage(TicketStage.ASSIGNED_TO_TECH);
+        ticketService.save(ticket);
+
+        redirectAttributes.addFlashAttribute(
+                "message",
+                "Ticket #" + ticket.getId() + " assigned to “" + tech.getUsername() + "”"
+        );
         return "redirect:/manager/tasks";
     }
 }

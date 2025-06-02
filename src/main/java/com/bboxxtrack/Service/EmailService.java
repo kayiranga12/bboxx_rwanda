@@ -50,36 +50,18 @@ public class EmailService {
         }
     }
 
-    public void sendCalendarInvite(
-            String toEmail, String subject,
-            String description,
-            LocalDateTime start, LocalDateTime end,
-            String uid
-    ) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
-        StringBuilder ics = new StringBuilder()
-                .append("BEGIN:VCALENDAR\r\n")
-                .append("VERSION:2.0\r\n")
-                .append("PRODID:-//BBOXXTrack//EN\r\n")
-                .append("BEGIN:VEVENT\r\n")
-                .append("UID:").append(uid).append("\r\n")
-                .append("DTSTAMP:").append(dtf.format(LocalDateTime.now())).append("\r\n")
-                .append("DTSTART:").append(dtf.format(start)).append("\r\n")
-                .append("DTEND:").append(dtf.format(end)).append("\r\n")
-                .append("SUMMARY:").append(subject).append("\r\n")
-                .append("DESCRIPTION:").append(description).append("\r\n")
-                .append("END:VEVENT\r\n")
-                .append("END:VCALENDAR");
 
-        sendEmailWithAttachment(
-                toEmail,
-                subject,
-                "Please find your calendar invite attached.",
-                ics.toString().getBytes(StandardCharsets.UTF_8),
-                "invite.ics",
-                "text/calendar; charset=UTF-8; method=REQUEST"
-        );
+    public void sendCalendarInvite(String toEmail, String subject, String description,
+                                   LocalDateTime startTime, LocalDateTime endTime, String eventId) {
+        // Placeholder for sending calendar invite
+        System.out.println("Sending calendar invite to " + toEmail + " for event: " + subject);
+        System.out.println("Description: " + description);
+        System.out.println("Start: " + startTime + ", End: " + endTime + ", Event ID: " + eventId);
+        // In production, integrate with a mail server (e.g., JavaMailSender) to send .ics files
     }
 
-
+    public void sendTicketNotification(Object ticket) {
+        // Placeholder for ticket notification
+        System.out.println("Sending ticket notification for ticket: " + ticket);
+    }
 }

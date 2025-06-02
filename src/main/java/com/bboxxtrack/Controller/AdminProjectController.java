@@ -10,7 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/projects")
@@ -19,36 +19,44 @@ public class AdminProjectController {
     @Autowired private ProjectService projectService;
     @Autowired private DocumentService documentService;
 
-    // 1) Show form + list
     @GetMapping
     public String showProjects(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
         if (user == null || !"Admin".equals(user.getRole())) {
             return "redirect:/login";
         }
-        // empty form backing object (if you ever need th:object)
         model.addAttribute("projects", projectService.getAllProjects());
+        model.addAttribute("newProject", new Project());
         return "admin/projects";
     }
 
-    // 2) Handle form submission (including files)
     @PostMapping("/add")
-    public String addProject(@ModelAttribute Project project,
-                             @RequestParam(value="files", required=false) MultipartFile[] files) throws Exception {
-        // 2a) save the Project first
-        Project saved = projectService.saveProject(project);
-
-        // 2b) if any attachments, save them
-        if (files != null) {
-            for (MultipartFile f : files) {
-                if (!f.isEmpty()) {
-                    // refType = "PROJECT", refId = saved.getId()
-                    documentService.save(f, "PROJECT", saved.getId());
-                }
-            }
+    public String addProject(
+            @ModelAttribute Project project,
+            @RequestParam(value="files", required=false) MultipartFile[] files,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User user = (User) session.getAttribute("user");
+        if (user == null || !"Admin".equals(user.getRole())) {
+            return "redirect:/login";
         }
 
-        // 3) redirect back to the combined GET view
+        try {
+            Project saved = projectService.saveProject(project);
+            if (files != null) {
+                for (MultipartFile f : files) {
+                    if (!f.isEmpty()) {
+                        documentService.save(f, "PROJECT", saved.getId());
+                    }
+                }
+            }
+            redirectAttributes.addFlashAttribute("message", "Project created successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to create project: " + e.getMessage());
+        }
+
         return "redirect:/admin/projects";
     }
+
 }

@@ -3,6 +3,8 @@ package com.bboxxtrack.Service;
 
 import com.bboxxtrack.Model.ScheduledReport;
 import com.bboxxtrack.Model.Task;
+import com.bboxxtrack.Model.Project;
+import com.bboxxtrack.Model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +17,12 @@ import java.util.List;
 @Service
 public class ReportGenerationService {
 
-    @Autowired private TaskService taskService;
+    @Autowired private TaskService    taskService;
     @Autowired private ProjectService projectService;
-    @Autowired private UserService userService;
+    @Autowired private UserService    userService;
 
     /**
-     * Returns a CSV or PDF byte array depending on report.format.
-     * Here we implement CSV for completed tasks in last N days.
+     * Returns a CSV byte array for the “completedTasksLast7” template.
      */
     public byte[] generate(ScheduledReport rpt) throws Exception {
         if ("completedTasksLast7".equals(rpt.getTemplateKey())) {
@@ -41,23 +42,24 @@ public class ReportGenerationService {
                     DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE;
 
                     for (Task t : tasks) {
-                        // look up project title
+                        // look up project title via the relationship
                         String projectTitle = "";
-                        if (t.getProjectId() != null) {
-                            var p = projectService.getProjectById(t.getProjectId());
-                            projectTitle = (p != null ? p.getProjectTitle() : "");
+                        Project p = t.getProject();
+                        if (p != null) {
+                            projectTitle = p.getProjectTitle();
                         }
-                        // look up technician name
+
+                        // look up technician name via the relationship
                         String techName = "";
-                        if (t.getAssignedToUserId() != null) {
-                            var u = userService.getUserById(t.getAssignedToUserId());
-                            techName = (u != null ? u.getFullName() : "");
+                        User u = t.getAssignedTo();
+                        if (u != null) {
+                            techName = String.valueOf(u.getUsername());
                         }
 
                         // escape quotes
-                        String taskNameEsc = t.getTaskName().replace("\"","\"\"");
-                        String projEsc     = projectTitle.replace("\"","\"\"");
-                        String techEsc     = techName.replace("\"","\"\"");
+                        String taskNameEsc = t.getTaskName().replace("\"", "\"\"");
+                        String projEsc     = projectTitle.replace("\"", "\"\"");
+                        String techEsc     = techName.replace("\"", "\"\"");
 
                         writer.printf(
                                 "\"%s\",\"%s\",\"%s\",%s%n",
@@ -72,7 +74,7 @@ public class ReportGenerationService {
                     return baos.toByteArray();
                 }
             }
-            // TODO: PDF generation branch if needed
+            // you could add a PDF branch here if needed...
         }
 
         throw new IllegalArgumentException("Unknown template: " + rpt.getTemplateKey());

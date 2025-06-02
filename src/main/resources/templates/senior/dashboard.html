@@ -3,209 +3,1615 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Executive Dashboard – BBOXXTrack</title>
+    <title>Executive Dashboard | BBOXXTrack</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    <script src="/js/script.js" defer></script>
+
+    <style>
+        :root {
+            --bboxx-orange: #FF6B35;
+            --bboxx-dark-orange: #E55A2E;
+            --bboxx-blue: #1B365D;
+            --bboxx-dark-blue: #0F1F35;
+            --bboxx-light-blue: #2E5984;
+            --bboxx-green: #4CAF50;
+            --bboxx-yellow: #FFC107;
+            --bboxx-red: #DC3545;
+            --bboxx-gray: #F8F9FA;
+            --bboxx-dark-gray: #333333;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, var(--bboxx-blue) 0%, var(--bboxx-dark-blue) 100%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .logo .track {
+            color: var(--bboxx-orange);
+            font-weight: 400;
+        }
+
+        .sidebar.collapsed .logo .track {
+            display: none;
+        }
+
+        .user-badge {
+            background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar.collapsed .user-badge {
+            display: none;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+            height: calc(100vh - 180px);
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            margin: 0.2rem 1rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 107, 53, 0.15);
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: var(--bboxx-orange);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            margin: 0.2rem 0.5rem;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        /* Top Navigation */
+        .top-navbar {
+            background: white;
+            height: var(--header-height);
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bboxx-gray);
+            color: var(--bboxx-orange);
+        }
+
+        .welcome-message {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+        }
+
+        .navbar-search {
+            position: relative;
+            margin: 0 2rem;
+        }
+
+        .navbar-search input {
+            width: 300px;
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            border: 2px solid #E1E5E9;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-search input:focus {
+            border-color: var(--bboxx-orange);
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+            outline: none;
+        }
+
+        .navbar-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .time-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 107, 53, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--bboxx-orange);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-menu:hover {
+            background: var(--bboxx-gray);
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bboxx-blue), var(--bboxx-dark-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* Main Content Area */
+        .dashboard-content {
+            padding: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .header-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .kpi-card.revenue::before {
+            background: linear-gradient(135deg, var(--bboxx-green), #45a049);
+        }
+
+        .kpi-card.customers::before {
+            background: linear-gradient(135deg, var(--bboxx-blue), var(--bboxx-light-blue));
+        }
+
+        .kpi-card.installations::before {
+            background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+        }
+
+        .kpi-card.efficiency::before {
+            background: linear-gradient(135deg, #9C27B0, #673AB7);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .kpi-icon.green {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(69, 160, 73, 0.1));
+            color: var(--bboxx-green);
+        }
+
+        .kpi-icon.blue {
+            background: linear-gradient(135deg, rgba(27, 54, 93, 0.1), rgba(46, 89, 132, 0.1));
+            color: var(--bboxx-blue);
+        }
+
+        .kpi-icon.orange {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(229, 90, 46, 0.1));
+            color: var(--bboxx-orange);
+        }
+
+        .kpi-icon.purple {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(103, 58, 183, 0.1));
+            color: #9C27B0;
+        }
+
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            color: #666;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .kpi-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .trend-up {
+            color: var(--bboxx-green);
+        }
+
+        .trend-down {
+            color: var(--bboxx-red);
+        }
+
+        .trend-neutral {
+            color: #666;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Chart Cards */
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .chart-header {
+            background: linear-gradient(135deg, var(--bboxx-blue), var(--bboxx-dark-blue));
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-body {
+            padding: 2rem;
+        }
+
+        .chart-container {
+            height: 350px;
+            position: relative;
+        }
+
+        /* Regional Performance */
+        .region-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .region-header {
+            background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+            color: white;
+            padding: 1.5rem 2rem;
+            font-weight: 600;
+        }
+
+        .region-content {
+            padding: 1.5rem 2rem;
+        }
+
+        .region-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .region-item:last-child {
+            border-bottom: none;
+        }
+
+        .region-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .region-flag {
+            width: 30px;
+            height: 20px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--bboxx-blue), var(--bboxx-light-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .region-name {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+        }
+
+        .region-stats {
+            text-align: right;
+        }
+
+        .region-value {
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .region-change {
+            font-size: 0.8rem;
+        }
+
+        /* Key Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-box {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .metric-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            background: white;
+            border: 2px solid var(--bboxx-orange);
+            color: var(--bboxx-orange);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn:hover {
+            background: var(--bboxx-orange);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .action-btn.primary {
+            background: var(--bboxx-orange);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--bboxx-dark-orange);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding: 0 1rem;
+            }
+
+            .navbar-search {
+                display: none;
+            }
+
+            .dashboard-content {
+                padding: 1rem;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 107, 53, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--bboxx-orange);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bboxx-orange);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bboxx-dark-orange);
+        }
+
+        /* Financial Summary */
+        .financial-summary {
+            background: linear-gradient(135deg, var(--bboxx-green), #45a049);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .financial-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+        }
+
+        .financial-item {
+            text-align: center;
+        }
+
+        .financial-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .financial-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
 </head>
 <body>
-<div class="d-flex" id="wrapper">
-    <!-- Sidebar -->
-    <div class="border-end" id="sidebar-wrapper">
-        <div class="sidebar-heading text-center py-4">
-            <a href="/senior/dashboard" class="d-block mb-2">
-                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img">
-            </a>
-            <h5 class="text-white mb-0">Senior Management</h5>
-        </div>
-        <div class="sidebar-menu">
-            <ul class="nav flex-column mt-4">
-                <li class="nav-item">
-                    <a href="/senior/dashboard" class="nav-link active text-white">
-                        <i class="fas fa-chart-pie me-2"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/senior/reports" class="nav-link text-white">
-                        <i class="fas fa-file-alt me-2"></i>Reports
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/senior/analytics" class="nav-link text-white">
-                        <i class="fas fa-chart-line me-2"></i>Analytics
-                    </a>
-                </li>
-                <li class="mt-auto mb-3">
-                    <a href="/logout" class="nav-link text-white">
-                        <i class="fas fa-sign-out-alt me-2"></i>Logout
-                    </a>
-                </li>
-            </ul>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="/executive/dashboard" class="logo">
+            BBOXX<span class="track">Track</span>
+        </a>
+        <div class="user-badge">
+            <i class="fas fa-crown me-1"></i>Executive
         </div>
     </div>
 
-    <!-- Page Content -->
-    <div class="flex-grow-1 content-wrapper">
-        <!-- Top Navbar -->
-        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
-            <div class="container-fluid px-4">
-                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="navbar-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" placeholder="Search metrics...">
-                </div>
-                <div class="ms-auto d-flex align-items-center">
-                    <a href="/logout" class="btn btn-outline-danger btn-sm">
-                        <i class="fas fa-sign-out-alt me-1"></i>Logout
-                    </a>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Section -->
-        <div class="container-fluid px-4 py-4">
-            <div class="page-header mb-4">
-                <h4 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Executive Overview</h4>
-            </div>
-
-            <div class="row g-4">
-                <!-- Metrics Cards -->
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="card-body">
-                            <div class="icon-bg bg-primary bg-opacity-10">
-                                <i class="fas fa-users fa-2x text-primary"></i>
-                            </div>
-                            <h6 class="card-title mt-2">Total Users</h6>
-                            <h2 class="card-value" th:text="${totalUsers}">0</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="card-body">
-                            <div class="icon-bg bg-info bg-opacity-10">
-                                <i class="fas fa-project-diagram fa-2x text-info"></i>
-                            </div>
-                            <h6 class="card-title mt-2">Total Projects</h6>
-                            <h2 class="card-value" th:text="${totalProjects}">0</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="card-body">
-                            <div class="icon-bg bg-success bg-opacity-10">
-                                <i class="fas fa-boxes fa-2x text-success"></i>
-                            </div>
-                            <h6 class="card-title mt-2">Inventory Items</h6>
-                            <h2 class="card-value" th:text="${totalInventory}">0</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="card-body">
-                            <div class="icon-bg bg-warning bg-opacity-10">
-                                <i class="fas fa-tasks fa-2x text-warning"></i>
-                            </div>
-                            <h6 class="card-title mt-2">Total Tasks</h6>
-                            <h2 class="card-value" th:text="${totalTasks}">0</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="card-body">
-                            <div class="icon-bg bg-danger bg-opacity-10">
-                                <i class="fas fa-check-circle fa-2x text-danger"></i>
-                            </div>
-                            <h6 class="card-title mt-2">Tasks Completed</h6>
-                            <h2 class="card-value" th:text="${doneTasks}">0</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="card-body">
-                            <div class="icon-bg bg-secondary bg-opacity-10">
-                                <i class="fas fa-hourglass-half fa-2x text-secondary"></i>
-                            </div>
-                            <h6 class="card-title mt-2">Tasks Pending</h6>
-                            <h2 class="card-value" th:text="${pendingTasks}">0</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Section -->
-            <div class="row mt-4 g-4">
-                <div class="col-lg-6">
-                    <div class="chart-card">
-                        <div class="card-header">Project Status Breakdown</div>
-                        <div class="card-body">
-                            <canvas id="projectStatusChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="chart-card">
-                        <div class="card-header">Task Completion Rate</div>
-                        <div class="card-body">
-                            <canvas id="taskCompletionChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Export Reports -->
-            <div class="mt-4 text-end">
-                <a href="/senior/reports/export" class="btn btn-download">
-                    <i class="fas fa-download me-1"></i>Download Full Report
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="/executive/dashboard" class="nav-link active">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Executive Overview</span>
                 </a>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="bg-light text-center p-3 mt-auto">
-            <div class="container">
-                <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
-            </div>
-        </footer>
+            </li>
+            <li class="nav-item">
+                <a href="/executive/financial" class="nav-link">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Financial Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/executive/operations" class="nav-link">
+                    <i class="fas fa-cogs"></i>
+                    <span>Operations</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/executive/analytics" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Advanced Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/executive/reports" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Strategic Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/executive/team" class="nav-link">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Organization</span>
+                </a>
+            </li>
+            <li class="nav-item mt-auto">
+                <a href="/logout" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
     </div>
 </div>
 
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="welcome-message">
+                Good Morning, Executive Team! 👋
+            </div>
+        </div>
+
+        <div class="navbar-search">
+            <i class="fas fa-search"></i>
+            <input type="text" class="form-control" placeholder="Search metrics, reports, analytics...">
+        </div>
+
+        <div class="navbar-right">
+            <div class="time-selector" id="timeSelector">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Last 30 Days</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="user-menu" data-bs-toggle="dropdown">
+                <div class="user-avatar">CEO</div>
+                <i class="fas fa-chevron-down d-none d-md-inline"></i>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a class="dropdown-item" href="/executive/profile">
+                        <i class="fas fa-user me-2"></i> Executive Profile
+                    </a>
+                    <a class="dropdown-item" href="/executive/settings">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="header-title">Executive Strategic Dashboard</h2>
+                    <p class="header-subtitle">
+                        High-level insights, KPIs, and strategic metrics for senior leadership
+                    </p>
+                </div>
+                <div class="text-end">
+                    <div class="text-muted small">Today</div>
+                    <div class="fw-bold" id="currentDate">Thursday, May 29, 2025</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="financial-summary">
+            <div class="financial-title">
+                <i class="fas fa-chart-line"></i>
+                Financial Performance Overview
+            </div>
+            <div class="financial-grid">
+                <div class="financial-item">
+                    <div class="financial-value">$2.4M</div>
+                    <div class="financial-label">Monthly Revenue</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">$28.8M</div>
+                    <div class="financial-label">Annual Revenue</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">18%</div>
+                    <div class="financial-label">Growth Rate</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">$485K</div>
+                    <div class="financial-label">Monthly Profit</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card revenue">
+                <div class="kpi-icon green">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="kpi-value">15,847</div>
+                <div class="kpi-label">Active Customers</div>
+                <div class="kpi-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 12% vs last month
+                </div>
+            </div>
+
+            <div class="kpi-card customers">
+                <div class="kpi-icon blue">
+                    <i class="fas fa-solar-panel"></i>
+                </div>
+                <div class="kpi-value">3,247</div>
+                <div class="kpi-label">Systems Deployed</div>
+                <div class="kpi-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 8% vs last month
+                </div>
+            </div>
+
+            <div class="kpi-card installations">
+                <div class="kpi-icon orange">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="kpi-value">94.2%</div>
+                <div class="kpi-label">Operational Efficiency</div>
+                <div class="kpi-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 3% vs last month
+                </div>
+            </div>
+
+            <div class="kpi-card efficiency">
+                <div class="kpi-icon purple">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="kpi-value">4.8/5</div>
+                <div class="kpi-label">Customer Satisfaction</div>
+                <div class="kpi-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 0.2 vs last month
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="/executive/reports/generate" class="action-btn primary">
+                <i class="fas fa-file-download"></i>
+                Generate Executive Report
+            </a>
+            <a href="/executive/analytics/deep-dive" class="action-btn">
+                <i class="fas fa-chart-bar"></i>
+                Deep Analytics
+            </a>
+            <a href="/executive/financial/forecast" class="action-btn">
+                <i class="fas fa-calculator"></i>
+                Financial Forecast
+            </a>
+            <a href="/executive/strategy/review" class="action-btn">
+                <i class="fas fa-chess"></i>
+                Strategy Review
+            </a>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Charts Section -->
+            <div>
+                <!-- Revenue Trend Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-chart-area"></i>
+                            Revenue & Growth Trends
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-light" onclick="updateChart('revenue', '7d')">7D</button>
+                            <button class="btn btn-sm btn-light active" onclick="updateChart('revenue', '30d')">30D</button>
+                            <button class="btn btn-sm btn-light" onclick="updateChart('revenue', '90d')">90D</button>
+                            <button class="btn btn-sm btn-light" onclick="updateChart('revenue', '1y')">1Y</button>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operational Metrics Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-cogs"></i>
+                            Operational Performance Metrics
+                        </h5>
+                        <select class="form-select form-select-sm" style="width: auto;" onchange="updateOperationalChart(this.value)">
+                            <option value="installations">Installations</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="support">Support</option>
+                            <option value="efficiency">Efficiency</option>
+                        </select>
+                    </div>
+                    <div class="chart-body">
+                        <div class="chart-container">
+                            <canvas id="operationalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <!-- Regional Performance -->
+                <div class="region-card">
+                    <div class="region-header">
+                        <i class="fas fa-globe-africa me-2"></i>
+                        Regional Performance
+                    </div>
+                    <div class="region-content">
+                        <div class="region-item">
+                            <div class="region-info">
+                                <div class="region-flag">KG</div>
+                                <div>
+                                    <div class="region-name">Kigali</div>
+                                    <small class="text-muted">Urban Centers</small>
+                                </div>
+                            </div>
+                            <div class="region-stats">
+                                <div class="region-value">8,420</div>
+                                <div class="region-change trend-up">
+                                    <i class="fas fa-arrow-up"></i> 15%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="region-item">
+                            <div class="region-info">
+                                <div class="region-flag">EP</div>
+                                <div>
+                                    <div class="region-name">Eastern Province</div>
+                                    <small class="text-muted">Rural Areas</small>
+                                </div>
+                            </div>
+                            <div class="region-stats">
+                                <div class="region-value">3,847</div>
+                                <div class="region-change trend-up">
+                                    <i class="fas fa-arrow-up"></i> 22%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="region-item">
+                            <div class="region-info">
+                                <div class="region-flag">NP</div>
+                                <div>
+                                    <div class="region-name">Northern Province</div>
+                                    <small class="text-muted">Highland Areas</small>
+                                </div>
+                            </div>
+                            <div class="region-stats">
+                                <div class="region-value">2,156</div>
+                                <div class="region-change trend-up">
+                                    <i class="fas fa-arrow-up"></i> 8%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="region-item">
+                            <div class="region-info">
+                                <div class="region-flag">SP</div>
+                                <div>
+                                    <div class="region-name">Southern Province</div>
+                                    <small class="text-muted">Agricultural Areas</small>
+                                </div>
+                            </div>
+                            <div class="region-stats">
+                                <div class="region-value">1,424</div>
+                                <div class="region-change trend-neutral">
+                                    <i class="fas fa-minus"></i> 0%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Performance Indicators -->
+                <div class="region-card">
+                    <div class="region-header">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Key Performance Indicators
+                    </div>
+                    <div class="region-content">
+                        <div class="metrics-grid">
+                            <div class="metric-box">
+                                <div class="metric-value">98.7%</div>
+                                <div class="metric-label">System Uptime</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-value">2.3h</div>
+                                <div class="metric-label">Avg Response Time</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-value">$156</div>
+                                <div class="metric-label">Customer LTV</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-value">92%</div>
+                                <div class="metric-label">First Call Resolution</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="small">Market Penetration</span>
+                                <span class="fw-bold">67%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 67%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="small">Customer Retention</span>
+                                <span class="fw-bold">89%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" style="width: 89%; background: var(--bboxx-orange);"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="small">Employee Satisfaction</span>
+                                <span class="fw-bold">91%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" style="width: 91%; background: var(--bboxx-blue);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategic Alerts -->
+                <div class="region-card">
+                    <div class="region-header">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Strategic Alerts
+                    </div>
+                    <div class="region-content">
+                        <div class="alert alert-warning border-0 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-chart-line me-2"></i>
+                                <div>
+                                    <strong>Revenue Target</strong><br>
+                                    <small>Q2 target 95% achieved. Focus needed for June.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users me-2"></i>
+                                <div>
+                                    <strong>Team Expansion</strong><br>
+                                    <small>15 new technicians onboarded this month.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-success border-0 mb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-award me-2"></i>
+                                <div>
+                                    <strong>Customer Satisfaction</strong><br>
+                                    <small>Exceeded target by 8% this quarter.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Intelligence Summary -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h5 class="chart-title">
+                    <i class="fas fa-brain"></i>
+                    Business Intelligence & Forecasting
+                </h5>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-light" onclick="switchForecast('revenue')">Revenue</button>
+                    <button class="btn btn-sm btn-light" onclick="switchForecast('customers')">Customers</button>
+                    <button class="btn btn-sm btn-light" onclick="switchForecast('market')">Market Share</button>
+                </div>
+            </div>
+            <div class="chart-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="forecastChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="h-100 d-flex flex-column justify-content-center">
+                            <div class="text-center mb-4">
+                                <h3 class="text-primary mb-1">$3.2M</h3>
+                                <p class="text-muted mb-0">Projected Next Month</p>
+                            </div>
+                            <div class="text-center mb-4">
+                                <h3 class="text-success mb-1">+24%</h3>
+                                <p class="text-muted mb-0">Forecasted Growth</p>
+                            </div>
+                            <div class="text-center">
+                                <h3 class="text-warning mb-1">85%</h3>
+                                <p class="text-muted mb-0">Confidence Level</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive Actions -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-tasks"></i>
+                            Strategic Initiatives
+                        </h5>
+                    </div>
+                    <div class="chart-body">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Market Expansion - Phase 2</h6>
+                                        <p class="mb-1 small text-muted">Expand to Western Province markets</p>
+                                    </div>
+                                    <span class="badge bg-success">On Track</span>
+                                </div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-success" style="width: 78%"></div>
+                                </div>
+                            </div>
+
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Digital Platform Upgrade</h6>
+                                        <p class="mb-1 small text-muted">Modernize customer portal and mobile app</p>
+                                    </div>
+                                    <span class="badge bg-warning">At Risk</span>
+                                </div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-warning" style="width: 45%"></div>
+                                </div>
+                            </div>
+
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Sustainability Initiative</h6>
+                                        <p class="mb-1 small text-muted">Carbon neutral operations by 2026</p>
+                                    </div>
+                                    <span class="badge bg-info">Planning</span>
+                                </div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-info" style="width: 25%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-bullseye"></i>
+                            Strategic Goals Progress
+                        </h5>
+                    </div>
+                    <div class="chart-body">
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">Annual Revenue Target</span>
+                                <span class="fw-bold">$32M / $35M</span>
+                            </div>
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar bg-success" style="width: 91%"></div>
+                            </div>
+                            <small class="text-muted">91% achieved - $3M remaining</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">Customer Acquisition</span>
+                                <span class="fw-bold">15,847 / 18,000</span>
+                            </div>
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar" style="width: 88%; background: var(--bboxx-orange);"></div>
+                            </div>
+                            <small class="text-muted">88% achieved - 2,153 new customers needed</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">Market Share</span>
+                                <span class="fw-bold">67% / 75%</span>
+                            </div>
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar" style="width: 89%; background: var(--bboxx-blue);"></div>
+                            </div>
+                            <small class="text-muted">89% achieved - 8% market share growth needed</small>
+                        </div>
+
+                        <div class="mb-0">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">Operational Efficiency</span>
+                                <span class="fw-bold">94.2% / 95%</span>
+                            </div>
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar bg-warning" style="width: 99%"></div>
+                            </div>
+                            <small class="text-muted">99% achieved - 0.8% efficiency improvement needed</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
 <script>
-    // Chart.js examples (data-binding via Thymeleaf)
-    const projCtx = document.getElementById('projectStatusChart').getContext('2d');
-    new Chart(projCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Ongoing','Completed','Upcoming'],
-            datasets: [{
-                data: [
-                    /*[[${ongoingProjects}]],[[${doneTasks}]],[[${pendingTasks}]]*/
-                    /* replace placeholders with Thymeleaf fragments if needed */
-                ],
-                backgroundColor: ['#0d6efd','#198754','#ffc107'],
-            }]
-        }
+    // Sidebar Toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
     });
 
-    const taskCtx = document.getElementById('taskCompletionChart').getContext('2d');
-    new Chart(taskCtx, {
-        type: 'pie',
-        data: {
-            labels: ['Done','Pending'],
-            datasets: [{
-                data: [/*[[${doneTasks}]],[[${pendingTasks}]]*/],
-                backgroundColor: ['#198754','#6c757d'],
-            }]
+    // Mobile sidebar
+    if (window.innerWidth <= 768) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+    }
+
+    // Update current date
+    function updateCurrentDate() {
+        const now = new Date();
+        const options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        };
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+    }
+    updateCurrentDate();
+
+    // Chart instances
+    let revenueChart, operationalChart, forecastChart;
+
+    // Initialize Revenue Chart
+    function initializeRevenueChart() {
+        const ctx = document.getElementById('revenueChart');
+        if (ctx) {
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Revenue ($M)',
+                        data: [1.8, 2.1, 2.3, 2.2, 2.4, 2.6, 2.8, 2.7, 2.9, 3.1, 3.0, 3.2],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#4CAF50',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }, {
+                        label: 'Target ($M)',
+                        data: [2.0, 2.0, 2.2, 2.3, 2.5, 2.6, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3],
+                        borderColor: '#FF6B35',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return ' + value + 'M';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Initialize Operational Chart
+    function initializeOperationalChart() {
+        const ctx = document.getElementById('operationalChart');
+        if (ctx) {
+            operationalChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Installations',
+                        data: [245, 289, 267, 312],
+                        backgroundColor: '#FF6B35',
+                        borderRadius: 8
+                    }, {
+                        label: 'Maintenance',
+                        data: [89, 76, 92, 84],
+                        backgroundColor: '#1B365D',
+                        borderRadius: 8
+                    }, {
+                        label: 'Support Tickets',
+                        data: [156, 134, 167, 142],
+                        backgroundColor: '#FFC107',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Initialize Forecast Chart
+    function initializeForecastChart() {
+        const ctx = document.getElementById('forecastChart');
+        if (ctx) {
+            forecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [{
+                        label: 'Actual',
+                        data: [1.8, 2.1, 2.3, 2.2, 2.4, null, null, null, null],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Forecast',
+                        data: [null, null, null, null, 2.4, 2.8, 3.2, 3.6, 3.9],
+                        borderColor: '#FF6B35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return ' + value + 'M';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Chart update functions
+    function updateChart(chartType, period) {
+        // Remove active class from all buttons
+        event.target.parentNode.querySelectorAll('.btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        // Add active class to clicked button
+        event.target.classList.add('active');
+
+        showAlert(`Updated ${chartType} chart for ${period} period`, 'info');
+    }
+
+    function updateOperationalChart(metric) {
+        showAlert(`Switched operational chart to ${metric} view`, 'info');
+    }
+
+    function switchForecast(type) {
+        showAlert(`Switched forecast to ${type} predictions`, 'info');
+    }
+
+    // Alert function
+    function showAlert(message, type = 'success') {
+        const alertClass = {
+            'success': 'alert-success',
+            'warning': 'alert-warning',
+            'error': 'alert-danger',
+            'info': 'alert-info'
+        }[type];
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+
+    // Auto-update KPIs every 60 seconds
+    function updateKPIs() {
+        const kpiValues = document.querySelectorAll('.kpi-value');
+        kpiValues.forEach((kpi, index) => {
+            if (Math.random() > 0.8) { // 20% chance of update
+                const currentText = kpi.textContent;
+
+                // Animate the update
+                kpi.style.transform = 'scale(1.05)';
+                kpi.style.color = 'var(--bboxx-orange)';
+
+                setTimeout(() => {
+                    kpi.style.transform = 'scale(1)';
+                    kpi.style.color = 'var(--bboxx-dark-blue)';
+
+                    // Simulate small changes in KPIs
+                    if (currentText.includes('%')) {
+                        const value = parseFloat(currentText);
+                        const change = (Math.random() - 0.5) * 0.2; // Small change
+                        kpi.textContent = (value + change).toFixed(1) + '%';
+                    } else if (currentText.includes(',')) {
+                        const value = parseInt(currentText.replace(',', ''));
+                        const change = Math.floor((Math.random() - 0.5) * 10); // Small change
+                        kpi.textContent = (value + change).toLocaleString();
+                    }
+                }, 200);
+            }
+        });
+    }
+
+    // Responsive handling
+    function handleResize() {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        } else {
+            sidebar.classList.remove('show');
+        }
+    }
+
+    // Time selector functionality
+    document.getElementById('timeSelector').addEventListener('click', function() {
+        const options = ['Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'Last Year', 'Custom Range'];
+        const current = this.querySelector('span').textContent;
+        const currentIndex = options.indexOf(current);
+        const nextIndex = (currentIndex + 1) % options.length;
+
+        this.querySelector('span').textContent = options[nextIndex];
+        showAlert(`Time period changed to: ${options[nextIndex]}`, 'info');
+    });
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeRevenueChart();
+        initializeOperationalChart();
+        initializeForecastChart();
+
+        // Event listeners
+        window.addEventListener('resize', handleResize);
+
+        // Auto-update KPIs every 60 seconds
+        setInterval(updateKPIs, 60000);
+
+        // Animate cards on load
+        setTimeout(() => {
+            const cards = document.querySelectorAll('.kpi-card, .chart-card, .region-card, .financial-summary');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }, 300);
+
+        console.log('BBOXXTrack Executive Dashboard initialized successfully');
+    });
+
+    // Search functionality
+    document.querySelector('.navbar-search input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = this.value.trim();
+            if (query) {
+                showAlert(`Searching executive metrics for: "${query}"...`, 'info');
+                // In real app, this would perform actual search
+                setTimeout(() => {
+                    showAlert(`Found insights for "${query}" - Check analytics section`, 'success');
+                }, 1500);
+            }
         }
     });
 </script>

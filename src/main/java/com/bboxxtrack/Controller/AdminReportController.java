@@ -1,12 +1,7 @@
 package com.bboxxtrack.Controller;
 
 import com.bboxxtrack.Model.*;
-import com.bboxxtrack.Service.CustomerService;
-import com.bboxxtrack.Service.InventoryService;
-import com.bboxxtrack.Service.MaintenanceScheduleService;
-import com.bboxxtrack.Service.ProjectService;
-import com.bboxxtrack.Service.TaskService;
-import com.bboxxtrack.Service.UserService;
+import com.bboxxtrack.Service.*;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -21,20 +16,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// **IMPORTANT**: use iText PDF imports, not Swing!
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
 
 @Controller
 @RequestMapping("/admin/reports")
 public class AdminReportController {
 
+    @Autowired private PdfReportService pdfReportService;
     @Autowired private UserService userService;
     @Autowired private CustomerService customerService;
     @Autowired private ProjectService projectService;
@@ -54,19 +47,16 @@ public class AdminReportController {
             return "redirect:/login";
         }
 
-        // parse date-range if provided
         LocalDate start = (from != null && !from.isEmpty()) ? LocalDate.parse(from) : null;
         LocalDate end   = (to   != null && !to.isEmpty())   ? LocalDate.parse(to)   : null;
 
-        // load all data
         List<User> users               = userService.getAllUsers();
-        List<?> customers              = customerService.getAllCustomers();
+        List<Customer> customers       = customerService.getAllCustomers();
         List<Project> projects         = projectService.getAllProjects();
         List<Task> tasks               = taskService.getAllTasks();
         List<Inventory> inventory      = inventoryService.getAllInventory();
         List<MaintenanceSchedule> schedules = scheduleService.getAllSchedules();
 
-        // metrics
         long totalUsers      = users.size();
         long totalCustomers  = customers.size();
         long totalProjects   = projects.size();
@@ -77,7 +67,6 @@ public class AdminReportController {
                 .count();
         long visitsPending   = schedules.size() - visitsCompleted;
 
-        // group counts
         Map<String,Long> taskStatusCounts    = tasks.stream()
                 .collect(Collectors.groupingBy(Task::getStatus, Collectors.counting()));
         Map<String,Long> projectStatusCounts = projects.stream()
@@ -102,11 +91,9 @@ public class AdminReportController {
 
     @GetMapping("/export/csv")
     public void exportCsv(HttpServletResponse response) throws IOException {
-        // set up response headers
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=\"bboxxtrack_report.csv\"");
 
-        // gather all data
         List<User> users               = userService.getAllUsers();
         List<Customer> customers       = customerService.getAllCustomers();
         List<Project> projects         = projectService.getAllProjects();
@@ -119,14 +106,12 @@ public class AdminReportController {
                 .count();
         long visitsPending = schedules.size() - visitsCompleted;
 
-        // compute breakdowns
         Map<String,Long> taskStatusCounts = tasks.stream()
                 .collect(Collectors.groupingBy(Task::getStatus, Collectors.counting()));
         Map<String,Long> projectStatusCounts = projects.stream()
                 .collect(Collectors.groupingBy(Project::getStatus, Collectors.counting()));
 
         try (PrintWriter writer = response.getWriter()) {
-            // Metrics section
             writer.println("Metric,Count");
             writer.printf("Total Users,%d%n", users.size());
             writer.printf("Total Customers,%d%n", customers.size());
@@ -136,9 +121,8 @@ public class AdminReportController {
             writer.printf("Visits Completed,%d%n", visitsCompleted);
             writer.printf("Visits Pending,%d%n", visitsPending);
 
-            writer.println(); // blank line
+            writer.println();
 
-            // Task status breakdown
             writer.println("Task Status,Count");
             for (var entry : taskStatusCounts.entrySet()) {
                 writer.printf("%s,%d%n", entry.getKey(), entry.getValue());
@@ -146,7 +130,6 @@ public class AdminReportController {
 
             writer.println();
 
-            // Project status breakdown
             writer.println("Project Status,Count");
             for (var entry : projectStatusCounts.entrySet()) {
                 writer.printf("%s,%d%n", entry.getKey(), entry.getValue());
@@ -156,4 +139,53 @@ public class AdminReportController {
         }
     }
 
+
+
+    /**
+     * Gathers metrics and streams back a PDF.
+     */
+    @GetMapping("/export/pdf")
+    public void exportPdf(HttpSession session,
+                          HttpServletResponse response) throws Exception {
+
+        // 1) authorization check
+        var user = session.getAttribute("user");
+        if (user == null || !"Admin".equals(((com.bboxxtrack.Model.User)user).getRole())) {
+            response.sendRedirect("/login");
+            return;
+        }
+
+        // 2) compute real metrics
+        long totalUsers      = userService.getAllUsers().size();
+        long totalCustomers  = customerService.getAllCustomers().size();
+        long totalProjects   = projectService.getAllProjects().size();
+        long totalTasks      = taskService.getAllTasks().size();
+        long totalInventory  = inventoryService.getAllInventory().size();
+        long visitsCompleted = scheduleService.getAllSchedules().stream()
+                .filter(s -> "Completed".equalsIgnoreCase(s.getStatus()))
+                .count();
+
+        // 3) insert into ordered LinkedHashMap
+        Map<String,Long> metrics = new LinkedHashMap<>();
+        metrics.put("Total Users",         totalUsers);
+        metrics.put("Total Customers",     totalCustomers);
+        metrics.put("Total Projects",      totalProjects);
+        metrics.put("Total Tasks",         totalTasks);
+        metrics.put("Inventory Items",     totalInventory);
+        metrics.put("Visits Completed",    visitsCompleted);
+        metrics.put("Visits Pending",      scheduleService.getAllSchedules().size() - visitsCompleted);
+
+        // 4) generate PDF bytes
+        byte[] pdfBytes = pdfReportService.generateReport(
+                "BBOXX Rwanda",          // company name in header
+                metrics,
+                new Date()               // today
+        );
+
+        // 5) stream out
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=AdminReport.pdf");
+        response.getOutputStream().write(pdfBytes);
+        response.getOutputStream().flush();
+    }
 }

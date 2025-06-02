@@ -6,70 +6,1053 @@
     <title>Projects Management – Project Manager | BBOXXTrack</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    <script src="/js/script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bboxx-orange: #FF6B35;
+            --bboxx-dark-orange: #E85A2B;
+            --bboxx-blue: #1B365D;
+            --bboxx-dark-blue: #0F1F35;
+            --bboxx-light-blue: #2E5984;
+            --bboxx-green: #4CAF50;
+            --bboxx-yellow: #FFC107;
+            --bboxx-red: #DC3545;
+            --bboxx-gray: #F8F9FA;
+            --bboxx-dark-gray: #333333;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, var(--bboxx-blue) 0%, var(--bboxx-dark-blue) 100%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .logo-img {
+            width: 100px;
+            height: auto;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: var(--bboxx-orange);
+            border-radius: 2px;
+        }
+
+        .nav-item {
+            margin: 0.2rem 1rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-link:hover::before {
+            left: 100%;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 107, 53, 0.15);
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: var(--bboxx-orange);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            margin: 0.2rem 0.5rem;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        /* Top Navigation */
+        .top-navbar {
+            background: white;
+            height: var(--header-height);
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bboxx-gray);
+            color: var(--bboxx-orange);
+        }
+
+        .search-box {
+            position: relative;
+            width: 350px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 2px solid #E1E5E9;
+            border-radius: 25px;
+            background: #F8F9FA;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: var(--bboxx-orange);
+            background: white;
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quick-action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--bboxx-orange);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .notifications {
+            position: relative;
+        }
+
+        .notification-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .notification-btn:hover {
+            background: var(--bboxx-gray);
+            color: var(--bboxx-orange);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--bboxx-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-menu:hover {
+            background: var(--bboxx-gray);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bboxx-orange), #E85A2B);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--bboxx-dark-gray);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Main Content Area */
+        .dashboard-content {
+            padding: 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .header-btn {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--bboxx-orange);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--bboxx-orange);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-btn.primary {
+            background: var(--bboxx-orange);
+            color: white;
+        }
+
+        .header-btn:hover {
+            background: var(--bboxx-orange);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stats-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-icon.primary {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--bboxx-orange);
+        }
+
+        .stats-icon.success {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .stats-icon.warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .stats-icon.info {
+            background: rgba(27, 54, 93, 0.1);
+            color: var(--bboxx-blue);
+        }
+
+        .stats-icon.danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--bboxx-red);
+        }
+
+        .stats-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-label {
+            font-size: 0.95rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stats-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+        }
+
+        .trend-up {
+            color: var(--bboxx-green);
+        }
+
+        .trend-down {
+            color: var(--bboxx-red);
+        }
+
+        /* Project Cards */
+        .projects-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .project-list {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #E1E5E9;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+        }
+
+        .project-card {
+            border: 1px solid #E1E5E9;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            background: white;
+        }
+
+        .project-card:hover {
+            border-color: var(--bboxx-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .project-location {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .project-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-ongoing {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .status-completed {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .status-upcoming {
+            background: rgba(27, 54, 93, 0.1);
+            color: var(--bboxx-blue);
+        }
+
+        .status-delayed {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--bboxx-red);
+        }
+
+        .project-progress {
+            margin-bottom: 1rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .progress-percentage {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+        }
+
+        .progress-bar-container {
+            height: 8px;
+            background: #E1E5E9;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--bboxx-orange);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .project-team {
+            display: flex;
+            gap: -0.5rem;
+        }
+
+        .team-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--bboxx-orange);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 2px solid white;
+            margin-left: -8px;
+        }
+
+        .team-avatar:first-child {
+            margin-left: 0;
+        }
+
+        /* Task Panel */
+        .task-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-checkbox {
+            margin-right: 1rem;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            color: var(--bboxx-dark-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .task-meta {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .task-priority {
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .priority-high {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--bboxx-red);
+        }
+
+        .priority-medium {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .priority-low {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Timeline Section */
+        .timeline-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 1rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #E1E5E9;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            background: var(--bboxx-orange);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--bboxx-orange);
+        }
+
+        .timeline-content {
+            background: #F8F9FA;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--bboxx-orange);
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-time {
+            font-size: 0.8rem;
+            color: var(--bboxx-orange);
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .projects-section,
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding: 0 1rem;
+            }
+
+            .search-box {
+                width: 200px;
+            }
+
+            .dashboard-content {
+                padding: 1rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-info {
+                display: none;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 107, 53, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--bboxx-orange);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bboxx-orange);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bboxx-dark-orange);
+        }
+    </style>
 </head>
 <body>
-<div class="d-flex" id="wrapper">
-    <!-- Sidebar -->
-    <div class="border-end" id="sidebar-wrapper">
-        <div class="sidebar-heading text-center py-4">
-            <a href="/manager/dashboard" class="d-block mb-2">
-                <img src="/images/bboxx.png" alt="Logo" class="logo-img">
-            </a>
-            <h5 class="text-white mb-0">Manager Panel</h5>
-        </div>
-        <div class="sidebar-menu">
-            <ul class="nav flex-column mt-4">
-                <li class="nav-item">
-                    <a href="/manager/dashboard" class="nav-link text-white">
-                        <i class="fas fa-chart-line me-2"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/manager/projects" class="nav-link active text-white">
-                        <i class="fas fa-project-diagram me-2"></i>Projects
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/manager/tasks" class="nav-link text-white">
-                        <i class="fas fa-tasks me-2"></i>Assign Tasks
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="/manager/kanban" class="nav-link text-white">
-                        <i class="fas fa-columns me-2"></i>Kanban Board
-                    </a>
-                </li>
-                <li class="mt-auto nav-item">
-                    <a href="/logout" class="nav-link text-white">
-                        <i class="fas fa-sign-out-alt me-2"></i>Logout
-                    </a>
-                </li>
-            </ul>
-        </div>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="/manager/dashboard">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='35' font-family='Arial, sans-serif' font-size='24' font-weight='bold' fill='%23FF6B35'%3EBBOXX%3C/text%3E%3Ctext x='10' y='52' font-family='Arial, sans-serif' font-size='12' fill='white'%3ETrack%3C/text%3E%3C/svg%3E" class="logo-img" alt="BBOXX Track"/>
+        </a>
     </div>
 
-    <!-- Page Content -->
-    <div class="flex-grow-1 content-wrapper">
-        <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
-            <div class="container-fluid px-4">
-                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="/manager/dashboard" class="nav-link active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/manager/projects" class="nav-link">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>My Projects</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/manager/tasks" class="nav-link">
+                    <i class="fas fa-tasks"></i>
+                    <span>Task Management</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/manager/kanban" class="nav-link">
+                    <i class="fas fa-columns"></i>
+                    <span>Kanban Board</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/manager/team" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Team Management</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/manager/calendar" class="nav-link">
+                    <i class="fas fa-calendar"></i>
+                    <span>Project Calendar</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/manager/reports" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item mt-auto">
+                <a href="/logout" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search projects, tasks, team members...">
+            </div>
+        </div>
+
+        <div class="navbar-right">
+            <div class="quick-actions">
+                <a href="/manager/projects/new" class="quick-action-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>New Project</span>
+                </a>
+                <a href="/manager/tasks/create" class="quick-action-btn">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Assign Task</span>
+                </a>
+            </div>
+
+            <div class="notifications">
+                <button class="notification-btn" data-bs-toggle="dropdown">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
                 </button>
-                <div class="navbar-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" placeholder="Search projects...">
+                <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px;">
+                    <div class="p-3 border-bottom">
+                        <h6 class="mb-0">Notifications</h6>
+                    </div>
+                    <div class="p-2">
+                        <div class="d-flex align-items-center p-2 rounded hover-bg">
+                            <div class="me-3">
+                                <div class="bg-warning rounded-circle p-2">
+                                    <i class="fas fa-exclamation text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">Task Deadline Approaching</div>
+                                <small class="text-muted">Solar installation due in 2 days</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center p-2 rounded hover-bg">
+                            <div class="me-3">
+                                <div class="bg-success rounded-circle p-2">
+                                    <i class="fas fa-check text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">Project Milestone Completed</div>
+                                <small class="text-muted">Kigali Office Phase 1 finished</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center p-2 rounded hover-bg">
+                            <div class="me-3">
+                                <div class="bg-info rounded-circle p-2">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">New Team Member Added</div>
+                                <small class="text-muted">John Smith joined Eastern Team</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-2 border-top text-center">
+                        <a href="/manager/notifications" class="text-decoration-none">View all notifications</a>
+                    </div>
                 </div>
-                <div class="ms-auto">
-                    <a href="/logout" class="btn btn-outline-danger btn-sm">
-                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+            </div>
+
+            <div class="user-menu" data-bs-toggle="dropdown">
+                <div class="user-avatar">PM</div>
+                <div class="user-info">
+                    <div class="user-name">Project Manager</div>
+                    <div class="user-role">Solar Project Manager</div>
+                </div>
+                <i class="fas fa-chevron-down ms-2"></i>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a class="dropdown-item" href="/manager/profile">
+                        <i class="fas fa-user me-2"></i> My Profile
+                    </a>
+                    <a class="dropdown-item" href="/manager/settings">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
                     </a>
                 </div>
             </div>
-        </nav>
+        </div>
+    </nav>
 
         <!-- Main -->
         <div class="container-fluid px-4 py-4">
@@ -92,14 +1075,6 @@
                         </select>
                         <button class="btn btn-outline-primary">Filter</button>
                     </form>
-                </div>
-                <div class="col-md-8">
-                    <div class="chart-card">
-                        <div class="card-header">Status Breakdown</div>
-                        <div class="card-body">
-                            <canvas id="statusChart"></canvas>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -268,6 +1243,26 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sidebar Toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+    });
+
+    // Mobile sidebar
+    if (window.innerWidth <= 768) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+    }
+
+</script>
 <!-- Status Chart -->
 <script th:inline="javascript">
     const ctx = document.getElementById('statusChart').getContext('2d');

@@ -11,203 +11,854 @@
 
     <!-- Leaflet -->
     <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
-
-    <!-- Your custom styles -->
-    <link href="/css/style.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* Map enhancements */
-        #map {
-            height: 400px !important;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            border: 1px solid #e9ecef;
+        :root {
+            --bboxx-orange: #FF6B35;
+            --bboxx-dark-orange: #E55A2E;
+            --bboxx-blue: #1B365D;
+            --bboxx-dark-blue: #0F1F35;
+            --bboxx-light-blue: #2E5984;
+            --bboxx-green: #4CAF50;
+            --bboxx-yellow: #FFC107;
+            --bboxx-red: #DC3545;
+            --bboxx-gray: #F8F9FA;
+            --bboxx-dark-gray: #333333;
+            --sidebar-width: 280px;
+            --header-height: 70px;
         }
 
-        /* Form styling */
-        .form-card {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, var(--bboxx-blue) 0%, var(--bboxx-dark-blue) 100%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .logo .track {
+            color: var(--bboxx-orange);
+            font-weight: 400;
+        }
+
+        .sidebar.collapsed .logo .track {
+            display: none;
+        }
+
+        .user-badge {
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar.collapsed .user-badge {
+            display: none;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+            height: calc(100vh - 180px);
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            margin: 0.2rem 1rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.8rem 1rem;
             border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
             overflow: hidden;
         }
 
-        .form-card .card-header {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            border-bottom: 0;
-            padding: 15px 20px;
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 107, 53, 0.15);
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: #1677ff;
+            box-shadow: 0 4px 15px rgb(32 92 158 / 30%);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            margin: 0.2rem 0.5rem;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        .nav-badge {
+            background: var(--bboxx-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+        }
+
+        .sidebar.collapsed .nav-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        /* Top Navigation */
+        .top-navbar {
+            background: white;
+            height: var(--header-height);
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bboxx-gray);
+            color: var(--bboxx-orange);
+        }
+
+        .welcome-message {
+            font-size: 1.1rem;
             font-weight: 600;
+            color: var(--bboxx-dark-blue);
         }
 
-        .form-control {
-            border-radius: 6px;
-            padding: 10px 14px;
-            border: 1px solid #e0e0e0;
-            transition: all 0.3s;
+        .location-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 107, 53, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--bboxx-orange);
         }
 
-        .form-control:focus {
-            border-color: #4285f4;
-            box-shadow: 0 0 0 0.25rem rgba(66, 133, 244, 0.15);
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .form-label {
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
             font-weight: 500;
-            color: #4a5568;
+        }
+
+        .status-online {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .status-offline {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--bboxx-red);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-menu:hover {
+            background: var(--bboxx-gray);
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* Main Content Area */
+        .dashboard-content {
+            padding: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
             margin-bottom: 0.5rem;
         }
 
-        .btn-submit {
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none;
-            border-radius: 6px;
-            padding: 10px;
-            font-weight: 500;
-            transition: all 0.3s;
+        .header-subtitle {
+            color: #666;
+            font-size: 1rem;
         }
 
-        .btn-submit:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        /* Table styling */
-        .table-card {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        .weather-widget {
+            background: linear-gradient(135deg, #87CEEB, #4682B4);
+            color: white;
+            padding: 1rem;
             border-radius: 10px;
+            text-align: center;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
             overflow: hidden;
         }
 
-        .table-card .card-header {
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            border-bottom: 0;
-            padding: 15px 20px;
-            font-weight: 600;
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
         }
 
-        .tracker-table {
-            margin-bottom: 0;
+        .stat-card.tasks::before {
+            background: var(--bboxx-orange);
         }
 
-        .tracker-table thead {
-            background-color: #f8fafc;
+        .stat-card.completed::before {
+            background: var(--bboxx-green);
         }
 
-        .tracker-table th {
-            border-top: none;
-            border-bottom: 2px solid #e2e8f0;
-            padding: 12px 16px;
-            font-weight: 600;
-            color: #4a5568;
+        .stat-card.pending::before {
+            background: var(--bboxx-yellow);
         }
 
-        .tracker-table td {
-            padding: 14px 16px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f0f0f0;
+        .stat-card.efficiency::before {
+            background: var(--bboxx-blue);
         }
 
-        .tracker-table tbody tr:hover {
-            background-color: #f9fafb;
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .gps-badge {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            font-size: 0.85rem;
-            padding: 5px 10px;
-            border-radius: 6px;
-            display: inline-block;
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
         }
 
-        .status-text {
-            color: #4b5563;
+        .stat-icon.orange {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--bboxx-orange);
+        }
+
+        .stat-icon.green {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .stat-icon.yellow {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .stat-icon.blue {
+            background: rgba(27, 54, 93, 0.1);
+            color: var(--bboxx-blue);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
             font-weight: 500;
-        }
-
-        .timestamp {
-            color: #6b7280;
             font-size: 0.9rem;
         }
 
-        /* Map popup styling */
-        .leaflet-popup-content-wrapper {
-            border-radius: 8px;
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
         }
 
-        .leaflet-popup-content {
-            margin: 12px 14px;
-            line-height: 1.5;
-        }
-
-        .map-popup-status {
+        .actions-title {
+            font-size: 1.3rem;
             font-weight: 600;
-            color: #4a5568;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 1.5rem;
         }
 
-        .map-popup-time {
-            color: #6b7280;
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .action-btn {
+            background: white;
+            border: 2px solid #E1E5E9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--bboxx-dark-gray);
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            border-color: var(--bboxx-orange);
+            color: var(--bboxx-orange);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.15);
+        }
+
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--bboxx-orange);
+        }
+
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-desc {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* GPS Tracker Section */
+        .tracker-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .tracker-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .tracker-header {
+            background: linear-gradient(135deg, var(--bboxx-green), #45a049);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tracker-body {
+            padding: 2rem;
+        }
+
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #E1E5E9;
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            transition: all 0.3s ease;
+            background: #FAFBFC;
+        }
+
+        .form-control:focus {
+            border-color: var(--bboxx-orange);
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+            background: white;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .gps-helper {
+            background: rgba(255, 107, 53, 0.05);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* History Section */
+        .history-header {
+            background: var(--bboxx-blue);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: var(--bboxx-gray);
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
             font-size: 0.9rem;
-            margin-top: 3px;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid #F1F5F9;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(255, 107, 53, 0.02);
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .status-progress {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .status-onsite {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--bboxx-orange);
+        }
+
+        /* Map Integration */
+        .map-preview {
+            height: 200px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            margin-top: 1rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .tracker-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding: 0 1rem;
+            }
+
+            .dashboard-content {
+                padding: 1rem;
+            }
+
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .header-title {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar-right {
+                gap: 0.5rem;
+            }
+
+            .location-display {
+                display: none;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 107, 53, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--bboxx-orange);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bboxx-orange);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bboxx-dark-orange);
+        }
+
+        /* Notification Styles */
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+
+        /* Emergency Button */
+        .emergency-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--bboxx-red);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .emergency-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        /* PWA Styles */
+        .pwa-install {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .install-btn {
+            background: var(--bboxx-orange);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .install-btn:hover {
+            background: var(--bboxx-dark-orange);
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
-<div class="d-flex" id="wrapper">
-    <!-- Sidebar -->
-    <div class="border-end" id="sidebar-wrapper">
-        <div class="sidebar-heading text-center py-4">
-            <a href="/technician/dashboard" class="d-block mb-2">
-                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img"/>
-            </a>
-            <h5 class="text-white mb-0">Technician Panel</h5>
-        </div>
-        <div class="sidebar-menu">
-            <ul class="nav flex-column mt-4">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="/technician/dashboard">
-                        <i class="fas fa-home me-2"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="/technician/tasks">
-                        <i class="fas fa-tasks me-2"></i>Your Tasks
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active text-white" href="/technician/tracker">
-                        <i class="fas fa-map-marker-alt me-2"></i>GPS Tracker
-                    </a>
-                </li>
-                <li class="mt-auto mb-3">
-                    <a href="/logout" class="nav-link text-white">
-                        <i class="fas fa-sign-out-alt me-2"></i>Logout
-                    </a>
-                </li>
-            </ul>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="/technician/dashboard" class="logo">
+            BBOXX<span class="track">Track</span>
+        </a>
+        <div class="user-badge">
+            <i class="fas fa-tools me-1"></i>Field Technician
         </div>
     </div>
 
-    <!-- Page Content -->
-    <div class="flex-grow-1 content-wrapper">
-        <!-- Top Navbar -->
-        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
-            <div class="container-fluid px-4">
-                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="ms-auto d-flex align-items-center">
-                    <a href="/technician/tracker/export" class="btn btn-outline-success btn-sm me-3">
-                        <i class="fas fa-file-csv"></i> Export CSV
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="/technician/dashboard" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/technician/tasks" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>My Tasks</span>
+                    <span class="nav-badge">3</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/technician/tracker" class="nav-link active">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>GPS Tracker</span>
+                </a>
+            </li>
+<!--            <li class="nav-item">-->
+<!--                <a href="/technician/schedule" class="nav-link">-->
+<!--                    <i class="fas fa-calendar-alt"></i>-->
+<!--                    <span>Schedule</span>-->
+<!--                </a>-->
+<!--            </li>-->
+<!--            <li class="nav-item">-->
+<!--                <a href="/technician/inventory" class="nav-link">-->
+<!--                    <i class="fas fa-boxes"></i>-->
+<!--                    <span>Equipment</span>-->
+<!--                </a>-->
+<!--            </li>-->
+            <li class="nav-item">
+                <a href="/technician/reports" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item mt-auto">
+                <a href="/logout" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="welcome-message">
+                Good Morning, John! 👋
+            </div>
+        </div>
+
+        <div class="navbar-right">
+            <div class="location-display" id="locationDisplay">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Detecting location...</span>
+            </div>
+            <div class="status-indicator status-online">
+                <i class="fas fa-circle"></i>
+                <span>Online</span>
+            </div>
+            <div class="weather-widget">
+                <i class="fas fa-sun"></i>
+                <span>24°C</span>
+            </div>
+            <div class="user-menu" data-bs-toggle="dropdown">
+                <div class="user-avatar">JD</div>
+                <i class="fas fa-chevron-down d-none d-md-inline"></i>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a class="dropdown-item" href="/technician/profile">
+                        <i class="fas fa-user me-2"></i> My Profile
                     </a>
-                    <a href="/logout" class="btn btn-outline-danger btn-sm">
-                        <i class="fas fa-sign-out-alt"></i> Logout
+                    <a class="dropdown-item" href="/technician/settings">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
                     </a>
                 </div>
             </div>
-        </nav>
+        </div>
+    </nav>
 
         <!-- Main Section -->
         <div class="container-fluid px-4 py-4">

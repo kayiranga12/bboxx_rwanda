@@ -6,236 +6,1509 @@
     <title>Admin Dashboard | BBOXXTrack</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/js/script.js"></script>
+    <style>
+        :root {
+            --bboxx-orange: #0d6efd;
+            --bboxx-dark-orange: #0d6efd;
+            --bboxx-blue: #1B365D;
+            --bboxx-dark-blue: #0F1F35;
+            --bboxx-light-blue: #2E5984;
+            --bboxx-green: #4CAF50;
+            --bboxx-yellow: #FFC107;
+            --bboxx-red: #DC3545;
+            --bboxx-gray: #F8F9FA;
+            --bboxx-dark-gray: #333333;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, var(--bboxx-blue) 0%, var(--bboxx-dark-blue) 100%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .logo-img {
+            width: 100px; /* Adjust size as needed */
+            height: auto;
+        }
+
+        .logo .track {
+            color: #0d6efd;
+            font-weight: 400;
+        }
+
+        .sidebar.collapsed .logo .track {
+            display: none;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: #0d6efd;
+            border-radius: 2px;
+        }
+
+        .nav-item {
+            margin: 0.2rem 1rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-link:hover::before {
+            left: 100%;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 107, 53, 0.15);
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: #0d6efd;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            margin: 0.2rem 0.5rem;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        /* Top Navigation */
+        .top-navbar {
+            background: white;
+            height: var(--header-height);
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bboxx-gray);
+            color: #0d6efd;
+        }
+
+        .search-box {
+            position: relative;
+            width: 350px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 2px solid #E1E5E9;
+            border-radius: 25px;
+            background: #F8F9FA;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #0d6efd;
+            background: white;
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quick-action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quick-action-btn:hover {
+            background: #0d6efd;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .notifications {
+            position: relative;
+        }
+
+        .notification-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .notification-btn:hover {
+            background: var(--bboxx-gray);
+            color: #0d6efd;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--bboxx-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-menu:hover {
+            background: var(--bboxx-gray);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd, #2A62B3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--bboxx-dark-gray);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Main Content Area */
+        .dashboard-content {
+            padding: 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .header-btn {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid #86b7fe;
+            border-radius: 8px;
+            background: transparent;
+            color: #0d6efd;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-btn.primary {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .header-btn:hover {
+            background: #0d6efd;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #0d6efd);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stats-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-icon.primary {
+            background: rgba(255, 107, 53, 0.1);
+            color: #0d6efd;
+        }
+
+        .stats-icon.success {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .stats-icon.warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .stats-icon.info {
+            background: rgba(27, 54, 93, 0.1);
+            color: var(--bboxx-blue);
+        }
+
+        .stats-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-label {
+            font-size: 0.95rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stats-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+        }
+
+        .trend-up {
+            color: var(--bboxx-green);
+        }
+
+        .trend-down {
+            color: var(--bboxx-red);
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #E1E5E9;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+        }
+
+        .chart-menu {
+            position: relative;
+        }
+
+        .chart-menu-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .chart-menu-btn:hover {
+            background: var(--bboxx-gray);
+            color: #0d6efd;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Recent Activity */
+        .activity-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #E1E5E9;
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            color: var(--bboxx-dark-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* Performance Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding: 0 1rem;
+            }
+
+            .search-box {
+                width: 200px;
+            }
+
+            .dashboard-content {
+                padding: 1rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-info {
+                display: none;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 107, 53, 0.3);
+            border-radius: 50%;
+            border-top-color: #0d6efd;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0d6efd;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0d6efd;
+        }
+    </style>
 </head>
 <body>
-<div class="d-flex" id="wrapper">
-    <div class="border-end" id="sidebar-wrapper">
-        <div class="sidebar-heading text-center py-4">
-            <a href="/admin/dashboard" class="d-block mb-2">
-                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img">
-            </a>
-<!--            <h5 class="text-white mb-0">BBOXXTrack</h5>-->
-        </div>
-
-        <div class="sidebar-menu px-2">
-            <ul class="nav flex-column mt-3">
-                <li class="nav-item">
-                    <a href="/admin/dashboard" class="nav-link active text-white">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/customers" class="nav-link text-white">
-                        <i class="fas fa-users me-2"></i>Customers
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/users" class="nav-link text-white">
-                        <i class="fas fa-user-shield me-2"></i>Manage Users
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/projects" class="nav-link text-white">
-                        <i class="fas fa-project-diagram me-2"></i>Projects
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/tasks" class="nav-link text-white">
-                        <i class="fas fa-tasks me-2"></i>Tasks
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/inventory" class="nav-link text-white">
-                        <i class="fas fa-box me-2"></i>Inventory
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/zones" class="nav-link text-white">
-                        <i class="fas fa-map-marked-alt me-2"></i>Geofences
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/reports" class="nav-link text-white">
-                        <i class="fas fa-chart-bar me-2"></i>Reports
-                    </a>
-                </li>
-
-            </ul>
-        </div>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+<!--        <a href="/admin/dashboard" class="logo">-->
+        <a href="/support/dashboard"><img src="/images/bboxx.png" class="logo-img" alt="BBOXX"/></a>
     </div>
 
-    <div class="flex-grow-1 content-wrapper">
-        <nav class="navbar navbar-expand-lg top-navbar">
-            <div class="container-fluid p-0">
-                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-
-                <div class="navbar-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" placeholder="Search anything...">
-                </div>
-
-                <div class="ms-auto d-flex align-items-center">
-                    <div class="dropdown me-3">
-                        <button class="btn btn-sm btn-light position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="far fa-bell fa-lg"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    3
-                                    <span class="visually-hidden">unread notifications</span>
-                                </span>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <h6 class="dropdown-header">Notifications</h6>
-                            <a class="dropdown-item" href="#">New task assigned to you</a>
-                            <a class="dropdown-item" href="#">Project status updated for "Rural Electrification"</a>
-                            <a class="dropdown-item" href="#">Inventory alert: Solar Panels low stock</a>
-                            <hr class="dropdown-divider">
-                            <a class="dropdown-item text-center text-primary" href="#">View All Notifications</a>
-                        </div>
-                    </div>
-
-                    <div class="user-profile dropdown">
-                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="avatar">JD</div>
-                            <div class="user-info d-none d-md-block"> <div class="user-name">Admin</div>
-                                <div class="user-role">Administrator</div>
-                            </div>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <div class="container-fluid px-4 py-4">
-            <div class="page-header">
-                <h4 class="mb-0">Dashboard Overview</h4>
-                <div>
-                    <button class="btn btn-outline-primary me-2">
-                        <i class="fas fa-calendar-day me-1"></i> Today
-                    </button>
-                    <button class="btn btn-outline-primary">
-                        <i class="fas fa-sync-alt me-1"></i> Refresh Data
-                    </button>
-                </div>
-            </div>
-
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-3" th:each="stat, statStat : ${dashboardStats}" th:if="${statStat.index < 4}">
-                    <div class="stats-card">
-                        <div class="card-body">
-                            <div th:class="${statStat.index == 0 ? 'icon-bg bg-primary bg-opacity-10' :
-                                                statStat.index == 1 ? 'icon-bg bg-success bg-opacity-10' :
-                                                statStat.index == 2 ? 'icon-bg bg-warning bg-opacity-10' :
-                                                'icon-bg bg-info bg-opacity-10'}">
-                                <i th:class="${statStat.index == 0 ? 'fas fa-users fa-2x text-primary' :
-                                                statStat.index == 1 ? 'fas fa-project-diagram fa-2x text-success' :
-                                                statStat.index == 2 ? 'fas fa-tasks fa-2x text-warning' :
-                                                'fas fa-box fa-2x text-info'}"></i>
-                            </div>
-                            <h6 class="card-title" th:text="${stat.label}">Total Users</h6>
-                            <h2 class="card-value" th:text="${stat.value}">3,256</h2>
-                            <div th:class="${statStat.index % 2 == 0 ? 'trend up' : 'trend down'}">
-                                <i th:class="${statStat.index % 2 == 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'}"></i>
-                                <span th:text="${statStat.index % 2 == 0 ? '+5.2% since last month' : '-2.4% since last month'}"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-4">
-                <div class="col-md-4 mb-4">
-                    <div class="chart-card">
-                        <div class="card-header">
-                            <span>Task Completion</span>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#">Download as PNG</a></li>
-                                    <li><a class="dropdown-item" href="#">View Details</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="taskPie"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="chart-card">
-                        <div class="card-header">
-                            <span>Projects by Status</span>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#">Download as PNG</a></li>
-                                    <li><a class="dropdown-item" href="#">View Details</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="projectBar"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="chart-card">
-                        <div class="card-header">
-                            <span>Inventory Levels</span>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#">Download as PNG</a></li>
-                                    <li><a class="dropdown-item" href="#">View Details</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="inventoryBar"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-4 d-flex justify-content-end">
-                <a href="/reports/tasks/export" class="btn btn-download">
-                    <i class="fas fa-download"></i> Download Task Report
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="/admin/dashboard" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
                 </a>
-            </div>
-        </div>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/projects" class="nav-link">
+                    <i class="fas fa-solar-panel"></i>
+                    <span>Solar Projects</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/customers" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/users" class="nav-link">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Team Management</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/tasks" class="nav-link">
+                    <i class="fas fa-tasks"></i>
+                    <span>Field Tasks</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/inventory" class="nav-link">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventory</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/zones" class="nav-link">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Service Areas</span>
+                </a>
+            </li>
 
-        <footer class="text-center">
-            <div class="container">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <p class="mb-0">© 2025 BBOXX Rwanda. All rights reserved.</p>
-                    <div>
-                        <a href="#" class="text-muted me-3"><i class="fas fa-question-circle"></i> Help</a>
-                        <a href="#" class="text-muted"><i class="fas fa-life-ring"></i> Support</a>
-                    </div>
-                </div>
-            </div>
-        </footer>
+            <li class="nav-item">
+                <a href="/admin/reports" class="nav-link">
+                    <i class="fas fa-file-chart"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item mt-auto">
+                <a href="/logout" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search projects, customers, tasks...">
+            </div>
+        </div>
 
+        <div class="navbar-right">
+            <div class="quick-actions">
+                <a href="/admin/projects/new" class="quick-action-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>New Project</span>
+                </a>
+<!--                <a href="/admin/tasks/urgent" class="quick-action-btn">-->
+<!--                    <i class="fas fa-exclamation-triangle"></i>-->
+<!--                    <span>Urgent Tasks</span>-->
+<!--                </a>-->
+            </div>
+
+            <div class="notifications">
+                <button class="notification-btn" data-bs-toggle="dropdown">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">5</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px;">
+                    <div class="p-3 border-bottom">
+                        <h6 class="mb-0">Notifications</h6>
+                    </div>
+                    <div class="p-2">
+                        <div class="d-flex align-items-center p-2 rounded hover-bg">
+                            <div class="me-3">
+                                <div class="bg-success rounded-circle p-2">
+                                    <i class="fas fa-check text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">Installation Complete</div>
+                                <small class="text-muted">Nyarugenge District - 15 homes connected</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center p-2 rounded hover-bg">
+                            <div class="me-3">
+                                <div class="bg-warning rounded-circle p-2">
+                                    <i class="fas fa-exclamation text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">Low Inventory Alert</div>
+                                <small class="text-muted">Solar panels running low - 12 units left</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-2 border-top text-center">
+                        <a href="/admin/notifications" class="text-decoration-none">View all notifications</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-menu" data-bs-toggle="dropdown">
+                <div class="user-avatar">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Admin User</div>
+                    <div class="user-role">System Administrator</div>
+                </div>
+                <i class="fas fa-chevron-down ms-2"></i>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a class="dropdown-item" href="/admin/profile">
+                        <i class="fas fa-user me-2"></i> My Profile
+                    </a>
+                    <a class="dropdown-item" href="/admin/settings">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Dashboard Overview</h1>
+                <p class="page-subtitle">Monitor your solar energy projects across Rwanda in real-time</p>
+            </div>
+            <div class="header-actions">
+<!--                <a href="/admin/reports/export" class="header-btn">-->
+<!--                    <i class="fas fa-download"></i>-->
+<!--                    Export Data-->
+<!--                </a>-->
+<!--                <a href="/admin/analytics/live" class="header-btn primary">-->
+<!--                    <i class="fas fa-chart-line"></i>-->
+<!--                    Live Analytics-->
+<!--                </a>-->
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stats-card">
+                <div class="stats-icon primary">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-value" th:text="${totalUsers ?: '156'}">156</div>
+                <div class="stats-label">Active Team Members</div>
+                <div class="stats-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+12% this month</span>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-icon success">
+                    <i class="fas fa-solar-panel"></i>
+                </div>
+                <div class="stats-value" th:text="${totalProjects ?: '89'}">89</div>
+                <div class="stats-label">Solar Projects</div>
+                <div class="stats-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+8% this month</span>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-icon warning">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stats-value" th:text="${totalTasks ?: '342'}">342</div>
+                <div class="stats-label">Field Tasks</div>
+                <div class="stats-trend trend-down">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>-3% this week</span>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-icon info">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="stats-value">2,847</div>
+                <div class="stats-label">Homes Electrified</div>
+                <div class="stats-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+156 this month</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Task Completion Status</h3>
+                    <div class="chart-menu">
+                        <button class="chart-menu-btn" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="#">Export as PNG</a>
+                            <a class="dropdown-item" href="#">View Details</a>
+                            <a class="dropdown-item" href="#">Configure</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="taskCompletionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Monthly Project Progress</h3>
+                    <div class="chart-menu">
+                        <button class="chart-menu-btn" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="#">Export as PNG</a>
+                            <a class="dropdown-item" href="#">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="projectProgressChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Regional Performance</h3>
+                    <div class="chart-menu">
+                        <button class="chart-menu-btn" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="#">Export as PNG</a>
+                            <a class="dropdown-item" href="#">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="regionalChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" style="color: var(--bboxx-green);">98.5%</div>
+                <div class="metric-label">System Uptime</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" style="color: var(--bboxx-orange);">4.2m</div>
+                <div class="metric-label">Energy Generated (kWh)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" style="color: var(--bboxx-blue);">147</div>
+                <div class="metric-label">Active Technicians</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" style="color: var(--bboxx-green);">92%</div>
+                <div class="metric-label">Customer Satisfaction</div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="activity-section">
+            <div class="activity-header">
+                <h3>Recent Activity</h3>
+                <a href="/admin/activity" class="text-decoration-none">View All</a>
+            </div>
+            <div class="activity-list">
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: rgba(76, 175, 80, 0.1); color: var(--bboxx-green);">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Solar installation completed in Kicukiro</div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: rgba(255, 107, 53, 0.1); color: var(--bboxx-orange);">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">New technician added to Gasabo team</div>
+                        <div class="activity-time">4 hours ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: rgba(255, 193, 7, 0.1); color: var(--bboxx-yellow);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Maintenance required for Nyanza project</div>
+                        <div class="activity-time">6 hours ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: rgba(27, 54, 93, 0.1); color: var(--bboxx-blue);">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Weekly performance report generated</div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sidebar Toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+    });
+
+    // Mobile sidebar
+    if (window.innerWidth <= 768) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+    }
+
+    // Initialize Charts
+    document.addEventListener('DOMContentLoaded', function() {
+        // Task Completion Chart
+        const taskCtx = document.getElementById('taskCompletionChart').getContext('2d');
+        new Chart(taskCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'In Progress', 'Pending', 'Overdue'],
+                datasets: [{
+                    data: [
+                        parseInt('[[${doneTasks}]]') || 245,
+                        parseInt('[[${pendingTasks}]]') || 97,
+                        65,
+                        23
+                    ],
+                    backgroundColor: [
+                        '#4CAF50',
+                        '#FF6B35',
+                        '#FFC107',
+                        '#DC3545'
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Project Progress Chart
+        const projectCtx = document.getElementById('projectProgressChart').getContext('2d');
+        new Chart(projectCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Projects Completed',
+                    data: [12, 19, 15, 25, 22, 30],
+                    borderColor: '#FF6B35',
+                    backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'New Projects',
+                    data: [8, 15, 18, 20, 16, 25],
+                    borderColor: '#1B365D',
+                    backgroundColor: 'rgba(27, 54, 93, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Regional Performance Chart
+        const regionalCtx = document.getElementById('regionalChart').getContext('2d');
+        new Chart(regionalCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Kigali', 'Eastern', 'Northern', 'Southern', 'Western'],
+                datasets: [{
+                    label: 'Installations',
+                    data: [450, 280, 320, 180, 240],
+                    backgroundColor: '#FF6B35',
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }, {
+                    label: 'Maintenance',
+                    data: [89, 65, 78, 45, 58],
+                    backgroundColor: '#1B365D',
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    // Real-time updates simulation
+    function updateMetrics() {
+        const metrics = document.querySelectorAll('.stats-value');
+        metrics.forEach(metric => {
+            const currentValue = parseInt(metric.textContent);
+            const variation = Math.floor(Math.random() * 5) - 2; // -2 to +2
+            const newValue = Math.max(0, currentValue + variation);
+
+            if (variation !== 0) {
+                metric.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    metric.style.transform = 'scale(1)';
+                    metric.textContent = newValue.toLocaleString();
+                }, 200);
+            }
+        });
+    }
+
+    // Update metrics every 30 seconds
+    setInterval(updateMetrics, 30000);
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-box input');
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        // Implement search logic here
+        console.log('Searching for:', searchTerm);
+    });
+
+    // Notification handling
+    const notificationBtn = document.querySelector('.notification-btn');
+    notificationBtn.addEventListener('click', function() {
+        const badge = this.querySelector('.notification-badge');
+        if (badge) {
+            badge.style.display = 'none';
+        }
+    });
+
+    // Activity auto-refresh
+    function refreshActivity() {
+        const activityList = document.querySelector('.activity-list');
+        // Simulate new activity
+        const activities = [
+            {
+                icon: 'fas fa-solar-panel',
+                color: 'var(--bboxx-orange)',
+                bg: 'rgba(255, 107, 53, 0.1)',
+                title: 'New solar kit installed in Huye',
+                time: 'Just now'
+            },
+            {
+                icon: 'fas fa-wrench',
+                color: 'var(--bboxx-blue)',
+                bg: 'rgba(27, 54, 93, 0.1)',
+                title: 'Maintenance completed in Rubavu',
+                time: '5 minutes ago'
+            },
+            {
+                icon: 'fas fa-user-check',
+                color: 'var(--bboxx-green)',
+                bg: 'rgba(76, 175, 80, 0.1)',
+                title: 'Customer onboarding completed',
+                time: '10 minutes ago'
+            }
+        ];
+
+        // Add random activity every 2 minutes
+        if (Math.random() > 0.7) {
+            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item';
+            activityItem.innerHTML = `
+                    <div class="activity-icon" style="background: ${randomActivity.bg}; color: ${randomActivity.color};">
+                        <i class="${randomActivity.icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${randomActivity.title}</div>
+                        <div class="activity-time">${randomActivity.time}</div>
+                    </div>
+                `;
+            activityList.insertBefore(activityItem, activityList.firstChild);
+
+            // Remove last item if more than 6 items
+            if (activityList.children.length > 6) {
+                activityList.removeChild(activityList.lastChild);
+            }
+        }
+    }
+
+    // Refresh activity every 2 minutes
+    setInterval(refreshActivity, 120000);
+
+    // Responsive handling
+    function handleResize() {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        } else {
+            sidebar.classList.remove('show');
+        }
+    }
+
+    window.addEventListener('resize', handleResize);
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-tooltip]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Animate stats cards on load
+    function animateStatsCards() {
+        const cards = document.querySelectorAll('.stats-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    }
+
+    // Run animation on page load
+    setTimeout(animateStatsCards, 500);
+
+    // Chart resize handler
+    function handleChartResize() {
+        Chart.helpers.each(Chart.instances, function(instance) {
+            instance.resize();
+        });
+    }
+
+    window.addEventListener('resize', handleChartResize);
+
+    // Performance monitoring
+    function monitorPerformance() {
+        const performanceData = {
+            uptime: (98.5 + (Math.random() * 2 - 1)).toFixed(1),
+            energy: (4.2 + (Math.random() * 0.5 - 0.25)).toFixed(1),
+            technicians: 147 + Math.floor(Math.random() * 10 - 5),
+            satisfaction: (92 + Math.floor(Math.random() * 6 - 3))
+        };
+
+        const metricCards = document.querySelectorAll('.metric-card .metric-value');
+        if (metricCards.length >= 4) {
+            metricCards[0].textContent = performanceData.uptime + '%';
+            metricCards[1].textContent = performanceData.energy + 'M';
+            metricCards[2].textContent = performanceData.technicians;
+            metricCards[3].textContent = performanceData.satisfaction + '%';
+        }
+    }
+
+    // Update performance metrics every 60 seconds
+    setInterval(monitorPerformance, 60000);
+
+    // Dark mode toggle (future enhancement)
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    // Load dark mode preference
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Quick action buttons
+    document.querySelectorAll('.quick-action-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Add loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<div class="loading"></div> Loading...';
+            this.style.pointerEvents = 'none';
+
+            // Simulate loading
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.style.pointerEvents = 'auto';
+            }, 1000);
+        });
+    });
+
+    // Export functionality
+    function exportData(format) {
+        const exportBtn = document.querySelector('.header-btn:not(.primary)');
+        const originalText = exportBtn.innerHTML;
+
+        exportBtn.innerHTML = '<div class="loading"></div> Exporting...';
+        exportBtn.style.pointerEvents = 'none';
+
+        // Simulate export process
+        setTimeout(() => {
+            exportBtn.innerHTML = originalText;
+            exportBtn.style.pointerEvents = 'auto';
+
+            // Show success message
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                    <div class="toast-content">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <span>Data exported successfully!</span>
+                    </div>
+                `;
+            toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    z-index: 9999;
+                    transform: translateX(100%);
+                    transition: transform 0.3s ease;
+                `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }, 2000);
+    }
+
+    // Add export event listeners
+    document.querySelectorAll('.header-btn').forEach(btn => {
+        if (btn.textContent.includes('Export')) {
+            btn.addEventListener('click', () => exportData('excel'));
+        }
+    });
+</script>
 </body>
 </html>

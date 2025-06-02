@@ -38,13 +38,18 @@ public class AdminController {
 
         userService.saveUser(user);
 
-        String message = "Hello " + user.getFullName() + ",\n\n" +
+        String message = "Hello " + user.getUsername() + ",\n\n" +
                 "Your BBOXXTrack account has been created.\n\n" +
                 "Email: " + user.getEmail() + "\n" +
                 "Password: " + generatedPassword + "\n\n" +
                 "Login here: http://localhost:8081/login";
 
-        emailService.sendEmail(user.getEmail(), "Your BBOXXTrack Credentials", message);
+        try {
+            emailService.sendEmail(user.getEmail(), "Your BBOXXTrack Credentials", message);
+        } catch (Exception e) {
+            // Log error but don't fail the user creation
+            System.err.println("Failed to send email: " + e.getMessage());
+        }
 
         return "redirect:/admin/users";
     }
@@ -69,19 +74,16 @@ public class AdminController {
             return "redirect:/login";
         }
 
-        // Dashboard statistics
         List<Map<String, Object>> dashboardStats = new ArrayList<>();
         dashboardStats.add(createStat("Total Users", userService.getAllUsers().size()));
         dashboardStats.add(createStat("Total Projects", projectService.getAllProjects().size()));
         dashboardStats.add(createStat("Total Tasks", taskService.getAllTasks().size()));
         dashboardStats.add(createStat("Total Inventory", inventoryService.getAllInventory().size()));
 
-        // Task statistics
         long doneTasks = taskService.getAllTasks().stream()
                 .filter(t -> "Done".equalsIgnoreCase(t.getStatus())).count();
         long pendingTasks = taskService.getAllTasks().size() - doneTasks;
 
-        // Project statistics
         long ongoingProjects = projectService.getAllProjects().stream()
                 .filter(p -> "Ongoing".equalsIgnoreCase(p.getStatus())).count();
         long completedProjects = projectService.getAllProjects().stream()
@@ -89,7 +91,6 @@ public class AdminController {
         long upcomingProjects = projectService.getAllProjects().stream()
                 .filter(p -> "Upcoming".equalsIgnoreCase(p.getStatus())).count();
 
-        // Inventory statistics
         List<Inventory> inventories = inventoryService.getAllInventory();
         List<String> inventoryLabels = inventories.stream()
                 .map(Inventory::getItemName)
@@ -109,7 +110,6 @@ public class AdminController {
         model.addAttribute("upcomingProjects", upcomingProjects);
         model.addAttribute("inventoryLabels", inventoryLabels);
         model.addAttribute("inventoryQuantities", inventoryQuantities);
-//        model.addAttribute("activities", activityService.getRecentActivities());
 
         return "admin/dashboard";
     }

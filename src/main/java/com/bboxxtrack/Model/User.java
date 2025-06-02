@@ -1,31 +1,29 @@
 package com.bboxxtrack.Model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
 @Entity
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fullName;
+    @Column(name = "username")
+    private String username;
 
-    @Column(unique = true)
-    private String email;
-
-    private String phone;
-
-    private String role;
-
+    @Column(name = "password")
     private String password;
 
-    // Getters and Setters
+    @Column(name = "email")
+    private String email;
 
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "role")
+    private String role;
 
     public Long getId() {
         return id;
@@ -35,12 +33,20 @@ public class User {
         this.id = id;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getEmail() {
@@ -65,13 +71,5 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }

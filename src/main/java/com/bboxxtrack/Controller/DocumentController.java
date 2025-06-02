@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class DocumentController {
-    @Autowired private DocumentService docService;
+
+    @Autowired
+    private DocumentService docService;
 
     @GetMapping("/attachments/{id}")
     public ResponseEntity<byte[]> download(@PathVariable Long id) {

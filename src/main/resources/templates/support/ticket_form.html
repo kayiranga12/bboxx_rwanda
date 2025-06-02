@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>New Ticket | BBOXXTrack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bboxx-orange: #FF6B35;
+            --bboxx-dark-orange: #E55A2E;
+            --bboxx-blue: #1B365D;
+            --bboxx-dark-blue: #0F1F35;
+            --bboxx-light-blue: #2E5984;
+            --bboxx-green: #4CAF50;
+            --bboxx-yellow: #FFC107;
+            --bboxx-red: #DC3545;
+            --bboxx-gray: #F8F9FA;
+            --bboxx-dark-gray: #333333;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, var(--bboxx-blue) 0%, var(--bboxx-dark-blue) 100%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .logo .track {
+            color: var(--bboxx-orange);
+            font-weight: 400;
+        }
+
+        .sidebar.collapsed .logo .track {
+            display: none;
+        }
+
+        .user-badge {
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar.collapsed .user-badge {
+            display: none;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+            height: calc(100vh - 180px);
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            margin: 0.2rem 1rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 107, 53, 0.15);
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: #1677ff;
+            box-shadow: 0 4px 15px #426fb1;
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            margin: 0.2rem 0.5rem;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        .nav-badge {
+            background: var(--bboxx-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+        }
+
+        .sidebar.collapsed .nav-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        /* Top Navigation */
+        .top-navbar {
+            background: white;
+            height: var(--header-height);
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bboxx-gray);
+            color: var(--bboxx-orange);
+        }
+
+        .page-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-online {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn:hover {
+            background: var(--bboxx-gray);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--bboxx-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-menu:hover {
+            background: var(--bboxx-gray);
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* Page Content */
+        .form-content {
+            padding: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .header-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .breadcrumb-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-nav a {
+            color: var(--bboxx-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb-nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .form-header {
+            background: var(--bboxx-blue);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .form-body {
+            padding: 2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .required {
+            color: var(--bboxx-red);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #E1E5E9;
+            border-radius: 10px;
+            padding: 0.875rem 1rem;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--bboxx-orange);
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: #999;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-text {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Priority Selector */
+        .priority-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .priority-option {
+            position: relative;
+        }
+
+        .priority-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .priority-label {
+            display: block;
+            padding: 1rem;
+            border: 2px solid #E1E5E9;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .priority-label:hover {
+            border-color: var(--bboxx-orange);
+            transform: translateY(-2px);
+        }
+
+        .priority-option input[type="radio"]:checked + .priority-label {
+            border-color: var(--bboxx-orange);
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--bboxx-orange);
+        }
+
+        .priority-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .priority-low .priority-icon {
+            color: var(--bboxx-green);
+        }
+
+        .priority-medium .priority-icon {
+            color: var(--bboxx-yellow);
+        }
+
+        .priority-high .priority-icon {
+            color: var(--bboxx-red);
+        }
+
+        .priority-critical .priority-icon {
+            color: #8B0000;
+        }
+
+        .priority-text {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed #E1E5E9;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload:hover {
+            border-color: var(--bboxx-orange);
+            background: rgba(255, 107, 53, 0.02);
+        }
+
+        .file-upload.dragover {
+            border-color: var(--bboxx-orange);
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            color: #999;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .uploaded-files {
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border: 1px solid #E1E5E9;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .file-icon {
+            color: var(--bboxx-orange);
+        }
+
+        .file-name {
+            font-weight: 500;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .remove-file {
+            background: none;
+            border: none;
+            color: var(--bboxx-red);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .remove-file:hover {
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        /* Customer Search */
+        .customer-search {
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--bboxx-orange);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .search-result {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f3f4;
+            transition: all 0.3s ease;
+        }
+
+        .search-result:hover {
+            background: rgba(255, 107, 53, 0.05);
+        }
+
+        .search-result:last-child {
+            border-bottom: none;
+        }
+
+        .customer-result {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .customer-avatar-small {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bboxx-blue), var(--bboxx-light-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        .customer-name {
+            font-weight: 600;
+        }
+
+        .customer-id {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        /* Form Actions */
+        .form-actions {
+            background: #f8f9fa;
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: var(--bboxx-orange);
+            border-color: var(--bboxx-orange);
+            padding: 0.875rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--bboxx-dark-orange);
+            border-color: var(--bboxx-dark-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            border-color: #6c757d;
+            padding: 0.875rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            border-color: #545b62;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid #6c757d;
+            background: white;
+            color: #6c757d;
+            padding: 0.875rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--bboxx-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .form-content {
+                padding: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+
+            .priority-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bboxx-orange);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bboxx-dark-orange);
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="/support/dashboard" class="logo">
+            BBOXX<span class="track">Track</span>
+        </a>
+        <div class="user-badge">
+            <i class="fas fa-headset me-1"></i>Support Team
+        </div>
+    </div>
+
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="/support/dashboard" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/support/tickets" class="nav-link active">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Support Tickets</span>
+                    <span class="nav-badge">12</span>
+                </a>
+            </li>
+<!--            <li class="nav-item">-->
+<!--                <a href="/support/schedules" class="nav-link">-->
+<!--                    <i class="fas fa-calendar-alt"></i>-->
+<!--                    <span>Maintenance</span>-->
+<!--                    <span class="nav-badge">5</span>-->
+<!--                </a>-->
+<!--            </li>-->
+<!--            <li class="nav-item">-->
+<!--                <a href="/support/customers" class="nav-link">-->
+<!--                    <i class="fas fa-users"></i>-->
+<!--                    <span>Customers</span>-->
+<!--                </a>-->
+<!--            </li>-->
+<!--            <li class="nav-item">-->
+<!--                <a href="/support/knowledge-base" class="nav-link">-->
+<!--                    <i class="fas fa-book-open"></i>-->
+<!--                    <span>Knowledge Base</span>-->
+<!--                </a>-->
+<!--            </li>-->
+<!--            <li class="nav-item">-->
+<!--                <a href="/support/reports" class="nav-link">-->
+<!--                    <i class="fas fa-chart-bar"></i>-->
+<!--                    <span>Reports & SLA</span>-->
+<!--                </a>-->
+<!--            </li>-->
+<!--            <li class="nav-item">-->
+<!--                <a href="/support/team" class="nav-link">-->
+<!--                    <i class="fas fa-user-friends"></i>-->
+<!--                    <span>Team</span>-->
+<!--                </a>-->
+<!--            </li>-->
+            <li class="nav-item mt-auto">
+                <a href="/logout" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="page-title">
+                Create New Support Ticket
+            </div>
+        </div>
+
+        <div class="navbar-right">
+            <div class="status-indicator status-online">
+                <i class="fas fa-circle"></i>
+                <span>Online</span>
+            </div>
+            <button class="notification-btn" data-bs-toggle="dropdown">
+                <i class="fas fa-bell fa-lg"></i>
+                <span class="notification-badge">3</span>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <div class="dropdown-header">Notifications</div>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        High priority ticket assigned
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-clock text-info me-2"></i>
+                        Maintenance visit overdue
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-user text-success me-2"></i>
+                        New customer registration
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-center text-primary" href="#">View All</a>
+                </div>
+            </button>
+            <div class="user-menu" data-bs-toggle="dropdown">
+                <div class="user-avatar">SM</div>
+                <i class="fas fa-chevron-down d-none d-md-inline"></i>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a class="dropdown-item" href="/support/profile">
+                        <i class="fas fa-user me-2"></i> My Profile
+                    </a>
+                    <a class="dropdown-item" href="/support/settings">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Form Content -->
+    <div class="form-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h2 class="header-title">Create New Support Ticket</h2>
+                <p class="header-subtitle">
+                    Fill out the form below to create a new support ticket for a customer
+                </p>
+                <div class="breadcrumb-nav">
+                    <a href="/support/dashboard">Dashboard</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <a href="/support/tickets">Support Tickets</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>New Ticket</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container">
+            <div class="form-header">
+                <i class="fas fa-plus-circle"></i>
+                <h5>Ticket Information</h5>
+            </div>
+
+            <!-- …earlier template code… -->
+
+            <form
+                    th:action="@{/support/tickets/add}"
+                    th:object="${ticket}"
+                    method="post"
+                    enctype="multipart/form-data"
+                    novalidate
+            >
+                <!-- Hidden field for “stage” – defaults to CREATED in controller -->
+                <input type="hidden" th:field="*{stage}" />
+
+                <!-- Customer Selection -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-user"></i> Customer <span class="text-danger">*</span></label>
+                    <select
+                            class="form-select"
+                            th:field="*{customer.id}"
+                            required
+                    >
+                        <!-- Changed here: use value="" instead of th:value="" -->
+                        <option value="" disabled>-- Select Customer --</option>
+                        <option
+                                th:each="cust : ${customers}"
+                                th:value="${cust.id}"
+                                th:text="${cust.fullName + ' (ID:' + cust.id + ')'}"
+                        ></option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Please select a customer.
+                    </div>
+                </div>
+
+                <!-- Issue Category -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-tag"></i> Issue Category <span class="text-danger">*</span></label>
+                    <select
+                            class="form-select"
+                            th:field="*{category}"
+                            required
+                    >
+                        <!-- Changed here as well -->
+                        <option value="" disabled>-- Select Category --</option>
+                        <option
+                                th:each="cat : ${T(com.bboxxtrack.Model.Category).values()}"
+                                th:value="${cat}"
+                                th:text="${cat.name()}"
+                        ></option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Please select an issue category.
+                    </div>
+                </div>
+
+                <!-- Urgency Level -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-clock"></i> Urgency</label>
+                    <select
+                            class="form-select"
+                            th:field="*{urgency}"
+                    >
+                        <!-- And here -->
+                        <option value="" disabled selected>-- Select Urgency (optional) --</option>
+                        <option
+                                th:each="u : ${T(com.bboxxtrack.Model.Urgency).values()}"
+                                th:value="${u}"
+                                th:text="${u.name()}"
+                        ></option>
+                    </select>
+                </div>
+
+                <!-- Title -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-edit"></i> Ticket Title <span class="text-danger">*</span></label>
+                    <input
+                            type="text"
+                            class="form-control"
+                            th:field="*{title}"
+                            placeholder="Brief description of the issue"
+                            required
+                    />
+                    <div class="invalid-feedback">
+                        Title is required.
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-align-left"></i> Issue Description <span class="text-danger">*</span></label>
+                    <textarea
+                            class="form-control"
+                            th:field="*{description}"
+                            rows="4"
+                            placeholder="Detailed description..."
+                            required
+                    ></textarea>
+                    <div class="invalid-feedback">
+                        Description cannot be empty.
+                    </div>
+                </div>
+
+                <!-- Priority -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-exclamation-circle"></i> Priority</label>
+                    <select
+                            class="form-select" th:field="*{priority}">
+                        <!-- Changed here -->
+                        <option value="" disabled selected>-- Choose Priority (optional) --</option>
+                        <option
+                                th:each="p : ${T(com.bboxxtrack.Model.Priority).values()}"
+                                th:value="${p}"
+                                th:text="${p.name()}"
+                        ></option>
+                    </select>
+                </div>
+
+                <!-- Location Details -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-map-marker-alt"></i> Location Details</label>
+                    <input
+                            type="text"
+                            class="form-control"
+                            th:field="*{location}"
+                            placeholder="e.g. Site address or directions"
+                    />
+                </div>
+
+                <!-- Contact Number -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-phone"></i> Contact Number</label>
+                    <input
+                            type="tel"
+                            class="form-control"
+                            th:field="*{contactNumber}"
+                            placeholder="+250 78XXXXXXX"
+                    />
+                </div>
+
+                <!-- Assign to Project Manager -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-user-cog"></i> Assign to Project Manager <span class="text-danger">*</span></label>
+                    <select
+                            class="form-select"
+                            th:field="*{assignedToUserId}"
+                            required
+                    >
+                        <!-- Changed here -->
+                        <option value="" disabled>-- Select Project Manager --</option>
+                        <option
+                                th:each="pm : ${projectManagers}"
+                                th:value="${pm.id}"
+                                th:text="${pm.username + ' (' + pm.getRole() + ')'}"
+                        ></option>
+                    </select>
+                    <div class="invalid-feedback">
+                        You must pick one Project Manager.
+                    </div>
+                </div>
+
+                <!-- (Optional) File Attachments -->
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-paperclip"></i> Attachments (optional)</label>
+                    <input
+                            type="file"
+                            class="form-control"
+                            name="files"
+                            multiple
+                            accept="image/*,application/pdf"
+                    />
+                    <div class="form-text text-muted">
+                        You may upload photos or PDFs (max 10MB each).
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-1"></i> Create Ticket
+                    </button>
+                    <a href="/support/tickets" class="btn btn-secondary ms-2">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+
+            <!-- …rest of template code… -->
+
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Creating ticket...</p>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Sidebar Toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+    });
+
+    // Mock customer data
+    const customers = [
+        { id: 1, name: 'John Smith', customerId: 'CUST2847', location: 'Kigali, Gasabo' },
+        { id: 2, name: 'Mary Johnson', customerId: 'CUST1523', location: 'Kigali, Nyarugenge' },
+        { id: 3, name: 'David Brown', customerId: 'CUST3961', location: 'Eastern Province' },
+        { id: 4, name: 'Sarah Wilson', customerId: 'CUST4782', location: 'Northern Province' },
+        { id: 5, name: 'Michael Davis', customerId: 'CUST5691', location: 'Kigali, Kicukiro' }
+    ];
+
+    // Customer Search Functionality
+    const customerSearch = document.getElementById('customerSearch');
+    const searchResults = document.getElementById('searchResults');
+    const selectedCustomerId = document.getElementById('selectedCustomerId');
+
+    customerSearch.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        const filteredCustomers = customers.filter(customer =>
+            customer.name.toLowerCase().includes(query) ||
+            customer.customerId.toLowerCase().includes(query)
+        );
+
+        if (filteredCustomers.length > 0) {
+            searchResults.innerHTML = filteredCustomers.map(customer => `
+                <div class="search-result" onclick="selectCustomer(${customer.id}, '${customer.name}', '${customer.customerId}')">
+                    <div class="customer-result">
+                        <div class="customer-avatar-small">${customer.name.substring(0, 2).toUpperCase()}</div>
+                        <div>
+                            <div class="customer-name">${customer.name}</div>
+                            <div class="customer-id">${customer.customerId} • ${customer.location}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            searchResults.style.display = 'block';
+        } else {
+            searchResults.innerHTML = '<div class="search-result">No customers found</div>';
+            searchResults.style.display = 'block';
+        }
+    });
+
+    function selectCustomer(id, name, customerId) {
+        customerSearch.value = `${name} (${customerId})`;
+        selectedCustomerId.value = id;
+        searchResults.style.display = 'none';
+    }
+
+    // Hide search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!customerSearch.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // File Upload Functionality
+    const fileUpload = document.getElementById('fileUpload');
+    const fileInput = document.getElementById('fileInput');
+    const uploadedFiles = document.getElementById('uploadedFiles');
+    let files = [];
+
+    fileUpload.addEventListener('click', () => fileInput.click());
+
+    fileUpload.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUpload.classList.add('dragover');
+    });
+
+    fileUpload.addEventListener('dragleave', () => {
+        fileUpload.classList.remove('dragover');
+    });
+
+    fileUpload.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUpload.classList.remove('dragover');
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        addFiles(droppedFiles);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const selectedFiles = Array.from(e.target.files);
+        addFiles(selectedFiles);
+    });
+
+    function addFiles(newFiles) {
+        newFiles.forEach(file => {
+            if (file.size <= 10 * 1024 * 1024) { // 10MB limit
+                files.push(file);
+                displayFile(file);
+            } else {
+                showAlert(`File ${file.name} is too large. Maximum size is 10MB.`, 'error');
+            }
+        });
+    }
+
+    function displayFile(file) {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.innerHTML = `
+            <div class="file-info">
+                <i class="fas fa-file file-icon"></i>
+                <div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+            </div>
+            <button type="button" class="remove-file" onclick="removeFile('${file.name}', this)">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        uploadedFiles.appendChild(fileItem);
+    }
+
+    function removeFile(fileName, button) {
+        files = files.filter(file => file.name !== fileName);
+        button.closest('.file-item').remove();
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Form Submission
+    const ticketForm = document.getElementById('ticketForm');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    ticketForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Validate required fields
+        if (!validateForm()) {
+            return;
+        }
+
+        // Show loading
+        loadingOverlay.style.display = 'flex';
+
+        // Simulate form submission
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+            showAlert('Ticket created successfully! Redirecting...', 'success');
+
+            setTimeout(() => {
+                window.location.href = '/support/tickets';
+            }, 2000);
+        }, 2000);
+    });
+
+    function validateForm() {
+        const customer = selectedCustomerId.value;
+        const title = document.querySelector('[name="title"]').value;
+        const description = document.querySelector('[name="description"]').value;
+        const category = document.querySelector('[name="category"]').value;
+
+        if (!customer) {
+            showAlert('Please select a customer', 'error');
+            customerSearch.focus();
+            return false;
+        }
+
+        if (!title.trim()) {
+            showAlert('Please enter a ticket title', 'error');
+            document.querySelector('[name="title"]').focus();
+            return false;
+        }
+
+        if (!description.trim()) {
+            showAlert('Please enter a detailed description', 'error');
+            document.querySelector('[name="description"]').focus();
+            return false;
+        }
+
+        if (!category) {
+            showAlert('Please select an issue category', 'error');
+            document.querySelector('[name="category"]').focus();
+            return false;
+        }
+
+        return true;
+    }
+
+    // Save Draft Functionality
+    function saveDraft() {
+        const formData = new FormData(ticketForm);
+        const draftData = {};
+
+        for (let [key, value] of formData.entries()) {
+            draftData[key] = value;
+        }
+
+        // Save to localStorage (in real app, this would be sent to server)
+        localStorage.setItem('ticketDraft', JSON.stringify(draftData));
+        showAlert('Draft saved successfully!', 'success');
+    }
+
+    // Load Draft on Page Load
+    function loadDraft() {
+        const draft = localStorage.getItem('ticketDraft');
+        if (draft) {
+            const draftData = JSON.parse(draft);
+
+            // Populate form fields
+            Object.keys(draftData).forEach(key => {
+                const field = document.querySelector(`[name="${key}"]`);
+                if (field) {
+                    field.value = draftData[key];
+                }
+            });
+
+            showAlert('Draft loaded. You can continue where you left off.', 'info');
+        }
+    }
+
+    // Auto-save every 30 seconds
+    setInterval(() => {
+        const title = document.querySelector('[name="title"]').value;
+        const description = document.querySelector('[name="description"]').value;
+
+        if (title.trim() || description.trim()) {
+            saveDraft();
+        }
+    }, 30000);
+
+    // Alert function
+    function showAlert(message, type = 'success') {
+        const alertClass = {
+            'success': 'alert-success',
+            'warning': 'alert-warning',
+            'error': 'alert-danger',
+            'info': 'alert-info'
+        }[type];
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+
+    // Priority Selection Visual Feedback
+    document.querySelectorAll('input[name="priority"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.priority-label').forEach(label => {
+                label.style.transform = 'scale(1)';
+            });
+
+            if (this.checked) {
+                this.nextElementSibling.style.transform = 'scale(1.05)';
+            }
+        });
+    });
+
+    // Category Change Handler
+    document.querySelector('[name="category"]').addEventListener('change', function() {
+        const category = this.value;
+        const urgencyField = document.querySelector('[name="urgency"]');
+
+        // Auto-suggest urgency based on category
+        if (category === 'SOLAR_PANEL' || category === 'BATTERY') {
+            urgencyField.value = 'URGENT';
+        } else if (category === 'PAYMENT_TERMINAL') {
+            urgencyField.value = 'STANDARD';
+        }
+    });
+
+    // Real-time character count for description
+    const descriptionField = document.querySelector('[name="description"]');
+    const characterCount = document.createElement('div');
+    characterCount.className = 'form-text text-end';
+    characterCount.style.marginTop = '0.5rem';
+    descriptionField.parentNode.appendChild(characterCount);
+
+    descriptionField.addEventListener('input', function() {
+        const length = this.value.length;
+        characterCount.textContent = `${length} characters`;
+
+        if (length < 50) {
+            characterCount.style.color = '#dc3545';
+            characterCount.textContent += ' (Please provide more details)';
+        } else {
+            characterCount.style.color = '#666';
+        }
+    });
+
+    // Responsive handling
+    function handleResize() {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        } else {
+            sidebar.classList.remove('show');
+        }
+    }
+
+    window.addEventListener('resize', handleResize);
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        handleResize();
+        loadDraft();
+
+        console.log('BBOXXTrack Support Ticket Form initialized successfully');
+
+        // Animate form on load
+        setTimeout(() => {
+            const formContainer = document.querySelector('.form-container');
+            formContainer.style.opacity = '0';
+            formContainer.style.transform = 'translateY(30px)';
+
+            setTimeout(() => {
+                formContainer.style.transition = 'all 0.6s ease';
+                formContainer.style.opacity = '1';
+                formContainer.style.transform = 'translateY(0)';
+            }, 100);
+        }, 200);
+    });
+
+    // Prevent form submission on Enter key (except in textarea)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+        }
+    });
+
+    // Confirm navigation away with unsaved changes
+    let formChanged = false;
+
+    ticketForm.addEventListener('input', () => {
+        formChanged = true;
+    });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Clear changed flag on successful submission
+    ticketForm.addEventListener('submit', () => {
+        formChanged = false;
+    });
+</script>
+</body>
+</html>

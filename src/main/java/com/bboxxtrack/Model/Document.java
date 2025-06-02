@@ -4,22 +4,31 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "documents")
 public class Document {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "file_name", nullable = false)
     private String fileName;
+
+    @Column(name = "content_type", nullable = false)
     private String contentType;
-    private String referenceType; // “TASK”, “CUSTOMER”, or “PROJECT”
-    private Long referenceId;
-    private LocalDateTime uploadedAt;
-    private Long uploadedBy;
 
     @Lob
-    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "data", nullable = false)
     private byte[] data;
 
-    // getters & setters omitted for brevity
+    @Column(name = "entity_type", nullable = false)
+    private String entityType;
+
+    @Column(name = "entity_id", nullable = false)
+    private Long entityId;
+
+    @Column(name = "uploaded_at", nullable = false)
+    private LocalDateTime uploadedAt;
 
     public Long getId() {
         return id;
@@ -45,20 +54,28 @@ public class Document {
         this.contentType = contentType;
     }
 
-    public String getReferenceType() {
-        return referenceType;
+    public byte[] getData() {
+        return data;
     }
 
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
+    public void setData(byte[] data) {
+        this.data = data;
     }
 
-    public Long getReferenceId() {
-        return referenceId;
+    public String getEntityType() {
+        return entityType;
     }
 
-    public void setReferenceId(Long referenceId) {
-        this.referenceId = referenceId;
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
+
+    public Long getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(Long entityId) {
+        this.entityId = entityId;
     }
 
     public LocalDateTime getUploadedAt() {
@@ -67,21 +84,5 @@ public class Document {
 
     public void setUploadedAt(LocalDateTime uploadedAt) {
         this.uploadedAt = uploadedAt;
-    }
-
-    public Long getUploadedBy() {
-        return uploadedBy;
-    }
-
-    public void setUploadedBy(Long uploadedBy) {
-        this.uploadedBy = uploadedBy;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public void setData(byte[] data) {
-        this.data = data;
     }
 }

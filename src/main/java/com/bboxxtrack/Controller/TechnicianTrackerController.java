@@ -68,11 +68,11 @@ public class TechnicianTrackerController {
         boolean inside = (zoneService.findZoneContaining(lat, lng) != null);
 
         if (!inside) {
-            String msg = "Alert: Technician " + user.getFullName() +
+            String msg = "Alert: Technician " + user.getUsername() +
                     " reported from outside any zone at " + tracker.getGpsCoordinates();
             // email HQ
             emailService.sendEmail("hq@bboxxtrack.com",
-                    "Geofence breach by " + user.getFullName(),
+                    "Geofence breach by " + user.getUsername(),
                     msg);
             // SMS HQ
             smsService.sendSms("+2507XXXXXXXX", msg);

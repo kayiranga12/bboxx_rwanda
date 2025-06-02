@@ -11,20 +11,20 @@
 <body>
 <div class="d-flex" id="wrapper">
     <!-- Sidebar -->
-    <div class="border-end bg-dark" id="sidebar-wrapper">
+    <nav class="border-end bg-dark" id="sidebar-wrapper">
         <div class="sidebar-heading text-center py-4">
-            <a href="/support/dashboard"><img src="/images/bboxx.png" class="logo-img"/></a>
+            <a href="/support/dashboard"><img src="/images/bboxx.png" class="logo-img" alt="BBOXX"/></a>
             <h5 class="text-white mt-2">Support Panel</h5>
         </div>
         <div class="sidebar-menu px-2">
             <ul class="nav flex-column mt-3">
                 <li class="nav-item">
-                    <a href="/support/dashboard" class="nav-link text-white">
+                    <a href="/support/dashboard" class="nav-link active text-white">
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/support/schedules/add" class="nav-link active text-white">
+                    <a href="/support/schedules/add" class="nav-link text-white">
                         <i class="fas fa-calendar-plus me-2"></i>New Visit
                     </a>
                 </li>
@@ -33,22 +33,70 @@
                         <i class="fas fa-calendar-days me-2"></i>Calendar
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="/support/kb" class="nav-link text-white">
+                        <i class="fas fa-book-open me-2"></i>Knowledge Base
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/support/reports" class="nav-link text-white">
+                        <i class="fas fa-chart-bar me-2"></i>Reports &amp; SLAs
+                    </a>
+                </li>
+                <li class="nav-item mt-4">
+                    <a href="/logout" class="nav-link text-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </li>
             </ul>
         </div>
-    </div>
+    </nav>
 
     <!-- Page Content -->
     <div class="flex-grow-1 content-wrapper d-flex flex-column">
         <!-- Top Navbar -->
-        <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
             <div class="container-fluid px-4">
                 <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div class="ms-auto">
-                    <a href="/logout" class="btn btn-outline-danger btn-sm">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
+
+                <div class="navbar-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Search projects...">
+                </div>
+
+                <div class="ms-auto d-flex align-items-center">
+                    <div class="dropdown me-3">
+                        <button class="btn btn-sm btn-light position-relative" data-bs-toggle="dropdown">
+                            <i class="far fa-bell fa-lg"></i>
+                            <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">2</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="dropdown-header">Notifications</li>
+                            <li><a class="dropdown-item" href="#">New task assigned</a></li>
+                            <li><a class="dropdown-item" href="#">Project deadline approaching</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-center text-primary" href="#">View All</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="user-profile dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                            <div class="avatar">PM</div>
+                            <div class="user-info d-none d-md-block">
+                                <div class="user-name">Project Manager</div>
+                                <div class="user-role">Manager</div>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -79,6 +127,11 @@
                            th:field="*{scheduleDate}"
                            class="form-control"
                            required/>
+                </div>
+                <!-- in support/schedule_form.html, inside the form -->
+                <div class="mb-3 form-check">
+                    <input type="checkbox" th:field="*{followUp}" class="form-check-input" id="followUp">
+                    <label class="form-check-label" for="followUp">This is a follow-up visit</label>
                 </div>
 
                 <div class="mb-3">

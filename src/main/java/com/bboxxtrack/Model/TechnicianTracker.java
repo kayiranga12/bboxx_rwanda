@@ -5,22 +5,23 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-@Getter
-@Setter
+
 @Entity
+@Table(name = "technician_tracker")
+@Getter @Setter
 public class TechnicianTracker {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long technicianId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "technician_id", nullable = false)
+    private User technician;
+
     private String gpsCoordinates;
     private String statusUpdate;
     private LocalDateTime timestamp;
-
-    // Getters and Setters
 
     public Long getId() {
         return id;
@@ -30,12 +31,12 @@ public class TechnicianTracker {
         this.id = id;
     }
 
-    public Long getTechnicianId() {
-        return technicianId;
+    public User getTechnician() {
+        return technician;
     }
 
-    public void setTechnicianId(Long technicianId) {
-        this.technicianId = technicianId;
+    public void setTechnician(User technician) {
+        this.technician = technician;
     }
 
     public String getGpsCoordinates() {
