@@ -1,11 +1,7 @@
 package com.bboxxtrack.Controller;
 
-import com.bboxxtrack.Model.MaintenanceSchedule;
-import com.bboxxtrack.Model.User;
-import com.bboxxtrack.Service.CustomerService;
-import com.bboxxtrack.Service.EmailService;
-import com.bboxxtrack.Service.MaintenanceScheduleService;
-import com.bboxxtrack.Service.UserService;
+import com.bboxxtrack.Model.*;
+import com.bboxxtrack.Service.*;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -40,6 +36,7 @@ public class MaintenanceScheduleController {
     private final CustomerService customerService;
     private final EmailService emailService;
     private final UserService userService;
+    @Autowired private TicketService ticketService;
 
     @Autowired
     public MaintenanceScheduleController(MaintenanceScheduleService scheduleService,
@@ -53,68 +50,64 @@ public class MaintenanceScheduleController {
     }
 
     @GetMapping("/dashboard")
-    public String showDashboard(
-            HttpSession session,
-            Model model,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "") String status,
-            @RequestParam(defaultValue = "latest") String sort,
-            @RequestParam(defaultValue = "") String search) {
+    public String showDashboard(Model model, HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user == null || !"Support".equals(user.getRole())) {
             return "redirect:/login";
         }
 
-        List<MaintenanceSchedule> all = scheduleService.getAllSchedules();
-        List<MaintenanceSchedule> filtered = all.stream()
-                .filter(s -> status.isEmpty() || s.getStatus().equalsIgnoreCase(status))
-                .collect(Collectors.toList());
+        List<Ticket> allTickets = ticketService.all();
 
-        if (!search.isBlank()) {
-            String q = search.trim().toLowerCase();
-            filtered = filtered.stream()
-                    .filter(s -> String.valueOf(s.getCustomer().getId()).contains(q) ||
-                            s.getPurpose().toLowerCase().contains(q))
-                    .collect(Collectors.toList());
-        }
-
-        Comparator<MaintenanceSchedule> comparator =
-                Comparator.comparing(MaintenanceSchedule::getScheduleDate);
-        if ("latest".equals(sort)) {
-            comparator = comparator.reversed();
-        } else if ("customerId".equals(sort)) {
-            comparator = Comparator.comparing(s -> s.getCustomer().getId());
-        } else if ("oldest".equals(sort)) {
-            // Already sorted by scheduleDate ascending
-        }
-        filtered.sort(comparator);
-
-        int total = filtered.size();
-        int totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE;
-        int from = page * PAGE_SIZE;
-        int to = Math.min(from + PAGE_SIZE, total);
-        List<MaintenanceSchedule> pageList = filtered.subList(Math.min(from, to), to);
-
-        long completedCount = all.stream()
-                .filter(s -> "Completed".equalsIgnoreCase(s.getStatus()))
-                .count();
-        long pendingCount = all.stream()
-                .filter(s -> "Pending".equalsIgnoreCase(s.getStatus()) || "In Progress".equalsIgnoreCase(s.getStatus()))
+        long unassignedCount = allTickets.stream()
+                .filter(t -> t.getAssignedToUserId() == null)
                 .count();
 
-        model.addAttribute("schedules", pageList);
-        model.addAttribute("total", total);
-        model.addAttribute("completedCount", completedCount);
-        model.addAttribute("pendingCount", pendingCount);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", totalPages);
-        model.addAttribute("filterStatus", status);
-        model.addAttribute("sortOrder", sort);
-        model.addAttribute("searchQuery", search);
-        model.addAttribute("technicians", userService.getUsersByRole("Technician"));
+        long assignedCount = allTickets.stream()
+                .filter(t -> t.getAssignedToUserId() != null)
+                .count();
+
+        long totalCount = allTickets.size();
+
+        long closedCount = allTickets.stream()
+                .filter(t -> t.getClosedAt() != null)
+                .count();
+        long highPriorityCount = allTickets.stream()
+                .filter(t -> Priority.HIGH.equals(t.getPriority()))
+                .count();
+
+        long mediumPriorityCount = allTickets.stream()
+                .filter(t -> Priority.MEDIUM.equals(t.getPriority()))
+                .count();
+
+        long lowPriorityCount = allTickets.stream()
+                .filter(t -> Priority.LOW.equals(t.getPriority()))
+                .count();
+        long standardUrgencyCount = allTickets.stream()
+                .filter(t -> Urgency.STANDARD.equals(t.getUrgency()))
+                .count();
+
+        long urgentUrgencyCount = allTickets.stream()
+                .filter(t -> Urgency.URGENT.equals(t.getUrgency()))
+                .count();
+
+        long emergencyUrgencyCount = allTickets.stream()
+                .filter(t -> Urgency.EMERGENCY.equals(t.getUrgency()))
+                .count();
+
+        model.addAttribute("criticalUrgencyTickets", standardUrgencyCount);
+        model.addAttribute("highUrgencyTickets", urgentUrgencyCount);
+        model.addAttribute("mediumUrgencyTickets", emergencyUrgencyCount);
+        model.addAttribute("highPriorityTickets", highPriorityCount);
+        model.addAttribute("mediumPriorityTickets", mediumPriorityCount);
+        model.addAttribute("lowPriorityTickets", lowPriorityCount);
+        model.addAttribute("closedTickets", closedCount);
+        model.addAttribute("unassignedTickets", unassignedCount);
+        model.addAttribute("assignedTickets", assignedCount);
+        model.addAttribute("TotalTickets", totalCount);
 
         return "support/dashboard";
     }
+
 
     @GetMapping("/schedules/add")
     public String showForm(HttpSession session, Model model) {

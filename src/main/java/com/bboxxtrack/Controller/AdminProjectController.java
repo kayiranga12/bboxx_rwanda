@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/admin/projects")
 public class AdminProjectController {
@@ -25,8 +27,30 @@ public class AdminProjectController {
         if (user == null || !"Admin".equals(user.getRole())) {
             return "redirect:/login";
         }
-        model.addAttribute("projects", projectService.getAllProjects());
+
+        // Get all projects
+        List<Project> projects = projectService.getAllProjects();
+        model.addAttribute("projects", projects);
         model.addAttribute("newProject", new Project());
+
+        // Calculate statistics
+        long totalProjects = projects.size();
+        long ongoingProjects = projects.stream()
+                .filter(p -> "Ongoing".equalsIgnoreCase(p.getStatus()))
+                .count();
+        long completedProjects = projects.stream()
+                .filter(p -> "Completed".equalsIgnoreCase(p.getStatus()))
+                .count();
+        long upcomingProjects = projects.stream()
+                .filter(p -> "Upcoming".equalsIgnoreCase(p.getStatus()))
+                .count();
+
+        // Add statistics to model
+        model.addAttribute("totalProjects", totalProjects);
+        model.addAttribute("ongoingProjects", ongoingProjects);
+        model.addAttribute("completedProjects", completedProjects);
+        model.addAttribute("upcomingProjects", upcomingProjects);
+
         return "admin/projects";
     }
 

@@ -771,31 +771,12 @@
                 <a href="/technician/tasks" class="nav-link active">
                     <i class="fas fa-clipboard-list"></i>
                     <span>My Tasks</span>
-                    <span class="nav-badge">3</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="/technician/tracker" class="nav-link">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>GPS Tracker</span>
-                </a>
-            </li>
-<!--            <li class="nav-item">-->
-<!--                <a href="/technician/schedule" class="nav-link">-->
-<!--                    <i class="fas fa-calendar-alt"></i>-->
-<!--                    <span>Schedule</span>-->
-<!--                </a>-->
-<!--            </li>-->
-<!--            <li class="nav-item">-->
-<!--                <a href="/technician/inventory" class="nav-link">-->
-<!--                    <i class="fas fa-boxes"></i>-->
-<!--                    <span>Equipment</span>-->
-<!--                </a>-->
-<!--            </li>-->
-            <li class="nav-item">
-                <a href="/technician/reports" class="nav-link">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Reports</span>
                 </a>
             </li>
             <li class="nav-item mt-auto">
@@ -822,10 +803,7 @@
         </div>
 
         <div class="navbar-right">
-            <div class="location-display" id="locationDisplay">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>Detecting location...</span>
-            </div>
+
             <div class="status-indicator status-online">
                 <i class="fas fa-circle"></i>
                 <span>Online</span>
@@ -897,34 +875,6 @@
 
             <!-- Redesigned KPI and Status Breakdown -->
             <div class="row mb-4">
-                <div class="col-lg-4">
-                    <div class="card kpi-card h-100">
-                        <div class="card-header bg-primary text-white d-flex align-items-center">
-                            <i class="fas fa-chart-pie me-2"></i>
-                            <span>Task Status Overview</span>
-                            <span class="badge bg-white text-primary ms-auto rounded-pill">Live</span>
-                        </div>
-                        <div class="card-body p-0">
-                            <div style="padding: 15px 20px 5px;">
-                                <canvas id="statusChart" height="180"></canvas>
-                            </div>
-                            <div class="kpi-stats">
-                                <div class="kpi-stat-item">
-                                    <span class="kpi-number text-secondary" th:text="${assignedCount ?: 0}">0</span>
-                                    <span class="kpi-label">Assigned</span>
-                                </div>
-                                <div class="kpi-stat-item">
-                                    <span class="kpi-number text-warning" th:text="${inProgressCount ?: 0}">0</span>
-                                    <span class="kpi-label">In Progress</span>
-                                </div>
-                                <div class="kpi-stat-item">
-                                    <span class="kpi-number text-success" th:text="${doneCount ?: 0}">0</span>
-                                    <span class="kpi-label">Completed</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="col-lg-8">
                     <div class="card kpi-card h-100">

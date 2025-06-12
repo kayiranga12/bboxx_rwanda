@@ -53,15 +53,38 @@
             width: 80px;
         }
 
+        .user-badge {
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar.collapsed .user-badge {
+            display: none;
+        }
+
         .sidebar-header {
             padding: 1.5rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
         }
 
-        .logo-img {
-            width: 100px;
-            height: auto;
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .logo .track {
+            color: var(--bboxx-orange);
+            font-weight: 400;
         }
 
         .sidebar-menu {
@@ -896,21 +919,24 @@
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <a href="/manager/dashboard">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='35' font-family='Arial, sans-serif' font-size='24' font-weight='bold' fill='%23FF6B35'%3EBBOXX%3C/text%3E%3Ctext x='10' y='52' font-family='Arial, sans-serif' font-size='12' fill='white'%3ETrack%3C/text%3E%3C/svg%3E" class="logo-img" alt="BBOXX Track"/>
+        <a href="/manager/dashboard" class="logo">
+            BBOXX<span class="track">Track</span>
         </a>
+        <div class="user-badge">
+            <i class="fas fa-tools me-1"></i>Project Manager
+        </div>
     </div>
 
     <div class="sidebar-menu">
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a href="/manager/dashboard" class="nav-link active">
+                <a href="/manager/dashboard" class="nav-link">
                     <i class="fas fa-chart-line"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/manager/projects" class="nav-link">
+                <a href="/manager/projects" class="nav-link active">
                     <i class="fas fa-project-diagram"></i>
                     <span>My Projects</span>
                 </a>
@@ -927,18 +953,7 @@
                     <span>Kanban Board</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="/manager/team" class="nav-link">
-                    <i class="fas fa-users"></i>
-                    <span>Team Management</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/manager/calendar" class="nav-link">
-                    <i class="fas fa-calendar"></i>
-                    <span>Project Calendar</span>
-                </a>
-            </li>
+
             <li class="nav-item">
                 <a href="/manager/reports" class="nav-link">
                     <i class="fas fa-chart-bar"></i>
@@ -971,64 +986,14 @@
 
         <div class="navbar-right">
             <div class="quick-actions">
-                <a href="/manager/projects/new" class="quick-action-btn">
+                <a href="/manager/projects" class="quick-action-btn">
                     <i class="fas fa-plus"></i>
                     <span>New Project</span>
                 </a>
-                <a href="/manager/tasks/create" class="quick-action-btn">
+                <a href="/manager/tasks" class="quick-action-btn">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Assign Task</span>
                 </a>
-            </div>
-
-            <div class="notifications">
-                <button class="notification-btn" data-bs-toggle="dropdown">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px;">
-                    <div class="p-3 border-bottom">
-                        <h6 class="mb-0">Notifications</h6>
-                    </div>
-                    <div class="p-2">
-                        <div class="d-flex align-items-center p-2 rounded hover-bg">
-                            <div class="me-3">
-                                <div class="bg-warning rounded-circle p-2">
-                                    <i class="fas fa-exclamation text-white"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Task Deadline Approaching</div>
-                                <small class="text-muted">Solar installation due in 2 days</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center p-2 rounded hover-bg">
-                            <div class="me-3">
-                                <div class="bg-success rounded-circle p-2">
-                                    <i class="fas fa-check text-white"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Project Milestone Completed</div>
-                                <small class="text-muted">Kigali Office Phase 1 finished</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center p-2 rounded hover-bg">
-                            <div class="me-3">
-                                <div class="bg-info rounded-circle p-2">
-                                    <i class="fas fa-user text-white"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">New Team Member Added</div>
-                                <small class="text-muted">John Smith joined Eastern Team</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-2 border-top text-center">
-                        <a href="/manager/notifications" class="text-decoration-none">View all notifications</a>
-                    </div>
-                </div>
             </div>
 
             <div class="user-menu" data-bs-toggle="dropdown">

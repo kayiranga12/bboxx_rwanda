@@ -1,143 +1,2037 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Management – Logistics | BBOXXTrack</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
-    <script src="/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bboxx-orange: #FF6B35;
+            --bboxx-dark-orange: #E85A2B;
+            --bboxx-blue: #1B365D;
+            --bboxx-dark-blue: #0F1F35;
+            --bboxx-light-blue: #2E5984;
+            --bboxx-green: #4CAF50;
+            --bboxx-yellow: #FFC107;
+            --bboxx-red: #DC3545;
+            --bboxx-gray: #F8F9FA;
+            --bboxx-dark-gray: #333333;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, var(--bboxx-blue) 0%, var(--bboxx-dark-blue) 100%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .logo .track {
+            color: var(--bboxx-orange);
+            font-weight: 400;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: var(--bboxx-orange);
+            border-radius: 2px;
+        }
+
+        .nav-item {
+            margin: 0.2rem 1rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-link:hover::before {
+            left: 100%;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 107, 53, 0.15);
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: var(--bboxx-orange);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            margin: 0.2rem 0.5rem;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        .user-badge {
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar.collapsed .user-badge {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        /* Top Navigation */
+        .top-navbar {
+            background: white;
+            height: var(--header-height);
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bboxx-gray);
+            color: var(--bboxx-orange);
+        }
+
+        .search-box {
+            position: relative;
+            width: 350px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 2px solid #E1E5E9;
+            border-radius: 25px;
+            background: #F8F9FA;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: var(--bboxx-orange);
+            background: white;
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quick-action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--bboxx-gray);
+            color: var(--bboxx-dark-gray);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--bboxx-orange);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .notifications {
+            position: relative;
+        }
+
+        .notification-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--bboxx-dark-gray);
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .notification-btn:hover {
+            background: var(--bboxx-gray);
+            color: var(--bboxx-orange);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--bboxx-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-menu:hover {
+            background: var(--bboxx-gray);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bboxx-orange), #E85A2B);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--bboxx-dark-gray);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Main Content Area */
+        .dashboard-content {
+            padding: 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .header-btn {
+            padding: 0.6rem 1.2rem;
+            border: 2px solid var(--bboxx-orange);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--bboxx-orange);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-btn.primary {
+            background: var(--bboxx-orange);
+            color: white;
+        }
+
+        .header-btn:hover {
+            background: var(--bboxx-orange);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stats-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-icon.primary {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--bboxx-orange);
+        }
+
+        .stats-icon.success {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .stats-icon.warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .stats-icon.info {
+            background: rgba(27, 54, 93, 0.1);
+            color: var(--bboxx-blue);
+        }
+
+        .stats-icon.danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--bboxx-red);
+        }
+
+        .stats-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-label {
+            font-size: 0.95rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stats-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+        }
+
+        .trend-up {
+            color: var(--bboxx-green);
+        }
+
+        .trend-down {
+            color: var(--bboxx-red);
+        }
+
+        /* Project Cards */
+        .projects-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .project-list {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #E1E5E9;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+        }
+
+        .project-card {
+            border: 1px solid #E1E5E9;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            background: white;
+        }
+
+        .project-card:hover {
+            border-color: var(--bboxx-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .project-location {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .project-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-ongoing {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .status-completed {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        .status-upcoming {
+            background: rgba(27, 54, 93, 0.1);
+            color: var(--bboxx-blue);
+        }
+
+        .status-delayed {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--bboxx-red);
+        }
+
+        .project-progress {
+            margin-bottom: 1rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .progress-percentage {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+        }
+
+        .progress-bar-container {
+            height: 8px;
+            background: #E1E5E9;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--bboxx-orange);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .project-team {
+            display: flex;
+            gap: -0.5rem;
+        }
+
+        .team-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--bboxx-orange);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 2px solid white;
+            margin-left: -8px;
+        }
+
+        .team-avatar:first-child {
+            margin-left: 0;
+        }
+
+        /* Task Panel */
+        .task-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-checkbox {
+            margin-right: 1rem;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            color: var(--bboxx-dark-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .task-meta {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .task-priority {
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .priority-high {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--bboxx-red);
+        }
+
+        .priority-medium {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--bboxx-yellow);
+        }
+
+        .priority-low {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--bboxx-green);
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Timeline Section */
+        .timeline-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 1rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #E1E5E9;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            background: var(--bboxx-orange);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--bboxx-orange);
+        }
+
+        .timeline-content {
+            background: #F8F9FA;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--bboxx-orange);
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-time {
+            font-size: 0.8rem;
+            color: var(--bboxx-orange);
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .projects-section,
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding: 0 1rem;
+            }
+
+            .search-box {
+                width: 200px;
+            }
+
+            .dashboard-content {
+                padding: 1rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-info {
+                display: none;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 107, 53, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--bboxx-orange);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bboxx-orange);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bboxx-dark-orange);
+        }
+
+    </style>
 </head>
 <body>
-<div class="d-flex" id="wrapper">
-    <!-- Sidebar -->
-    <div class="border-end" id="sidebar-wrapper">
-        <div class="sidebar-heading text-center py-4">
-            <a href="/logistics/dashboard" class="d-block mb-2">
-                <img src="/images/bboxx.png" alt="BBOXXTrack Logo" class="logo-img">
-            </a>
-            <h5 class="text-white mb-0">Logistics</h5>
-        </div>
-        <div class="sidebar-menu">
-            <ul class="nav flex-column mt-4">
-                <li class="nav-item">
-                    <a href="/logistics/dashboard" class="nav-link active text-white">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/logistics/dashboard" class="nav-link text-white">
-                        <i class="fas fa-boxes me-2"></i>Inventory
-                    </a>
-                </li>
-            </ul>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="/logistics/dashboard" class="logo">
+            BBOXX<span class="track">Track</span>
+        </a>
+        <div class="user-badge">
+            <i class="fas fa-tools me-1"></i>Logistics Manager
         </div>
     </div>
 
-    <!-- Page Content -->
-    <div class="flex-grow-1 content-wrapper">
-        <!-- Top Navbar -->
-        <nav class="navbar navbar-expand-lg top-navbar bg-white shadow-sm">
-            <div class="container-fluid px-4">
-                <button class="btn btn-sm btn-outline-secondary d-lg-none me-3" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="navbar-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" placeholder="Search inventory...">
-                </div>
-                <div class="ms-auto d-flex align-items-center">
-                    <a href="/logout" class="btn btn-outline-danger btn-sm">
-                        <i class="fas fa-sign-out-alt me-1"></i>Logout
-                    </a>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Section -->
-        <div class="container-fluid px-4 py-4">
-            <div class="page-header mb-4">
-                <h4><i class="fas fa-box me-2"></i>Inventory Management</h4>
-            </div>
-
-            <div class="row g-4">
-                <!-- Add Inventory Card -->
-                <div class="col-lg-6">
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <i class="fas fa-plus me-2"></i>Add Inventory Item
-                        </div>
-                        <div class="card-body">
-                            <form th:action="@{/logistics/inventory/add}" method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Item Name</label>
-                                    <input type="text" name="itemName" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Item Code</label>
-                                    <input type="text" name="itemCode" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Quantity</label>
-                                    <input type="number" name="quantityAvailable" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Location</label>
-                                    <input type="text" name="location" class="form-control" required>
-                                </div>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-save me-1"></i>Save Item
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Inventory List Card -->
-                <div class="col-lg-6">
-                    <div class="card mb-4">
-                        <div class="card-header bg-secondary text-white">
-                            <i class="fas fa-list me-2"></i>Inventory List
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-striped">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Code</th>
-                                    <th>Quantity</th>
-                                    <th>Location</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="item : ${inventory}">
-                                    <td th:text="${item.itemName}">Sample Item</td>
-                                    <td th:text="${item.itemCode}">CODE123</td>
-                                    <td th:text="${item.quantityAvailable}">50</td>
-                                    <td th:text="${item.location}">Warehouse A</td>
-                                </tr>
-                                <tr th:if="${#lists.isEmpty(inventory)}">
-                                    <td colspan="4" class="text-center text-muted">No inventory records found.</td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="bg-light text-center p-3 mt-auto">
-            <div class="container">
-                <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
-            </div>
-        </footer>
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="/logistics/dashboard" class="nav-link active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/logistics/inventory" class="nav-link">
+                    <i class='fa fa-list'></i>
+                    <span>Inventory</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/logistics/reports" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item mt-auto">
+                <a href="/logout" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search projects, tasks, team members...">
+            </div>
+        </div>
+
+        <div class="navbar-right">
+            <div class="quick-actions">
+                <a href="/logistics/inventory" class="quick-action-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>New Inventory</span>
+                </a>
+            </div>
+
+            <div class="user-menu" data-bs-toggle="dropdown">
+                <div class="user-avatar">LM</div>
+                <div class="user-info">
+                    <div class="user-name">Logistics Manager</div>
+                    <div class="user-role">Solar Logistics Manager</div>
+                </div>
+                <i class="fas fa-chevron-down ms-2"></i>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a class="dropdown-item" href="/manager/profile">
+                        <i class="fas fa-user me-2"></i> My Profile
+                    </a>
+                    <a class="dropdown-item" href="/manager/settings">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Logistics Manager Dashboard</h1>
+                <p class="page-subtitle">Manage your solar energy projects across Rwanda with real-time insights</p>
+            </div>
+            <div class="header-actions">
+                <a href="/logistics/reports/export" class="header-btn">
+                    <i class="fas fa-download"></i>
+                    Export Data
+                </a>
+                <a href="/logistics/inventory" class="header-btn primary">
+                    <i class="fas fa-plus"></i>
+                    New Inventory
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stats-card">
+                <div class="stats-icon primary">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="stats-value">24</div>
+                <div class="stats-label">Active Projects</div>
+                <div class="stats-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+3 this month</span>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-value">18</div>
+                <div class="stats-label">Completed Projects</div>
+                <div class="stats-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+2 this week</span>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-icon warning">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stats-value">47</div>
+                <div class="stats-label">Pending Tasks</div>
+                <div class="stats-trend trend-down">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>-5 this week</span>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-icon info">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-value">32</div>
+                <div class="stats-label">Team Members</div>
+                <div class="stats-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+4 this month</span>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-icon danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-value">3</div>
+                <div class="stats-label">Overdue Tasks</div>
+                <div class="stats-trend trend-down">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>-2 from yesterday</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects and Tasks Section -->
+        <div class="projects-section">
+            <div class="project-list">
+                <div class="section-header">
+                    <h3 class="section-title">Recent Projects</h3>
+                    <a href="/manager/projects" class="text-decoration-none">View All</a>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">Solar Installation - Nyarugenge District</div>
+                            <div class="project-location">Kigali, Rwanda</div>
+                        </div>
+                        <div class="project-status status-ongoing">Ongoing</div>
+                    </div>
+                    <div class="project-progress">
+                        <div class="progress-header">
+                            <span class="progress-label">Progress</span>
+                            <span class="progress-percentage">68%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: 68%;"></div>
+                        </div>
+                    </div>
+                    <div class="project-meta">
+                        <div class="project-team">
+                            <div class="team-avatar">JD</div>
+                            <div class="team-avatar">MK</div>
+                            <div class="team-avatar">AL</div>
+                        </div>
+                        <span>Due: May 30, 2025</span>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">BBOXX Phase 2 - Eastern Province</div>
+                            <div class="project-location">Kayonza, Rwanda</div>
+                        </div>
+                        <div class="project-status status-upcoming">Upcoming</div>
+                    </div>
+                    <div class="project-progress">
+                        <div class="progress-header">
+                            <span class="progress-label">Planning</span>
+                            <span class="progress-percentage">25%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: 25%;"></div>
+                        </div>
+                    </div>
+                    <div class="project-meta">
+                        <div class="project-team">
+                            <div class="team-avatar">TR</div>
+                            <div class="team-avatar">NK</div>
+                        </div>
+                        <span>Start: June 15, 2025</span>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">Rural Electrification - Huye</div>
+                            <div class="project-location">Southern Province, Rwanda</div>
+                        </div>
+                        <div class="project-status status-completed">Completed</div>
+                    </div>
+                    <div class="project-progress">
+                        <div class="progress-header">
+                            <span class="progress-label">Completed</span>
+                            <span class="progress-percentage">100%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: 100%; background: var(--bboxx-green);"></div>
+                        </div>
+                    </div>
+                    <div class="project-meta">
+                        <div class="project-team">
+                            <div class="team-avatar">PM</div>
+                            <div class="team-avatar">JS</div>
+                            <div class="team-avatar">RK</div>
+                        </div>
+                        <span>Completed: May 20, 2025</span>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">Mini-Grid Project - Rwamagana</div>
+                            <div class="project-location">Eastern Province, Rwanda</div>
+                        </div>
+                        <div class="project-status status-delayed">Delayed</div>
+                    </div>
+                    <div class="project-progress">
+                        <div class="progress-header">
+                            <span class="progress-label">Behind Schedule</span>
+                            <span class="progress-percentage">45%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: 45%; background: var(--bboxx-red);"></div>
+                        </div>
+                    </div>
+                    <div class="project-meta">
+                        <div class="project-team">
+                            <div class="team-avatar">LM</div>
+                            <div class="team-avatar">CK</div>
+                        </div>
+                        <span>Overdue by 5 days</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="task-panel">
+                <div class="section-header">
+                    <h3 class="section-title">Urgent Tasks</h3>
+                    <a href="/manager/tasks" class="text-decoration-none">View All</a>
+                </div>
+
+                <div class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <div class="task-content">
+                        <div class="task-title">Complete final testing for Nyarugenge project</div>
+                        <div class="task-meta">Assigned to John Doe • Due in 2 days</div>
+                    </div>
+                    <div class="task-priority priority-high">High</div>
+                </div>
+
+                <div class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <div class="task-content">
+                        <div class="task-title">Review equipment delivery schedule</div>
+                        <div class="task-meta">Assigned to Maria Kim • Due in 3 days</div>
+                    </div>
+                    <div class="task-priority priority-medium">Medium</div>
+                </div>
+
+                <div class="task-item">
+                    <input type="checkbox" class="task-checkbox" checked>
+                    <div class="task-content">
+                        <div class="task-title">Update project documentation</div>
+                        <div class="task-meta">Assigned to Alex Luna • Completed</div>
+                    </div>
+                    <div class="task-priority priority-low">Low</div>
+                </div>
+
+                <div class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <div class="task-content">
+                        <div class="task-title">Schedule team meeting for Kayonza project</div>
+                        <div class="task-meta">Assigned to Thomas Reed • Due in 1 week</div>
+                    </div>
+                    <div class="task-priority priority-medium">Medium</div>
+                </div>
+
+                <div class="task-item">
+                    <input type="checkbox" class="task-checkbox">
+                    <div class="task-content">
+                        <div class="task-title">Conduct safety inspection</div>
+                        <div class="task-meta">Assigned to Nina Keza • Due today</div>
+                    </div>
+                    <div class="task-priority priority-high">High</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="section-header">
+                    <h3 class="section-title">Project Status Overview</h3>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="#">All Projects</a>
+                            <a class="dropdown-item" href="#">This Month</a>
+                            <a class="dropdown-item" href="#">This Quarter</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="projectStatusChart"></canvas>
+                </div>
+            </div>
+
+            <div class="timeline-section">
+                <div class="section-header">
+                    <h3 class="section-title">Recent Activity</h3>
+                    <a href="/manager/activity" class="text-decoration-none">View All</a>
+                </div>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-title">Project Milestone Completed</div>
+                            <div class="timeline-text">Solar installation phase completed for Nyarugenge District project</div>
+                            <div class="timeline-time">2 hours ago</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-title">New Task Assigned</div>
+                            <div class="timeline-text">Quality inspection task assigned to technical team for Huye project</div>
+                            <div class="timeline-time">5 hours ago</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-title">Team Meeting Scheduled</div>
+                            <div class="timeline-text">Weekly progress review meeting scheduled for all active projects</div>
+                            <div class="timeline-time">Yesterday</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-title">Equipment Delivered</div>
+                            <div class="timeline-text">Solar panels and batteries delivered to Kayonza site for Phase 2 project</div>
+                            <div class="timeline-time">2 days ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Charts Section -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="section-header">
+                    <h3 class="section-title">Monthly Progress Trends</h3>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar me-1"></i>Period
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="#">Last 6 Months</a>
+                            <a class="dropdown-item" href="#">Last 12 Months</a>
+                            <a class="dropdown-item" href="#">Custom Range</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="progressTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="section-header">
+                    <h3 class="section-title">Team Performance</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="teamPerformanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sidebar Toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+    });
+
+    // Mobile sidebar
+    if (window.innerWidth <= 768) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+    }
+
+    // Initialize Charts
+    document.addEventListener('DOMContentLoaded', function() {
+        // Project Status Chart
+        const statusCtx = document.getElementById('projectStatusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Ongoing', 'Completed', 'Upcoming', 'Delayed'],
+                datasets: [{
+                    data: [24, 18, 8, 3],
+                    backgroundColor: [
+                        '#FFC107',
+                        '#4CAF50',
+                        '#1B365D',
+                        '#DC3545'
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Progress Trend Chart
+        const progressCtx = document.getElementById('progressTrendChart').getContext('2d');
+        new Chart(progressCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Completed Projects',
+                    data: [2, 4, 3, 6, 4, 5],
+                    borderColor: '#4CAF50',
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'New Projects',
+                    data: [3, 5, 4, 7, 5, 6],
+                    borderColor: '#FF6B35',
+                    backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Team Performance Chart
+        const teamCtx = document.getElementById('teamPerformanceChart').getContext('2d');
+        new Chart(teamCtx, {
+            type: 'bar',
+            data: {
+                labels: ['John D.', 'Maria K.', 'Alex L.', 'Thomas R.', 'Nina K.'],
+                datasets: [{
+                    label: 'Tasks Completed',
+                    data: [15, 12, 18, 9, 14],
+                    backgroundColor: '#FF6B35',
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    // Real-time updates simulation
+    function updateMetrics() {
+        const metrics = document.querySelectorAll('.stats-value');
+        metrics.forEach(metric => {
+            const currentValue = parseInt(metric.textContent);
+            const variation = Math.floor(Math.random() * 3) - 1; // -1 to +1
+            const newValue = Math.max(0, currentValue + variation);
+
+            if (variation !== 0) {
+                metric.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    metric.style.transform = 'scale(1)';
+                    metric.textContent = newValue;
+                }, 200);
+            }
+        });
+    }
+
+    // Update metrics every 45 seconds
+    setInterval(updateMetrics, 45000);
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-box input');
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        console.log('Searching for:', searchTerm);
+        // Implement search logic here
+    });
+
+    // Task checkbox functionality
+    document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const taskItem = this.closest('.task-item');
+            if (this.checked) {
+                taskItem.style.opacity = '0.6';
+                taskItem.querySelector('.task-title').style.textDecoration = 'line-through';
+            } else {
+                taskItem.style.opacity = '1';
+                taskItem.querySelector('.task-title').style.textDecoration = 'none';
+            }
+        });
+    });
+
+    // Notification handling
+    const notificationBtn = document.querySelector('.notification-btn');
+    notificationBtn.addEventListener('click', function() {
+        const badge = this.querySelector('.notification-badge');
+        if (badge) {
+            setTimeout(() => {
+                badge.style.display = 'none';
+            }, 2000);
+        }
+    });
+
+    // Project card hover effects
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.borderColor = 'var(--bboxx-orange)';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.borderColor = '#E1E5E9';
+        });
+    });
+
+    // Quick action buttons
+    document.querySelectorAll('.quick-action-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const originalText = this.innerHTML;
+            this.innerHTML = '<div class="loading"></div> Loading...';
+            this.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.style.pointerEvents = 'auto';
+
+                // Simulate navigation
+                if (this.textContent.includes('New Project')) {
+                    console.log('Navigating to new project form...');
+                } else if (this.textContent.includes('Assign Task')) {
+                    console.log('Navigating to task assignment...');
+                }
+            }, 1000);
+        });
+    });
+
+    // Responsive handling
+    function handleResize() {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        } else {
+            sidebar.classList.remove('show');
+        }
+    }
+
+    window.addEventListener('resize', handleResize);
+
+    // Animate stats cards on load
+    function animateStatsCards() {
+        const cards = document.querySelectorAll('.stats-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    }
+
+    // Progress bar animations
+    function animateProgressBars() {
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach((bar, index) => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+
+            setTimeout(() => {
+                bar.style.transition = 'width 1s ease-in-out';
+                bar.style.width = width;
+            }, index * 200 + 500);
+        });
+    }
+
+    // Run animations on page load
+    setTimeout(() => {
+        animateStatsCards();
+        animateProgressBars();
+    }, 500);
+
+    // Auto-refresh functionality
+    function refreshData() {
+        console.log('Refreshing dashboard data...');
+
+        // Simulate data refresh
+        const refreshBtn = document.createElement('div');
+        refreshBtn.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bboxx-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 9999;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        `;
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Data refreshed';
+
+        document.body.appendChild(refreshBtn);
+
+        setTimeout(() => {
+            refreshBtn.style.transform = 'translateX(0)';
+        }, 100);
+
+        setTimeout(() => {
+            refreshBtn.style.transform = 'translateX(100%)';
+            setTimeout(() => document.body.removeChild(refreshBtn), 300);
+        }, 2000);
+    }
+
+    // Auto-refresh every 5 minutes
+    setInterval(refreshData, 300000);
+
+    // Export functionality
+    function exportData(format) {
+        const exportBtn = document.querySelector('.header-btn:not(.primary)');
+        const originalText = exportBtn.innerHTML;
+
+        exportBtn.innerHTML = '<div class="loading"></div> Exporting...';
+        exportBtn.style.pointerEvents = 'none';
+
+        setTimeout(() => {
+            exportBtn.innerHTML = originalText;
+            exportBtn.style.pointerEvents = 'auto';
+
+            const toast = document.createElement('div');
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-check-circle" style="color: var(--bboxx-green);"></i>
+                    <span>Dashboard data exported successfully!</span>
+                </div>
+            `;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                z-index: 9999;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                border-left: 4px solid var(--bboxx-green);
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }, 2000);
+    }
+
+    // Add export event listeners
+    document.querySelectorAll('.header-btn').forEach(btn => {
+        if (btn.textContent.includes('Export')) {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                exportData('excel');
+            });
+        }
+    });
+
+    // Initialize tooltips if bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-tooltip]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+
+    // Performance monitoring
+    function monitorPerformance() {
+        const performanceData = {
+            activeProjects: 24 + Math.floor(Math.random() * 4 - 2),
+            completedProjects: 18 + Math.floor(Math.random() * 2),
+            pendingTasks: 47 + Math.floor(Math.random() * 10 - 5),
+            teamMembers: 32 + Math.floor(Math.random() * 3 - 1)
+        };
+
+        const statValues = document.querySelectorAll('.stats-value');
+        if (statValues.length >= 4) {
+            statValues[0].textContent = performanceData.activeProjects;
+            statValues[1].textContent = performanceData.completedProjects;
+            statValues[2].textContent = performanceData.pendingTasks;
+            statValues[3].textContent = performanceData.teamMembers;
+        }
+    }
+
+    // Update performance metrics every 2 minutes
+    setInterval(monitorPerformance, 120000);
+
+    // Dark mode toggle (future enhancement)
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    // Load dark mode preference
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Activity auto-refresh
+    function refreshActivity() {
+        const activities = [
+            {
+                title: 'Equipment delivered to Gasabo site',
+                text: 'Solar panels and inverters delivered for new installation project',
+                time: 'Just now'
+            },
+            {
+                title: 'Quality check completed',
+                text: 'All safety protocols verified for Nyarugenge project phase 2',
+                time: '15 minutes ago'
+            },
+            {
+                title: 'New team member onboarded',
+                text: 'Sarah Wilson joined the technical team for Eastern Province',
+                time: '30 minutes ago'
+            }
+        ];
+
+        // Add random activity occasionally
+        if (Math.random() > 0.8) {
+            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+            const timeline = document.querySelector('.timeline');
+            const newItem = document.createElement('div');
+            newItem.className = 'timeline-item';
+            newItem.innerHTML = `
+                <div class="timeline-content">
+                    <div class="timeline-title">${randomActivity.title}</div>
+                    <div class="timeline-text">${randomActivity.text}</div>
+                    <div class="timeline-time">${randomActivity.time}</div>
+                </div>
+            `;
+            timeline.insertBefore(newItem, timeline.firstChild);
+
+            // Remove last item if more than 5 items
+            if (timeline.children.length > 5) {
+                timeline.removeChild(timeline.lastChild);
+            }
+        }
+    }
+
+    // Refresh activity every 3 minutes
+    setInterval(refreshActivity, 180000);
+
+    // Chart resize handler
+    function handleChartResize() {
+        if (typeof Chart !== 'undefined') {
+            Chart.helpers.each(Chart.instances, function(instance) {
+                instance.resize();
+            });
+        }
+    }
+
+    window.addEventListener('resize', handleChartResize);
+
+    // Project status updates
+    function updateProjectStatuses() {
+        const projectCards = document.querySelectorAll('.project-card');
+        projectCards.forEach(card => {
+            const progressBar = card.querySelector('.progress-bar');
+            const percentage = card.querySelector('.progress-percentage');
+
+            if (progressBar && percentage) {
+                const currentProgress = parseInt(percentage.textContent);
+                // Simulate small progress increments
+                if (Math.random() > 0.7 && currentProgress < 100) {
+                    const newProgress = Math.min(100, currentProgress + Math.floor(Math.random() * 3));
+                    percentage.textContent = newProgress + '%';
+                    progressBar.style.width = newProgress + '%';
+
+                    // Update status if project is completed
+                    if (newProgress === 100) {
+                        const statusBadge = card.querySelector('.project-status');
+                        statusBadge.textContent = 'Completed';
+                        statusBadge.className = 'project-status status-completed';
+                        progressBar.style.background = 'var(--bboxx-green)';
+                    }
+                }
+            }
+        });
+    }
+
+    // Update project statuses every 5 minutes
+    setInterval(updateProjectStatuses, 300000);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + N for new project
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            console.log('New project shortcut activated');
+            // Trigger new project modal or navigation
+        }
+
+        // Ctrl/Cmd + T for new task
+        if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+            e.preventDefault();
+            console.log('New task shortcut activated');
+            // Trigger new task modal or navigation
+        }
+
+        // Esc to close modals or panels
+        if (e.key === 'Escape') {
+            const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+            openDropdowns.forEach(dropdown => {
+                dropdown.classList.remove('show');
+            });
+        }
+    });
+
+    // Focus management for accessibility
+    function manageFocus() {
+        const interactiveElements = document.querySelectorAll('button, a, input, select, textarea, [tabindex]');
+
+        interactiveElements.forEach(element => {
+            element.addEventListener('focus', function() {
+                this.style.outline = '2px solid var(--bboxx-orange)';
+                this.style.outlineOffset = '2px';
+            });
+
+            element.addEventListener('blur', function() {
+                this.style.outline = 'none';
+            });
+        });
+    }
+
+    // Initialize focus management
+    manageFocus();
+
+    // Connection status monitoring
+    function checkConnection() {
+        if (navigator.onLine) {
+            document.body.classList.remove('offline');
+        } else {
+            document.body.classList.add('offline');
+
+            const offlineToast = document.createElement('div');
+            offlineToast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-wifi" style="color: var(--bboxx-red);"></i>
+                    <span>Connection lost. Some features may be limited.</span>
+                </div>
+            `;
+            offlineToast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 20px;
+                background: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                z-index: 9999;
+                border-left: 4px solid var(--bboxx-red);
+            `;
+
+            document.body.appendChild(offlineToast);
+
+            setTimeout(() => {
+                if (document.body.contains(offlineToast)) {
+                    document.body.removeChild(offlineToast);
+                }
+            }, 5000);
+        }
+    }
+
+    window.addEventListener('online', checkConnection);
+    window.addEventListener('offline', checkConnection);
+
+    // Initialize dashboard
+    function initializeDashboard() {
+        console.log('Initializing Project Manager Dashboard...');
+
+        // Set current time
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Add time display to header if needed
+        const timeDisplay = document.createElement('div');
+        timeDisplay.style.cssText = `
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.8rem;
+            color: #666;
+        `;
+        timeDisplay.textContent = `Last updated: ${timeString}`;
+
+        // Add welcome message based on time of day
+        const hour = now.getHours();
+        let greeting;
+        if (hour < 12) greeting = 'Good morning';
+        else if (hour < 18) greeting = 'Good afternoon';
+        else greeting = 'Good evening';
+
+        const subtitle = document.querySelector('.page-subtitle');
+        if (subtitle) {
+            subtitle.textContent = `${greeting}! Manage your solar energy projects across Rwanda with real-time insights`;
+        }
+
+        console.log('Dashboard initialized successfully');
+    }
+
+    // Initialize everything when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    } else {
+        initializeDashboard();
+    }
+
+    // Cleanup function for when page is unloaded
+    window.addEventListener('beforeunload', function() {
+        // Clear intervals
+        const intervals = [updateMetrics, refreshActivity, updateProjectStatuses];
+        intervals.forEach(interval => {
+            if (interval) clearInterval(interval);
+        });
+
+        console.log('Dashboard cleanup completed');
+    });
+
+    // Service Worker registration for offline functionality (if available)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('Service Worker registered successfully');
+            })
+            .catch(error => {
+                console.log('Service Worker registration failed');
+            });
+    }
+
+    // Print functionality
+    function printDashboard() {
+        window.print();
+    }
+
+    // Add print styles
+    const printStyles = document.createElement('style');
+    printStyles.textContent = `
+        @media print {
+            .sidebar, .top-navbar, .header-actions {
+                display: none !important;
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem !important;
+            }
+            .stats-card, .project-card, .chart-card {
+                break-inside: avoid;
+                margin-bottom: 1rem;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+        }
+    `;
+    document.head.appendChild(printStyles);
+
+    console.log('Project Manager Dashboard loaded successfully');
+</script>
 </body>
 </html>

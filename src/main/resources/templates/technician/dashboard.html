@@ -771,7 +771,7 @@
                 <a href="/technician/tasks" class="nav-link">
                     <i class="fas fa-clipboard-list"></i>
                     <span>My Tasks</span>
-                    <span class="nav-badge">3</span>
+
                 </a>
             </li>
             <li class="nav-item">
@@ -780,24 +780,7 @@
                     <span>GPS Tracker</span>
                 </a>
             </li>
-<!--            <li class="nav-item">-->
-<!--                <a href="/technician/schedule" class="nav-link">-->
-<!--                    <i class="fas fa-calendar-alt"></i>-->
-<!--                    <span>Schedule</span>-->
-<!--                </a>-->
-<!--            </li>-->
-<!--            <li class="nav-item">-->
-<!--                <a href="/technician/inventory" class="nav-link">-->
-<!--                    <i class="fas fa-boxes"></i>-->
-<!--                    <span>Equipment</span>-->
-<!--                </a>-->
-<!--            </li>-->
-            <li class="nav-item">
-                <a href="/technician/reports" class="nav-link">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Reports</span>
-                </a>
-            </li>
+
             <li class="nav-item mt-auto">
                 <a href="/logout" class="nav-link">
                     <i class="fas fa-sign-out-alt"></i>
@@ -886,74 +869,59 @@
                 <div class="stat-icon orange">
                     <i class="fas fa-tasks"></i>
                 </div>
-                <div class="stat-value">8</div>
-                <div class="stat-label">Tasks Today</div>
+                <div class="stat-value" th:text="${totalTasks ?: '0'}">0</div>
+                <div class="stat-label">Total Tasks</div>
             </div>
 
             <div class="stat-card completed">
                 <div class="stat-icon green">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stat-value">5</div>
-                <div class="stat-label">Completed</div>
+                <div class="stat-value" th:text="${overdueTasks ?: '0'}">0</div>
+                <div class="stat-label">Overdue</div>
             </div>
 
             <div class="stat-card pending">
                 <div class="stat-icon yellow">
                     <i class="fas fa-clock"></i>
                 </div>
-                <div class="stat-value">3</div>
-                <div class="stat-label">Pending</div>
+                <div class="stat-value" th:text="${dueTodayTasks ?: '0'}">0</div>
+                <div class="stat-label">Due Today</div>
             </div>
 
             <div class="stat-card efficiency">
                 <div class="stat-icon blue">
                     <i class="fas fa-chart-line"></i>
                 </div>
-                <div class="stat-value">92%</div>
-                <div class="stat-label">Efficiency</div>
+                <div class="stat-value" th:text="${assignedCount ?: '0'}">0</div>
+                <div class="stat-label">Your Tasks</div>
+            </div>
+
+            <div class="stat-card efficiency">
+                <div class="stat-icon blue">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value" th:text="${inProgressCount ?: '0'}">0</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+
+            <div class="stat-card efficiency">
+                <div class="stat-icon blue">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value" th:text="${doneCount ?: '0'}">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+
+            <div class="stat-card efficiency">
+                <div class="stat-icon blue">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value" th:text="${completionRate ?: '0%'}">0%</div>
+                <div class="stat-label">Completion Rate</div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <h3 class="actions-title">
-                <i class="fas fa-bolt me-2"></i>Quick Actions
-            </h3>
-            <div class="actions-grid">
-                <div class="action-btn" onclick="startInstallation()">
-                    <div class="action-icon">
-                        <i class="fas fa-solar-panel"></i>
-                    </div>
-                    <div class="action-title">Start Installation</div>
-                    <div class="action-desc">Begin new solar panel installation</div>
-                </div>
-
-                <div class="action-btn" onclick="reportIssue()">
-                    <div class="action-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="action-title">Report Issue</div>
-                    <div class="action-desc">Log technical problems or concerns</div>
-                </div>
-
-                <div class="action-btn" onclick="updateInventory()">
-                    <div class="action-icon">
-                        <i class="fas fa-clipboard-check"></i>
-                    </div>
-                    <div class="action-title">Update Inventory</div>
-                    <div class="action-desc">Check and update equipment status</div>
-                </div>
-
-                <div class="action-btn" onclick="requestSupport()">
-                    <div class="action-icon">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <div class="action-title">Request Support</div>
-                    <div class="action-desc">Contact technical support team</div>
-                </div>
-            </div>
-        </div>
 
         <!-- GPS Tracker Section -->
         <div class="tracker-section">
@@ -1019,121 +987,6 @@
                     </form>
                 </div>
             </div>
-
-            <!-- Tracking History -->
-            <div class="tracker-card">
-                <div class="history-header">
-                    <i class="fas fa-history"></i>
-                    <h5 class="mb-0">Today's Activity Log</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table mb-0">
-                        <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>Status</th>
-                            <th>Location</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="t : ${trackers}">
-                            <td>
-                                <span th:text="${#temporals.format(t.timestamp,'HH:mm')}">09:15</span>
-                                <br>
-                                <small class="text-muted" th:text="${#temporals.format(t.timestamp,'MMM dd')}">May 27</small>
-                            </td>
-                            <td>
-                                        <span class="status-badge"
-                                              th:classappend="${
-                                                t.statusUpdate.contains('Completed') ? ' status-completed' :
-                                                t.statusUpdate.contains('Progress') or t.statusUpdate.contains('Installing') ? ' status-progress' :
-                                                ' status-onsite'
-                                              }"
-                                              th:text="${t.statusUpdate}">Installing panel</span>
-                            </td>
-                            <td>
-                                <span th:text="${t.gpsCoordinates}">-1.9500, 30.0589</span>
-                                <br>
-<!--                                <a href="#" class="text-primary small" th:onclick="'showOnMap(\'' + ${t.gpsCoordinates} + '\')'">-->
-<!--                                    <i class="fas fa-map-marker-alt"></i> View on Map-->
-<!--                                </a>-->
-                            </td>
-                        </tr>
-
-                        <!-- Sample data for demo -->
-                        <tr th:if="${#lists.isEmpty(trackers)}">
-                            <td>
-                                <span>08:30</span>
-                                <br>
-                                <small class="text-muted">May 27</small>
-                            </td>
-                            <td>
-                                <span class="status-badge status-completed">Started Shift</span>
-                            </td>
-                            <td>
-                                <span>-1.9441, 30.0619</span>
-                                <br>
-                                <a href="#" class="text-primary small">
-                                    <i class="fas fa-map-marker-alt"></i> View on Map
-                                </a>
-                            </td>
-                        </tr>
-
-                        <tr th:if="${#lists.isEmpty(trackers)}">
-                            <td>
-                                <span>09:15</span>
-                                <br>
-                                <small class="text-muted">May 27</small>
-                            </td>
-                            <td>
-                                <span class="status-badge status-progress">Installing Panel</span>
-                            </td>
-                            <td>
-                                <span>-1.9500, 30.0589</span>
-                                <br>
-                                <a href="#" class="text-primary small">
-                                    <i class="fas fa-map-marker-alt"></i> View on Map
-                                </a>
-                            </td>
-                        </tr>
-
-                        <tr th:if="${#lists.isEmpty(trackers)}">
-                            <td>
-                                <span>10:45</span>
-                                <br>
-                                <small class="text-muted">May 27</small>
-                            </td>
-                            <td>
-                                <span class="status-badge status-completed">Testing Complete</span>
-                            </td>
-                            <td>
-                                <span>-1.9500, 30.0589</span>
-                                <br>
-                                <a href="#" class="text-primary small">
-                                    <i class="fas fa-map-marker-alt"></i> View on Map
-                                </a>
-                            </td>
-                        </tr>
-
-                        <tr th:if="${#lists.isEmpty(trackers)}">
-                            <td colspan="3" class="text-center text-muted py-4">
-                                <i class="fas fa-map-marker-alt fa-2x mb-2 d-block"></i>
-                                No tracking history for today
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Map Preview -->
-        <div class="map-preview">
-            <i class="fas fa-map fa-3x mb-2"></i>
-            <p>Interactive map will be shown here</p>
-            <button class="btn btn-primary btn-sm" onclick="openFullMap()">
-                <i class="fas fa-expand me-1"></i>Open Full Map
-            </button>
         </div>
     </div>
 </div>

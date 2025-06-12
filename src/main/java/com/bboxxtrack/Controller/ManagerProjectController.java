@@ -1,8 +1,10 @@
 package com.bboxxtrack.Controller;
 
 import com.bboxxtrack.Model.Project;
+import com.bboxxtrack.Model.Task;
 import com.bboxxtrack.Model.User;
 import com.bboxxtrack.Service.ProjectService;
+import com.bboxxtrack.Service.TaskService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.PrintWriter;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,25 +28,102 @@ public class ManagerProjectController {
     @Autowired
     private ProjectService projectService;
 
-    @GetMapping("/dashboard")
-    public String managerDashboard(Model model, HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null || !"Project Manager".equals(user.getRole())) {
-            return "redirect:/login";
+    @Autowired
+    private TaskService taskService;
+
+        @GetMapping("/dashboard")
+        public String managerDashboard(Model model, HttpSession session) {
+            User user = (User) session.getAttribute("user");
+            if (user == null || !"Project Manager".equals(user.getRole())) {
+                return "redirect:/login";
+            }
+
+            model.addAttribute("managerName", user.getUsername());
+
+            // Get only projects managed by this manager
+            List<Project> managerProjects = projectService.getProjectsByManager(user.getId());
+            List<com.bboxxtrack.Model.Task> allTasks = taskService.getAllTasks();;
+
+            // Add counts
+            model.addAttribute("totalProjects", projectService.getAllProjects().size());
+            model.addAttribute("totalTasks", taskService.getAllTasks().size());
+            model.addAttribute("managerProjects", projectService.getProjectsByManager(user.getId()).size());
+
+            // Calculate task statuses
+            long completedTasks = allTasks.stream()
+                    .filter(t -> "COMPLETED".equalsIgnoreCase(t.getStatus()) || "Done".equalsIgnoreCase(t.getStatus()))
+                    .count();
+
+            long inProgressTasks = allTasks.stream()
+                    .filter(t -> "IN_PROGRESS".equalsIgnoreCase(t.getStatus()) || "In Progress".equalsIgnoreCase(t.getStatus()))
+                    .count();
+
+            long pendingTasks = allTasks.stream()
+                    .filter(t -> "ASSIGNED".equalsIgnoreCase(t.getStatus()) || "Pending".equalsIgnoreCase(t.getStatus()))
+                    .count();
+
+            long overdueTasks = allTasks.stream()
+                    .filter(t -> "OVERDUE".equalsIgnoreCase(t.getStatus()) || "Overdue".equalsIgnoreCase(t.getStatus()))
+                    .count();
+
+            // If no specific overdue status, calculate based on due dates using LocalDate
+            if (overdueTasks == 0) {
+                overdueTasks = allTasks.stream()
+                        .filter(t -> t.getDueDate() != null && t.getDueDate().isBefore(LocalDate.now())
+                                && !"COMPLETED".equalsIgnoreCase(t.getStatus())
+                                && !"Done".equalsIgnoreCase(t.getStatus()))
+                        .count();
+            }
+
+
+            // Calculate project statuses for manager's projects only
+            long ongoingProjects = managerProjects.stream()
+                    .filter(p -> "Ongoing".equalsIgnoreCase(p.getStatus())).count();
+            long completedProjects = managerProjects.stream()
+                    .filter(p -> "Completed".equalsIgnoreCase(p.getStatus())).count();
+            long upcomingProjects = managerProjects.stream()
+                    .filter(p -> "Upcoming".equalsIgnoreCase(p.getStatus())).count();
+
+            // Add task status metrics to model
+            model.addAttribute("completedTasks", completedTasks);
+            model.addAttribute("inProgressTasks", inProgressTasks);
+            model.addAttribute("pendingTasks", pendingTasks);
+            model.addAttribute("overdueTasks", overdueTasks);
+
+            // Add project status metrics to model
+            model.addAttribute("ongoingProjects", ongoingProjects);
+            model.addAttribute("completedProjects", completedProjects);
+            model.addAttribute("upcomingProjects", upcomingProjects);
+
+            // Prepare data for timeline chart (manager's projects only)
+            List<String> projectNames = new ArrayList<>();
+            List<String> projectStartDates = new ArrayList<>();
+            List<String> projectEndDates = new ArrayList<>();
+            List<String> projectStatuses = new ArrayList<>();
+
+            for (Project project : managerProjects) {
+                projectNames.add(project.getProjectTitle());
+                projectStartDates.add(project.getStartDate().toString());
+                projectEndDates.add(project.getEndDate().toString());
+                projectStatuses.add(project.getStatus());
+            }
+
+            model.addAttribute("projectNames", projectNames);
+            model.addAttribute("projectStartDates", projectStartDates);
+            model.addAttribute("projectEndDates", projectEndDates);
+            model.addAttribute("projectStatuses", projectStatuses);
+
+            // Add chart data
+            model.addAttribute("completedTasks", completedTasks);
+            model.addAttribute("inProgressTasks", inProgressTasks);
+            model.addAttribute("pendingTasks", pendingTasks);
+            model.addAttribute("overdueTasks", overdueTasks);
+            model.addAttribute("ongoingProjects", ongoingProjects);
+            model.addAttribute("completedProjects", completedProjects);
+            model.addAttribute("upcomingProjects", upcomingProjects);
+
+            return "manager/dashboard";
         }
-
-        // Example stats you might want to show:
-//        long total = projectService.countByManager(user.getId());
-//        long inProgress = projectService.countByManagerAndStatus(user.getId(), "IN_PROGRESS");
-//        long completed  = projectService.countByManagerAndStatus(user.getId(), "COMPLETED");
-
-        model.addAttribute("managerName", user.getUsername());
-//        model.addAttribute("totalProjects", total);
-//        model.addAttribute("inProgressCount", inProgress);
-//        model.addAttribute("completedCount", completed);
-
-        return "manager/dashboard";
-    }
 
     @GetMapping("/projects")
     public String listProjects(

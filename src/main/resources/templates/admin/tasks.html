@@ -79,6 +79,20 @@
             display: none;
         }
 
+        .user-badge {
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar.collapsed .user-badge {
+            display: none;
+        }
+
         .sidebar-menu {
             padding: 1rem 0;
             height: calc(100vh - 140px);
@@ -753,6 +767,9 @@
         <a href="/admin/dashboard" class="logo">
             BBOXX<span class="track">Track</span>
         </a>
+        <div class="user-badge">
+            <i class="fas fa-tools me-1"></i>Administrator
+        </div>
     </div>
 
     <div class="sidebar-menu">
@@ -801,7 +818,7 @@
             </li>
             <li class="nav-item">
                 <a href="/admin/reports" class="nav-link">
-                    <i class="fas fa-file-chart"></i>
+                    <i class="fa-solid fa-file"></i>
                     <span>Reports</span>
                 </a>
             </li>
@@ -830,56 +847,6 @@
         </div>
 
         <div class="navbar-right">
-            <div class="quick-actions">
-<!--                <a href="/admin/projects/new" class="quick-action-btn">-->
-<!--                    <i class="fas fa-plus"></i>-->
-<!--                    <span>New Project</span>-->
-<!--                </a>-->
-<!--                <a href="/admin/tasks/urgent" class="quick-action-btn">-->
-<!--                    <i class="fas fa-exclamation-triangle"></i>-->
-<!--                    <span>Urgent Tasks</span>-->
-<!--                </a>-->
-            </div>
-
-            <div class="notifications">
-                <button class="notification-btn" data-bs-toggle="dropdown">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">5</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px;">
-                    <div class="p-3 border-bottom">
-                        <h6 class="mb-0">Notifications</h6>
-                    </div>
-                    <div class="p-2">
-                        <div class="d-flex align-items-center p-2 rounded hover-bg">
-                            <div class="me-3">
-                                <div class="bg-success rounded-circle p-2">
-                                    <i class="fas fa-check text-white"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Installation Complete</div>
-                                <small class="text-muted">Nyarugenge District - 15 homes connected</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center p-2 rounded hover-bg">
-                            <div class="me-3">
-                                <div class="bg-warning rounded-circle p-2">
-                                    <i class="fas fa-exclamation text-white"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Low Inventory Alert</div>
-                                <small class="text-muted">Solar panels running low - 12 units left</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-2 border-top text-center">
-                        <a href="/admin/notifications" class="text-decoration-none">View all notifications</a>
-                    </div>
-                </div>
-            </div>
-
             <div class="user-menu" data-bs-toggle="dropdown">
                 <div class="user-avatar">AD</div>
                 <div class="user-info">
@@ -962,15 +929,6 @@
                                     </select>
                                     <div th:errors="*{project.id}" class="text-danger small"></div>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label">Recurrence (optional)</label>
-                                    <input type="text" th:field="*{recurrenceRule}" class="form-control" id="recurrenceRule"
-                                           placeholder="e.g., FREQ=WEEKLY;COUNT=4"/>
-                                    <div th:errors="*{recurrenceRule}" class="text-danger small"></div>
-                                    <small class="form-text text-muted">
-                                        Enter an RFC-5545 rule, e.g., <code>FREQ=MONTHLY;BYDAY=MO;COUNT=12</code> for monthly tasks on Mondays, 12 times. Leave blank for no recurrence.
-                                    </small>
-                                </div>
                                 <div class="col-12 text-end">
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-save me-1"></i>Save Task
@@ -1043,7 +1001,7 @@
                                 <thead class="table-light">
                                 <tr>
                                     <th>Task</th><th>Status</th><th>Tech</th><th>Project</th>
-                                    <th>Due</th><th>Recurrence</th><th>Actions</th>
+
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -1061,7 +1019,7 @@
                                     <td th:text="${techNames[t.assignedTo?.id]} ?: '—'"></td>
                                     <td th:text="${projectNames[t.project.id]} ?: '—'"></td>
                                     <td th:text="${#temporals.format(t.dueDate,'yyyy-MM-dd')}"></td>
-                                    <td th:text="${t.recurrenceRule} ?: '—'"></td>
+
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary me-1"
                                                 th:attr="data-bs-toggle='modal',data-bs-target='#editModal' + ${t.id}">
@@ -1125,23 +1083,7 @@
                                     <textarea name="description" class="form-control" rows="3"
                                               th:text="${t.description}"></textarea>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label">Recurrence</label>
-                                    <div class="input-group">
-                                        <input type="text" name="recurrenceRule" class="form-control recurrence-rule"
-                                               th:value="${t.recurrenceRule}"
-                                               placeholder="e.g., FREQ=WEEKLY;COUNT=4"/>
-                                        <button type="button"
-                                                data-bs-toggle="modal"
-                                                th:attr="data-bs-target='#rruleModal' + ${t.id}"
-                                                class="btn btn-outline-secondary">
-                                            <i class="fas fa-repeat"></i>
-                                        </button>
-                                    </div>
-                                    <small class="form-text text-muted">
-                                        Enter an RFC-5545 rule, e.g., <code>FREQ=MONTHLY;BYDAY=MO;COUNT=12</code>. Leave blank for no recurrence.
-                                    </small>
-                                </div>
+
                                 <div class="col-12 text-end">
                                     <button class="btn btn-primary">
                                         <i class="fas fa-save me-1"></i>Save Changes
@@ -1151,30 +1093,6 @@
                                     </button>
                                 </div>
                             </form>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recurrence Rule Modal -->
-                <div class="modal fade" th:id="'rruleModal' + ${t.id}" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content p-3">
-                            <h5>Edit Recurrence</h5>
-                            <p class="small text-muted">
-                                Enter an RFC-5545 rule, e.g. <code>FREQ=MONTHLY;BYDAY=MO;COUNT=12</code> for monthly tasks on Mondays, 12 times.
-                            </p>
-                            <input type="text"
-                                   th:id="'rruleInput' + ${t.id}"
-                                   th:value="${t.recurrenceRule}"
-                                   class="form-control mb-3 recurrence-rule"/>
-                            <div class="text-end">
-                                <button type="button"
-                                        th:onclick="'applyRRule(' + ${t.id} + ')'"
-                                        class="btn btn-primary me-2">Apply</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    Close
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -78,6 +78,20 @@
       display: none;
     }
 
+    .user-badge {
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar.collapsed .user-badge {
+            display: none;
+        }
+
     .sidebar-menu {
       padding: 1rem 0;
       height: calc(100vh - 140px);
@@ -772,6 +786,9 @@
     <a href="/admin/dashboard" class="logo">
       BBOXX<span class="track">Track</span>
     </a>
+    <div class="user-badge">
+      <i class="fas fa-tools me-1"></i>Administrator
+    </div>
   </div>
 
   <div class="sidebar-menu">
@@ -821,7 +838,7 @@
 
       <li class="nav-item">
         <a href="/admin/reports" class="nav-link">
-          <i class="fas fa-file-chart"></i>
+          <i class="fa-solid fa-file"></i>
           <span>Reports</span>
         </a>
       </li>
@@ -850,55 +867,6 @@
     </div>
 
     <div class="navbar-right">
-      <div class="quick-actions">
-        <a href="/admin/projects/new" class="quick-action-btn">
-          <i class="fas fa-plus"></i>
-          <span>New Project</span>
-        </a>
-        <a href="/admin/tasks/urgent" class="quick-action-btn">
-          <i class="fas fa-exclamation-triangle"></i>
-          <span>Urgent Tasks</span>
-        </a>
-      </div>
-
-      <div class="notifications">
-        <button class="notification-btn" data-bs-toggle="dropdown">
-          <i class="fas fa-bell"></i>
-          <span class="notification-badge">5</span>
-        </button>
-        <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px;">
-          <div class="p-3 border-bottom">
-            <h6 class="mb-0">Notifications</h6>
-          </div>
-          <div class="p-2">
-            <div class="d-flex align-items-center p-2 rounded hover-bg">
-              <div class="me-3">
-                <div class="bg-success rounded-circle p-2">
-                  <i class="fas fa-check text-white"></i>
-                </div>
-              </div>
-              <div>
-                <div class="fw-semibold">Installation Complete</div>
-                <small class="text-muted">Nyarugenge District - 15 homes connected</small>
-              </div>
-            </div>
-            <div class="d-flex align-items-center p-2 rounded hover-bg">
-              <div class="me-3">
-                <div class="bg-warning rounded-circle p-2">
-                  <i class="fas fa-exclamation text-white"></i>
-                </div>
-              </div>
-              <div>
-                <div class="fw-semibold">Low Inventory Alert</div>
-                <small class="text-muted">Solar panels running low - 12 units left</small>
-              </div>
-            </div>
-          </div>
-          <div class="p-2 border-top text-center">
-            <a href="/admin/notifications" class="text-decoration-none">View all notifications</a>
-          </div>
-        </div>
-      </div>
 
       <div class="user-menu" data-bs-toggle="dropdown">
         <div class="user-avatar">AD</div>
@@ -934,19 +902,19 @@
     <!-- Stats Cards -->
     <div class="stats-cards">
       <div class="stat-card total">
-        <div class="stat-number" th:text="${projects?.size() ?: '12'}">12</div>
+        <div class="stat-number" th:text="${totalProjects ?: projects?.size() ?: '0'}">0</div>
         <div class="stat-label">Total Projects</div>
       </div>
       <div class="stat-card ongoing">
-        <div class="stat-number" th:text="${ongoingProjects ?: '7'}">7</div>
+        <div class="stat-number" th:text="${ongoingProjects ?: '0'}">0</div>
         <div class="stat-label">Ongoing</div>
       </div>
       <div class="stat-card completed">
-        <div class="stat-number" th:text="${completedProjects ?: '3'}">3</div>
+        <div class="stat-number" th:text="${completedProjects ?: '0'}">0</div>
         <div class="stat-label">Completed</div>
       </div>
       <div class="stat-card upcoming">
-        <div class="stat-number" th:text="${upcomingProjects ?: '2'}">2</div>
+        <div class="stat-number" th:text="${upcomingProjects ?: '0'}">0</div>
         <div class="stat-label">Upcoming</div>
       </div>
     </div>
@@ -1127,138 +1095,7 @@
                   </div>
                 </td>
               </tr>
-              <!-- Sample data for demo -->
-              <tr th:if="${#lists.isEmpty(projects)}">
-                <td>
-                  <div class="project-title">Gasabo Solar Grid Extension</div>
-                  <div class="project-description">Expanding solar infrastructure to 200 households</div>
-                </td>
-                <td>
-                  <span class="status-badge status-ongoing">Ongoing</span>
-                </td>
-                <td>
-                  <div class="location-info">
-                    <i class="fas fa-map-marker-alt location-icon"></i>
-                    <span>Kigali, Gasabo District</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="date-range">
-                    <div class="date-start">Feb 01, 2025</div>
-                    <div class="date-end">to May 15, 2025</div>
-                  </div>
-                </td>
-                <td>
-                  <div class="attachments-preview">
-                    <div class="attachment-file">
-                      <i class="fas fa-file-pdf"></i>
-                    </div>
-                    <div class="attachment-file">
-                      <i class="fas fa-image"></i>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="project-actions">
-                    <a href="#" class="action-btn btn-view">
-                      <i class="fas fa-eye"></i>
-                      <span class="d-none d-lg-inline">View</span>
-                    </a>
-                    <a href="#" class="action-btn btn-edit">
-                      <i class="fas fa-edit"></i>
-                      <span class="d-none d-lg-inline">Edit</span>
-                    </a>
-                  </div>
-                </td>
-              </tr>
 
-              <tr th:if="${#lists.isEmpty(projects)}">
-                <td>
-                  <div class="project-title">Rusizi Hydroelectric Solar Hybrid</div>
-                  <div class="project-description">Combined renewable energy solution for rural areas</div>
-                </td>
-                <td>
-                  <span class="status-badge status-upcoming">Upcoming</span>
-                </td>
-                <td>
-                  <div class="location-info">
-                    <i class="fas fa-map-marker-alt location-icon"></i>
-                    <span>Western Province, Rusizi</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="date-range">
-                    <div class="date-start">Jun 01, 2025</div>
-                    <div class="date-end">to Sep 30, 2025</div>
-                  </div>
-                </td>
-                <td>
-                  <div class="attachments-preview">
-                    <div class="attachment-file">
-                      <i class="fas fa-file-contract"></i>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="project-actions">
-                    <a href="#" class="action-btn btn-view">
-                      <i class="fas fa-eye"></i>
-                      <span class="d-none d-lg-inline">View</span>
-                    </a>
-                    <a href="#" class="action-btn btn-edit">
-                      <i class="fas fa-edit"></i>
-                      <span class="d-none d-lg-inline">Edit</span>
-                    </a>
-                  </div>
-                </td>
-              </tr>
-
-              <tr th:if="${#lists.isEmpty(projects)}">
-                <td>
-                  <div class="project-title">Huye University Campus Solar</div>
-                  <div class="project-description">Complete solar electrification of university facilities</div>
-                </td>
-                <td>
-                  <span class="status-badge status-completed">Completed</span>
-                </td>
-                <td>
-                  <div class="location-info">
-                    <i class="fas fa-map-marker-alt location-icon"></i>
-                    <span>Southern Province, Huye</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="date-range">
-                    <div class="date-start">Oct 15, 2024</div>
-                    <div class="date-end">to Dec 20, 2024</div>
-                  </div>
-                </td>
-                <td>
-                  <div class="attachments-preview">
-                    <div class="attachment-file">
-                      <i class="fas fa-file-pdf"></i>
-                    </div>
-                    <div class="attachment-file">
-                      <i class="fas fa-image"></i>
-                    </div>
-                    <div class="attachment-file">
-                      <i class="fas fa-chart-line"></i>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="project-actions">
-                    <a href="#" class="action-btn btn-view">
-                      <i class="fas fa-eye"></i>
-                      <span class="d-none d-lg-inline">View</span>
-                    </a>
-                    <a href="#" class="action-btn btn-edit">
-                      <i class="fas fa-edit"></i>
-                      <span class="d-none d-lg-inline">Edit</span>
-                    </a>
-                  </div>
-                </td>
-              </tr>
               </tbody>
             </table>
           </div>

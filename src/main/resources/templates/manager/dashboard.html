@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:inline="javascript">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -59,9 +59,18 @@
             text-align: center;
         }
 
-        .logo-img {
-            width: 100px;
-            height: auto;
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .logo .track {
+            color: var(--bboxx-orange);
+            font-weight: 400;
         }
 
         .sidebar-menu {
@@ -143,6 +152,20 @@
 
         .sidebar.collapsed .nav-link i {
             margin-right: 0;
+        }
+
+        .user-badge {
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar.collapsed .user-badge {
+            display: none;
         }
 
         /* Main Content */
@@ -890,15 +913,198 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--bboxx-dark-orange);
         }
+        /* Add these CSS styles to enhance the timeline chart */
+.chart-container canvas {
+    border-radius: 8px;
+}
+
+.timeline-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.timeline-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.timeline-info span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.timeline-zoom-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.zoom-btn {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+    background: #f8f9fa;
+    border-color: #0d6efd;
+}
+
+.zoom-btn.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+/* Loading state for timeline */
+.timeline-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    flex-direction: column;
+    gap: 1rem;
+    color: #666;
+}
+
+.timeline-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Empty state */
+.timeline-empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    flex-direction: column;
+    gap: 1rem;
+    color: #999;
+}
+
+.timeline-empty i {
+    font-size: 3rem;
+    color: #ddd;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .timeline-controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .timeline-info {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .chart-container {
+        height: 350px !important;
+    }
+
+    .timeline-legend .d-flex {
+        flex-direction: column;
+        gap: 0.75rem !important;
+    }
+}
+
+/* Project status indicators in legend */
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    padding: 0.25rem 0;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.legend-label {
+    color: #666;
+    font-weight: 500;
+}
+
+/* Timeline chart specific improvements */
+.chart-card .chart-container {
+    position: relative;
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+/* Add hover effects for better interactivity */
+.chart-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Better button styling for timeline controls */
+.chart-controls .form-select {
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.chart-controls .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Custom scrollbar for timeline if needed */
+.timeline-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.timeline-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.timeline-container::-webkit-scrollbar-thumb {
+    background: #0d6efd;
+    border-radius: 4px;
+}
+
+.timeline-container::-webkit-scrollbar-thumb:hover {
+    background: #0b5ed7;
+}
     </style>
 </head>
 <body>
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <a href="/manager/dashboard">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='35' font-family='Arial, sans-serif' font-size='24' font-weight='bold' fill='%23FF6B35'%3EBBOXX%3C/text%3E%3Ctext x='10' y='52' font-family='Arial, sans-serif' font-size='12' fill='white'%3ETrack%3C/text%3E%3C/svg%3E" class="logo-img" alt="BBOXX Track"/>
+        <a href="/manager/dashboard" class="logo">
+            BBOXX<span class="track">Track</span>
         </a>
+        <div class="user-badge">
+            <i class="fas fa-tools me-1"></i>Project Manager
+        </div>
     </div>
 
     <div class="sidebar-menu">
@@ -927,18 +1133,7 @@
                     <span>Kanban Board</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="/manager/team" class="nav-link">
-                    <i class="fas fa-users"></i>
-                    <span>Team Management</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/manager/calendar" class="nav-link">
-                    <i class="fas fa-calendar"></i>
-                    <span>Project Calendar</span>
-                </a>
-            </li>
+
             <li class="nav-item">
                 <a href="/manager/reports" class="nav-link">
                     <i class="fas fa-chart-bar"></i>
@@ -971,64 +1166,14 @@
 
         <div class="navbar-right">
             <div class="quick-actions">
-                <a href="/manager/projects/new" class="quick-action-btn">
+                <a href="/manager/projects" class="quick-action-btn">
                     <i class="fas fa-plus"></i>
                     <span>New Project</span>
                 </a>
-                <a href="/manager/tasks/create" class="quick-action-btn">
+                <a href="/manager/tasks" class="quick-action-btn">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Assign Task</span>
                 </a>
-            </div>
-
-            <div class="notifications">
-                <button class="notification-btn" data-bs-toggle="dropdown">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px;">
-                    <div class="p-3 border-bottom">
-                        <h6 class="mb-0">Notifications</h6>
-                    </div>
-                    <div class="p-2">
-                        <div class="d-flex align-items-center p-2 rounded hover-bg">
-                            <div class="me-3">
-                                <div class="bg-warning rounded-circle p-2">
-                                    <i class="fas fa-exclamation text-white"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Task Deadline Approaching</div>
-                                <small class="text-muted">Solar installation due in 2 days</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center p-2 rounded hover-bg">
-                            <div class="me-3">
-                                <div class="bg-success rounded-circle p-2">
-                                    <i class="fas fa-check text-white"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Project Milestone Completed</div>
-                                <small class="text-muted">Kigali Office Phase 1 finished</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center p-2 rounded hover-bg">
-                            <div class="me-3">
-                                <div class="bg-info rounded-circle p-2">
-                                    <i class="fas fa-user text-white"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">New Team Member Added</div>
-                                <small class="text-muted">John Smith joined Eastern Team</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-2 border-top text-center">
-                        <a href="/manager/notifications" class="text-decoration-none">View all notifications</a>
-                    </div>
-                </div>
             </div>
 
             <div class="user-menu" data-bs-toggle="dropdown">
@@ -1080,244 +1225,59 @@
                 <div class="stats-icon primary">
                     <i class="fas fa-project-diagram"></i>
                 </div>
-                <div class="stats-value">24</div>
-                <div class="stats-label">Active Projects</div>
-                <div class="stats-trend trend-up">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>+3 this month</span>
-                </div>
+                <div class="stats-value" th:text="${totalProjects ?: '89'}">89</div>
+                <div class="stats-label">Solar Projects</div>
             </div>
 
             <div class="stats-card">
                 <div class="stats-icon success">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stats-value">18</div>
-                <div class="stats-label">Completed Projects</div>
-                <div class="stats-trend trend-up">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>+2 this week</span>
-                </div>
+                <div class="stats-value" th:text="${totalTasks ?: '342'}">342</div>
+                <div class="stats-label">Field Tasks</div>
             </div>
 
             <div class="stats-card">
                 <div class="stats-icon warning">
                     <i class="fas fa-tasks"></i>
                 </div>
-                <div class="stats-value">47</div>
-                <div class="stats-label">Pending Tasks</div>
-                <div class="stats-trend trend-down">
-                    <i class="fas fa-arrow-down"></i>
-                    <span>-5 this week</span>
-                </div>
-            </div>
-
-            <div class="stats-card">
-                <div class="stats-icon info">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stats-value">32</div>
-                <div class="stats-label">Team Members</div>
-                <div class="stats-trend trend-up">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>+4 this month</span>
-                </div>
-            </div>
-
-            <div class="stats-card">
-                <div class="stats-icon danger">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="stats-value">3</div>
-                <div class="stats-label">Overdue Tasks</div>
-                <div class="stats-trend trend-down">
-                    <i class="fas fa-arrow-down"></i>
-                    <span>-2 from yesterday</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Projects and Tasks Section -->
-        <div class="projects-section">
-            <div class="project-list">
-                <div class="section-header">
-                    <h3 class="section-title">Recent Projects</h3>
-                    <a href="/manager/projects" class="text-decoration-none">View All</a>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <div>
-                            <div class="project-title">Solar Installation - Nyarugenge District</div>
-                            <div class="project-location">Kigali, Rwanda</div>
-                        </div>
-                        <div class="project-status status-ongoing">Ongoing</div>
-                    </div>
-                    <div class="project-progress">
-                        <div class="progress-header">
-                            <span class="progress-label">Progress</span>
-                            <span class="progress-percentage">68%</span>
-                        </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: 68%;"></div>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="project-team">
-                            <div class="team-avatar">JD</div>
-                            <div class="team-avatar">MK</div>
-                            <div class="team-avatar">AL</div>
-                        </div>
-                        <span>Due: May 30, 2025</span>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <div>
-                            <div class="project-title">BBOXX Phase 2 - Eastern Province</div>
-                            <div class="project-location">Kayonza, Rwanda</div>
-                        </div>
-                        <div class="project-status status-upcoming">Upcoming</div>
-                    </div>
-                    <div class="project-progress">
-                        <div class="progress-header">
-                            <span class="progress-label">Planning</span>
-                            <span class="progress-percentage">25%</span>
-                        </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: 25%;"></div>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="project-team">
-                            <div class="team-avatar">TR</div>
-                            <div class="team-avatar">NK</div>
-                        </div>
-                        <span>Start: June 15, 2025</span>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <div>
-                            <div class="project-title">Rural Electrification - Huye</div>
-                            <div class="project-location">Southern Province, Rwanda</div>
-                        </div>
-                        <div class="project-status status-completed">Completed</div>
-                    </div>
-                    <div class="project-progress">
-                        <div class="progress-header">
-                            <span class="progress-label">Completed</span>
-                            <span class="progress-percentage">100%</span>
-                        </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: 100%; background: var(--bboxx-green);"></div>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="project-team">
-                            <div class="team-avatar">PM</div>
-                            <div class="team-avatar">JS</div>
-                            <div class="team-avatar">RK</div>
-                        </div>
-                        <span>Completed: May 20, 2025</span>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <div>
-                            <div class="project-title">Mini-Grid Project - Rwamagana</div>
-                            <div class="project-location">Eastern Province, Rwanda</div>
-                        </div>
-                        <div class="project-status status-delayed">Delayed</div>
-                    </div>
-                    <div class="project-progress">
-                        <div class="progress-header">
-                            <span class="progress-label">Behind Schedule</span>
-                            <span class="progress-percentage">45%</span>
-                        </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: 45%; background: var(--bboxx-red);"></div>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="project-team">
-                            <div class="team-avatar">LM</div>
-                            <div class="team-avatar">CK</div>
-                        </div>
-                        <span>Overdue by 5 days</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="task-panel">
-                <div class="section-header">
-                    <h3 class="section-title">Urgent Tasks</h3>
-                    <a href="/manager/tasks" class="text-decoration-none">View All</a>
-                </div>
-
-                <div class="task-item">
-                    <input type="checkbox" class="task-checkbox">
-                    <div class="task-content">
-                        <div class="task-title">Complete final testing for Nyarugenge project</div>
-                        <div class="task-meta">Assigned to John Doe • Due in 2 days</div>
-                    </div>
-                    <div class="task-priority priority-high">High</div>
-                </div>
-
-                <div class="task-item">
-                    <input type="checkbox" class="task-checkbox">
-                    <div class="task-content">
-                        <div class="task-title">Review equipment delivery schedule</div>
-                        <div class="task-meta">Assigned to Maria Kim • Due in 3 days</div>
-                    </div>
-                    <div class="task-priority priority-medium">Medium</div>
-                </div>
-
-                <div class="task-item">
-                    <input type="checkbox" class="task-checkbox" checked>
-                    <div class="task-content">
-                        <div class="task-title">Update project documentation</div>
-                        <div class="task-meta">Assigned to Alex Luna • Completed</div>
-                    </div>
-                    <div class="task-priority priority-low">Low</div>
-                </div>
-
-                <div class="task-item">
-                    <input type="checkbox" class="task-checkbox">
-                    <div class="task-content">
-                        <div class="task-title">Schedule team meeting for Kayonza project</div>
-                        <div class="task-meta">Assigned to Thomas Reed • Due in 1 week</div>
-                    </div>
-                    <div class="task-priority priority-medium">Medium</div>
-                </div>
-
-                <div class="task-item">
-                    <input type="checkbox" class="task-checkbox">
-                    <div class="task-content">
-                        <div class="task-title">Conduct safety inspection</div>
-                        <div class="task-meta">Assigned to Nina Keza • Due today</div>
-                    </div>
-                    <div class="task-priority priority-high">High</div>
-                </div>
+                <div class="stats-value" th:text="${managerProjects ?: '342'}">342</div>
+                <div class="stats-label">Your Project</div>
             </div>
         </div>
 
         <!-- Charts Section -->
-        <div class="charts-section">
+        <div class="charts-grid">
             <div class="chart-card">
-                <div class="section-header">
-                    <h3 class="section-title">Project Status Overview</h3>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-filter me-1"></i>Filter
+                <div class="chart-header">
+                    <h3 class="chart-title">Task Completion Status</h3>
+                    <div class="chart-menu">
+                        <button class="chart-menu-btn" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="#">All Projects</a>
-                            <a class="dropdown-item" href="#">This Month</a>
-                            <a class="dropdown-item" href="#">This Quarter</a>
+                            <a class="dropdown-item" href="#">Export as PNG</a>
+                            <a class="dropdown-item" href="#">View Details</a>
+                            <a class="dropdown-item" href="#">Configure</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="taskCompletionChart"></canvas>
+                </div>
+            </div>
+            <br></br>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Project Status Distribution</h3>
+                    <div class="chart-menu">
+                        <button class="chart-menu-btn" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="#">Export as PNG</a>
+                            <a class="dropdown-item" href="#">View Details</a>
+                            <a class="dropdown-item" href="#">Configure</a>
                         </div>
                     </div>
                 </div>
@@ -1325,76 +1285,42 @@
                     <canvas id="projectStatusChart"></canvas>
                 </div>
             </div>
-
-            <div class="timeline-section">
-                <div class="section-header">
-                    <h3 class="section-title">Recent Activity</h3>
-                    <a href="/manager/activity" class="text-decoration-none">View All</a>
-                </div>
-
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <div class="timeline-content">
-                            <div class="timeline-title">Project Milestone Completed</div>
-                            <div class="timeline-text">Solar installation phase completed for Nyarugenge District project</div>
-                            <div class="timeline-time">2 hours ago</div>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-content">
-                            <div class="timeline-title">New Task Assigned</div>
-                            <div class="timeline-text">Quality inspection task assigned to technical team for Huye project</div>
-                            <div class="timeline-time">5 hours ago</div>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-content">
-                            <div class="timeline-title">Team Meeting Scheduled</div>
-                            <div class="timeline-text">Weekly progress review meeting scheduled for all active projects</div>
-                            <div class="timeline-time">Yesterday</div>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-content">
-                            <div class="timeline-title">Equipment Delivered</div>
-                            <div class="timeline-text">Solar panels and batteries delivered to Kayonza site for Phase 2 project</div>
-                            <div class="timeline-time">2 days ago</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-
-        <!-- Progress Charts Section -->
-        <div class="charts-section">
-            <div class="chart-card">
-                <div class="section-header">
-                    <h3 class="section-title">Monthly Progress Trends</h3>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-calendar me-1"></i>Period
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="#">Last 6 Months</a>
-                            <a class="dropdown-item" href="#">Last 12 Months</a>
-                            <a class="dropdown-item" href="#">Custom Range</a>
-                        </div>
+        <br></br>
+        <div class="chart-card">
+            <div class="activity-section">
+                <div class="activity-header">
+                    <h3>Project Timeline & Duration</h3>
+                    <div class="chart-controls">
+                        <select id="timelineView" class="form-select form-select-sm" style="width: auto;">
+                            <option value="month">Month View</option>
+                            <option value="quarter">Quarter View</option>
+                            <option value="year">Year View</option>
+                        </select>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="progressTrendChart"></canvas>
+                <div class="chart-container" style="height: 400px; position: relative;">
+                    <canvas id="projectTimelineChart"></canvas>
                 </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="section-header">
-                    <h3 class="section-title">Team Performance</h3>
-                </div>
-                <div class="chart-container">
-                    <canvas id="teamPerformanceChart"></canvas>
+                <div class="timeline-legend mt-3">
+                    <div class="d-flex flex-wrap gap-3">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #4CAF50;"></span>
+                            <span class="legend-label">Completed</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #FF6B35;"></span>
+                            <span class="legend-label">Ongoing</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #2196F3;"></span>
+                            <span class="legend-label">Upcoming</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #FFC107;"></span>
+                            <span class="legend-label">Delayed</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1402,39 +1328,54 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <script>
-    // Sidebar Toggle
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('mainContent');
+    // Global variables
+    let projectTimelineChart = null;
+    let taskCompletionChart = null;
+    let projectStatusChart = null;
 
-    sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-        mainContent.classList.toggle('expanded');
-    });
+    const projectData = {
+        names: /*[[${projectNames}]]*/ [],
+        startDates: /*[[${projectStartDates}]]*/ [],
+        endDates: /*[[${projectEndDates}]]*/ [],
+        statuses: /*[[${projectStatuses}]]*/ [],
+        durations: /*[[${projectDurations}]]*/ []
+    };
 
-    // Mobile sidebar
-    if (window.innerWidth <= 768) {
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('show');
-        });
+    // Initialize all charts
+    function initializeCharts() {
+        initializeTaskCompletionChart();
+        initializeProjectStatusChart();
+        initializeProjectTimelineChart();
     }
 
-    // Initialize Charts
-    document.addEventListener('DOMContentLoaded', function() {
-        // Project Status Chart
-        const statusCtx = document.getElementById('projectStatusChart').getContext('2d');
-        new Chart(statusCtx, {
+    // Task Completion Chart
+    function initializeTaskCompletionChart() {
+        const ctx = document.getElementById('taskCompletionChart').getContext('2d');
+
+        // Destroy existing chart if it exists
+        if (taskCompletionChart) {
+            taskCompletionChart.destroy();
+        }
+
+        taskCompletionChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Ongoing', 'Completed', 'Upcoming', 'Delayed'],
+                labels: ['Completed', 'In Progress', 'Pending', 'Overdue'],
                 datasets: [{
-                    data: [24, 18, 8, 3],
+                    data: [
+                        /*[[${completedTasks}]]*/ 0,
+                        /*[[${inProgressTasks}]]*/ 0,
+                        /*[[${pendingTasks}]]*/ 0,
+                        /*[[${overdueTasks}]]*/ 0
+                    ],
                     backgroundColor: [
-                        '#FFC107',
-                        '#4CAF50',
-                        '#1B365D',
-                        '#DC3545'
+                        '#4CAF50', // Green for Completed
+                        '#FF6B35', // Orange for In Progress
+                        '#FFC107', // Yellow for Pending
+                        '#DC3545'  // Red for Overdue
                     ],
                     borderWidth: 0,
                     cutout: '70%'
@@ -1453,33 +1394,49 @@
                                 size: 12
                             }
                         }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
                     }
                 }
             }
         });
+    }
 
-        // Progress Trend Chart
-        const progressCtx = document.getElementById('progressTrendChart').getContext('2d');
-        new Chart(progressCtx, {
-            type: 'line',
+    // Project Status Chart
+    function initializeProjectStatusChart() {
+        const ctx = document.getElementById('projectStatusChart').getContext('2d');
+
+        // Destroy existing chart if it exists
+        if (projectStatusChart) {
+            projectStatusChart.destroy();
+        }
+
+        projectStatusChart = new Chart(ctx, {
+            type: 'doughnut',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: ['Ongoing', 'Completed', 'Upcoming'],
                 datasets: [{
-                    label: 'Completed Projects',
-                    data: [2, 4, 3, 6, 4, 5],
-                    borderColor: '#4CAF50',
-                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                }, {
-                    label: 'New Projects',
-                    data: [3, 5, 4, 7, 5, 6],
-                    borderColor: '#FF6B35',
-                    backgroundColor: 'rgba(255, 107, 53, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
+                    data: [
+                        /*[[${ongoingProjects}]]*/ 0,
+                        /*[[${completedProjects}]]*/ 0,
+                        /*[[${upcomingProjects}]]*/ 0
+                    ],
+                    backgroundColor: [
+                        '#FF6B35', // Orange for Ongoing
+                        '#4CAF50', // Green for Completed
+                        '#1B365D'  // Blue for Upcoming
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
                 }]
             },
             options: {
@@ -1487,602 +1444,299 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'top',
+                        position: 'bottom',
                         labels: {
+                            padding: 20,
                             usePointStyle: true,
                             font: {
                                 size: 12
                             }
                         }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: '#f0f0f0'
-                        }
                     },
-                    x: {
-                        grid: {
-                            display: false
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
                         }
                     }
                 }
             }
         });
+    }
 
-        // Team Performance Chart
-        const teamCtx = document.getElementById('teamPerformanceChart').getContext('2d');
-        new Chart(teamCtx, {
+    // Project Timeline Chart
+    function initializeProjectTimelineChart() {
+        const timelineCtx = document.getElementById('projectTimelineChart');
+        if (!timelineCtx) {
+            console.error('Timeline canvas not found');
+            return;
+        }
+
+        const ctx = timelineCtx.getContext('2d');
+
+        // Destroy existing chart if it exists
+        if (projectTimelineChart) {
+            projectTimelineChart.destroy();
+        }
+
+        // Use the global project data
+        const projectNames = projectData.names || [];
+        const projectStartDates = projectData.startDates || [];
+        const projectEndDates = projectData.endDates || [];
+        const projectStatuses = projectData.statuses || [];
+
+        console.log('Timeline data:', { projectNames, projectStartDates, projectEndDates, projectStatuses });
+
+        // Check if we have data
+        if (projectNames.length === 0) {
+            console.log('No project data available');
+            ctx.font = '16px Inter';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('No project data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            return;
+        }
+
+        // Status color mapping
+        const statusColors = {
+            'Completed': '#4CAF50',    // Green
+            'Ongoing': '#FF6B35',      // Orange
+            'Upcoming': '#2196F3',     // Blue
+            'Delayed': '#FFC107',      // Yellow
+            'On Hold': '#9E9E9E',      // Gray
+            'Planning': '#9C27B0',     // Purple
+            'default': '#1B365D'       // Default BBOXX blue
+        };
+
+        // Find date range
+        let minDate = new Date();
+        let maxDate = new Date();
+        let validDates = false;
+
+        for (let i = 0; i < projectNames.length; i++) {
+            const startDate = new Date(projectStartDates[i]);
+            const endDate = new Date(projectEndDates[i]);
+
+            if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                if (!validDates) {
+                    minDate = new Date(startDate);
+                    maxDate = new Date(endDate);
+                    validDates = true;
+                } else {
+                    if (startDate < minDate) minDate = new Date(startDate);
+                    if (endDate > maxDate) maxDate = new Date(endDate);
+                }
+            }
+        }
+
+        if (!validDates) {
+            console.error('No valid dates found');
+            ctx.font = '16px Inter';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('No valid project dates found', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            return;
+        }
+
+        // Add padding to dates
+        minDate.setDate(minDate.getDate() - 30);
+        maxDate.setDate(maxDate.getDate() + 30);
+
+        // Prepare chart data
+        const chartData = [];
+        const backgroundColors = [];
+        const projectLabels = [];
+
+        for (let i = 0; i < projectNames.length; i++) {
+            const startDate = new Date(projectStartDates[i]);
+            const endDate = new Date(projectEndDates[i]);
+            const status = projectStatuses[i];
+
+            if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                projectLabels.push(projectNames[i]);
+
+                // Calculate start offset and duration in days
+                const startOffset = Math.floor((startDate - minDate) / (1000 * 60 * 60 * 24));
+                const duration = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+                chartData.push([startOffset, startOffset + duration]);
+                backgroundColors.push(statusColors[status] || statusColors.default);
+            }
+        }
+
+        // Create the chart
+        projectTimelineChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['John D.', 'Maria K.', 'Alex L.', 'Thomas R.', 'Nina K.'],
+                labels: projectLabels,
                 datasets: [{
-                    label: 'Tasks Completed',
-                    data: [15, 12, 18, 9, 14],
-                    backgroundColor: '#FF6B35',
-                    borderRadius: 8,
+                    label: 'Project Timeline',
+                    data: chartData,
+                    backgroundColor: backgroundColors,
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    borderRadius: 6,
                     borderSkipped: false,
                 }]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 20,
+                        right: 20,
+                        top: 20,
+                        bottom: 20
+                    }
+                },
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return projectLabels[context[0].dataIndex];
+                            },
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                const startDate = new Date(projectStartDates[index]);
+                                const endDate = new Date(projectEndDates[index]);
+                                const status = projectStatuses[index];
+                                const duration = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+                                return [
+                                    `Status: ${status}`,
+                                    `Start: ${startDate.toLocaleDateString()}`,
+                                    `End: ${endDate.toLocaleDateString()}`,
+                                    `Duration: ${duration} days`
+                                ];
+                            }
+                        },
+                        backgroundColor: 'rgba(27, 54, 93, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#FF6B35',
+                        borderWidth: 1,
+                        cornerRadius: 8
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: {
+                            display: true,
+                            text: 'Timeline',
+                            color: '#666',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                const date = new Date(minDate);
+                                date.setDate(date.getDate() + value);
+                                return date.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric'
+                                });
+                            },
+                            maxTicksLimit: 8,
+                            color: '#666'
+                        },
                         grid: {
-                            color: '#f0f0f0'
+                            color: 'rgba(0,0,0,0.1)',
+                            drawBorder: false
                         }
                     },
-                    x: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Projects',
+                            color: '#666',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            callback: function(value, index) {
+                                const label = projectLabels[index];
+                                return label ? (label.length > 30 ? label.substring(0, 30) + '...' : label) : '';
+                            },
+                            color: '#666',
+                            font: {
+                                size: 11
+                            }
+                        },
                         grid: {
                             display: false
                         }
                     }
-                }
-            }
-        });
-    });
+                },
+                onHover: (event, activeElements) => {
+                    event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const element = activeElements[0];
+                        const projectIndex = element.index;
+                        const projectName = projectLabels[projectIndex];
 
-    // Real-time updates simulation
-    function updateMetrics() {
-        const metrics = document.querySelectorAll('.stats-value');
-        metrics.forEach(metric => {
-            const currentValue = parseInt(metric.textContent);
-            const variation = Math.floor(Math.random() * 3) - 1; // -1 to +1
-            const newValue = Math.max(0, currentValue + variation);
-
-            if (variation !== 0) {
-                metric.style.transform = 'scale(1.1)';
-                setTimeout(() => {
-                    metric.style.transform = 'scale(1)';
-                    metric.textContent = newValue;
-                }, 200);
-            }
-        });
-    }
-
-    // Update metrics every 45 seconds
-    setInterval(updateMetrics, 45000);
-
-    // Search functionality
-    const searchInput = document.querySelector('.search-box input');
-    searchInput.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        console.log('Searching for:', searchTerm);
-        // Implement search logic here
-    });
-
-    // Task checkbox functionality
-    document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const taskItem = this.closest('.task-item');
-            if (this.checked) {
-                taskItem.style.opacity = '0.6';
-                taskItem.querySelector('.task-title').style.textDecoration = 'line-through';
-            } else {
-                taskItem.style.opacity = '1';
-                taskItem.querySelector('.task-title').style.textDecoration = 'none';
-            }
-        });
-    });
-
-    // Notification handling
-    const notificationBtn = document.querySelector('.notification-btn');
-    notificationBtn.addEventListener('click', function() {
-        const badge = this.querySelector('.notification-badge');
-        if (badge) {
-            setTimeout(() => {
-                badge.style.display = 'none';
-            }, 2000);
-        }
-    });
-
-    // Project card hover effects
-    document.querySelectorAll('.project-card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.borderColor = 'var(--bboxx-orange)';
-        });
-
-        card.addEventListener('mouseleave', function() {
-            this.style.borderColor = '#E1E5E9';
-        });
-    });
-
-    // Quick action buttons
-    document.querySelectorAll('.quick-action-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const originalText = this.innerHTML;
-            this.innerHTML = '<div class="loading"></div> Loading...';
-            this.style.pointerEvents = 'none';
-
-            setTimeout(() => {
-                this.innerHTML = originalText;
-                this.style.pointerEvents = 'auto';
-
-                // Simulate navigation
-                if (this.textContent.includes('New Project')) {
-                    console.log('Navigating to new project form...');
-                } else if (this.textContent.includes('Assign Task')) {
-                    console.log('Navigating to task assignment...');
-                }
-            }, 1000);
-        });
-    });
-
-    // Responsive handling
-    function handleResize() {
-        if (window.innerWidth <= 768) {
-            sidebar.classList.add('collapsed');
-            mainContent.classList.add('expanded');
-        } else {
-            sidebar.classList.remove('show');
-        }
-    }
-
-    window.addEventListener('resize', handleResize);
-
-    // Animate stats cards on load
-    function animateStatsCards() {
-        const cards = document.querySelectorAll('.stats-card');
-        cards.forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-
-            setTimeout(() => {
-                card.style.transition = 'all 0.6s ease';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, index * 100);
-        });
-    }
-
-    // Progress bar animations
-    function animateProgressBars() {
-        const progressBars = document.querySelectorAll('.progress-bar');
-        progressBars.forEach((bar, index) => {
-            const width = bar.style.width;
-            bar.style.width = '0%';
-
-            setTimeout(() => {
-                bar.style.transition = 'width 1s ease-in-out';
-                bar.style.width = width;
-            }, index * 200 + 500);
-        });
-    }
-
-    // Run animations on page load
-    setTimeout(() => {
-        animateStatsCards();
-        animateProgressBars();
-    }, 500);
-
-    // Auto-refresh functionality
-    function refreshData() {
-        console.log('Refreshing dashboard data...');
-
-        // Simulate data refresh
-        const refreshBtn = document.createElement('div');
-        refreshBtn.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--bboxx-orange);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            z-index: 9999;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            font-size: 0.9rem;
-            font-weight: 500;
-        `;
-        refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Data refreshed';
-
-        document.body.appendChild(refreshBtn);
-
-        setTimeout(() => {
-            refreshBtn.style.transform = 'translateX(0)';
-        }, 100);
-
-        setTimeout(() => {
-            refreshBtn.style.transform = 'translateX(100%)';
-            setTimeout(() => document.body.removeChild(refreshBtn), 300);
-        }, 2000);
-    }
-
-    // Auto-refresh every 5 minutes
-    setInterval(refreshData, 300000);
-
-    // Export functionality
-    function exportData(format) {
-        const exportBtn = document.querySelector('.header-btn:not(.primary)');
-        const originalText = exportBtn.innerHTML;
-
-        exportBtn.innerHTML = '<div class="loading"></div> Exporting...';
-        exportBtn.style.pointerEvents = 'none';
-
-        setTimeout(() => {
-            exportBtn.innerHTML = originalText;
-            exportBtn.style.pointerEvents = 'auto';
-
-            const toast = document.createElement('div');
-            toast.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-check-circle" style="color: var(--bboxx-green);"></i>
-                    <span>Dashboard data exported successfully!</span>
-                </div>
-            `;
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: white;
-                padding: 1rem 1.5rem;
-                border-radius: 8px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                z-index: 9999;
-                transform: translateX(100%);
-                transition: transform 0.3s ease;
-                border-left: 4px solid var(--bboxx-green);
-            `;
-
-            document.body.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.transform = 'translateX(0)';
-            }, 100);
-
-            setTimeout(() => {
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => document.body.removeChild(toast), 300);
-            }, 3000);
-        }, 2000);
-    }
-
-    // Add export event listeners
-    document.querySelectorAll('.header-btn').forEach(btn => {
-        if (btn.textContent.includes('Export')) {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                exportData('excel');
-            });
-        }
-    });
-
-    // Initialize tooltips if bootstrap is available
-    if (typeof bootstrap !== 'undefined') {
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-tooltip]'));
-        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    }
-
-    // Performance monitoring
-    function monitorPerformance() {
-        const performanceData = {
-            activeProjects: 24 + Math.floor(Math.random() * 4 - 2),
-            completedProjects: 18 + Math.floor(Math.random() * 2),
-            pendingTasks: 47 + Math.floor(Math.random() * 10 - 5),
-            teamMembers: 32 + Math.floor(Math.random() * 3 - 1)
-        };
-
-        const statValues = document.querySelectorAll('.stats-value');
-        if (statValues.length >= 4) {
-            statValues[0].textContent = performanceData.activeProjects;
-            statValues[1].textContent = performanceData.completedProjects;
-            statValues[2].textContent = performanceData.pendingTasks;
-            statValues[3].textContent = performanceData.teamMembers;
-        }
-    }
-
-    // Update performance metrics every 2 minutes
-    setInterval(monitorPerformance, 120000);
-
-    // Dark mode toggle (future enhancement)
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-    }
-
-    // Load dark mode preference
-    if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-    }
-
-    // Activity auto-refresh
-    function refreshActivity() {
-        const activities = [
-            {
-                title: 'Equipment delivered to Gasabo site',
-                text: 'Solar panels and inverters delivered for new installation project',
-                time: 'Just now'
-            },
-            {
-                title: 'Quality check completed',
-                text: 'All safety protocols verified for Nyarugenge project phase 2',
-                time: '15 minutes ago'
-            },
-            {
-                title: 'New team member onboarded',
-                text: 'Sarah Wilson joined the technical team for Eastern Province',
-                time: '30 minutes ago'
-            }
-        ];
-
-        // Add random activity occasionally
-        if (Math.random() > 0.8) {
-            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-            const timeline = document.querySelector('.timeline');
-            const newItem = document.createElement('div');
-            newItem.className = 'timeline-item';
-            newItem.innerHTML = `
-                <div class="timeline-content">
-                    <div class="timeline-title">${randomActivity.title}</div>
-                    <div class="timeline-text">${randomActivity.text}</div>
-                    <div class="timeline-time">${randomActivity.time}</div>
-                </div>
-            `;
-            timeline.insertBefore(newItem, timeline.firstChild);
-
-            // Remove last item if more than 5 items
-            if (timeline.children.length > 5) {
-                timeline.removeChild(timeline.lastChild);
-            }
-        }
-    }
-
-    // Refresh activity every 3 minutes
-    setInterval(refreshActivity, 180000);
-
-    // Chart resize handler
-    function handleChartResize() {
-        if (typeof Chart !== 'undefined') {
-            Chart.helpers.each(Chart.instances, function(instance) {
-                instance.resize();
-            });
-        }
-    }
-
-    window.addEventListener('resize', handleChartResize);
-
-    // Project status updates
-    function updateProjectStatuses() {
-        const projectCards = document.querySelectorAll('.project-card');
-        projectCards.forEach(card => {
-            const progressBar = card.querySelector('.progress-bar');
-            const percentage = card.querySelector('.progress-percentage');
-
-            if (progressBar && percentage) {
-                const currentProgress = parseInt(percentage.textContent);
-                // Simulate small progress increments
-                if (Math.random() > 0.7 && currentProgress < 100) {
-                    const newProgress = Math.min(100, currentProgress + Math.floor(Math.random() * 3));
-                    percentage.textContent = newProgress + '%';
-                    progressBar.style.width = newProgress + '%';
-
-                    // Update status if project is completed
-                    if (newProgress === 100) {
-                        const statusBadge = card.querySelector('.project-status');
-                        statusBadge.textContent = 'Completed';
-                        statusBadge.className = 'project-status status-completed';
-                        progressBar.style.background = 'var(--bboxx-green)';
+                        console.log('Clicked project:', projectName);
+                        // Add your custom action here
+                        // window.location.href = `/admin/projects/${projectIndex + 1}`;
                     }
                 }
             }
         });
+
+        console.log('Timeline chart initialized successfully');
     }
 
-    // Update project statuses every 5 minutes
-    setInterval(updateProjectStatuses, 300000);
+    // Timeline view selector handler
+    function handleTimelineViewChange() {
+        const timelineView = document.getElementById('timelineView');
+        if (timelineView) {
+            timelineView.addEventListener('change', function(e) {
+                const view = e.target.value;
+                console.log('Timeline view changed to:', view);
 
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Ctrl/Cmd + N for new project
-        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-            e.preventDefault();
-            console.log('New project shortcut activated');
-            // Trigger new project modal or navigation
-        }
-
-        // Ctrl/Cmd + T for new task
-        if ((e.ctrlKey || e.metaKey) && e.key === 't') {
-            e.preventDefault();
-            console.log('New task shortcut activated');
-            // Trigger new task modal or navigation
-        }
-
-        // Esc to close modals or panels
-        if (e.key === 'Escape') {
-            const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
-            openDropdowns.forEach(dropdown => {
-                dropdown.classList.remove('show');
+                // Re-initialize chart
+                setTimeout(() => {
+                    initializeProjectTimelineChart();
+                }, 100);
             });
         }
+    }
+
+    // Initialize all charts when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+
+        // Handle timeline view changes
+        document.getElementById('timelineView')?.addEventListener('change', function() {
+            initializeProjectTimelineChart();
+        });
     });
 
-    // Focus management for accessibility
-    function manageFocus() {
-        const interactiveElements = document.querySelectorAll('button, a, input, select, textarea, [tabindex]');
-
-        interactiveElements.forEach(element => {
-            element.addEventListener('focus', function() {
-                this.style.outline = '2px solid var(--bboxx-orange)';
-                this.style.outlineOffset = '2px';
-            });
-
-            element.addEventListener('blur', function() {
-                this.style.outline = 'none';
-            });
-        });
-    }
-
-    // Initialize focus management
-    manageFocus();
-
-    // Connection status monitoring
-    function checkConnection() {
-        if (navigator.onLine) {
-            document.body.classList.remove('offline');
-        } else {
-            document.body.classList.add('offline');
-
-            const offlineToast = document.createElement('div');
-            offlineToast.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-wifi" style="color: var(--bboxx-red);"></i>
-                    <span>Connection lost. Some features may be limited.</span>
-                </div>
-            `;
-            offlineToast.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                left: 20px;
-                background: white;
-                padding: 1rem 1.5rem;
-                border-radius: 8px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                z-index: 9999;
-                border-left: 4px solid var(--bboxx-red);
-            `;
-
-            document.body.appendChild(offlineToast);
-
-            setTimeout(() => {
-                if (document.body.contains(offlineToast)) {
-                    document.body.removeChild(offlineToast);
-                }
-            }, 5000);
-        }
-    }
-
-    window.addEventListener('online', checkConnection);
-    window.addEventListener('offline', checkConnection);
-
-    // Initialize dashboard
-    function initializeDashboard() {
-        console.log('Initializing Project Manager Dashboard...');
-
-        // Set current time
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-
-        // Add time display to header if needed
-        const timeDisplay = document.createElement('div');
-        timeDisplay.style.cssText = `
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 0.8rem;
-            color: #666;
-        `;
-        timeDisplay.textContent = `Last updated: ${timeString}`;
-
-        // Add welcome message based on time of day
-        const hour = now.getHours();
-        let greeting;
-        if (hour < 12) greeting = 'Good morning';
-        else if (hour < 18) greeting = 'Good afternoon';
-        else greeting = 'Good evening';
-
-        const subtitle = document.querySelector('.page-subtitle');
-        if (subtitle) {
-            subtitle.textContent = `${greeting}! Manage your solar energy projects across Rwanda with real-time insights`;
-        }
-
-        console.log('Dashboard initialized successfully');
-    }
-
-    // Initialize everything when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeDashboard);
-    } else {
-        initializeDashboard();
-    }
-
-    // Cleanup function for when page is unloaded
-    window.addEventListener('beforeunload', function() {
-        // Clear intervals
-        const intervals = [updateMetrics, refreshActivity, updateProjectStatuses];
-        intervals.forEach(interval => {
-            if (interval) clearInterval(interval);
-        });
-
-        console.log('Dashboard cleanup completed');
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (taskCompletionChart) taskCompletionChart.resize();
+        if (projectStatusChart) projectStatusChart.resize();
+        if (projectTimelineChart) projectTimelineChart.resize();
     });
 
-    // Service Worker registration for offline functionality (if available)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('Service Worker registered successfully');
-            })
-            .catch(error => {
-                console.log('Service Worker registration failed');
-            });
-    }
-
-    // Print functionality
-    function printDashboard() {
-        window.print();
-    }
-
-    // Add print styles
-    const printStyles = document.createElement('style');
-    printStyles.textContent = `
-        @media print {
-            .sidebar, .top-navbar, .header-actions {
-                display: none !important;
-            }
-            .main-content {
-                margin-left: 0 !important;
-                padding: 1rem !important;
-            }
-            .stats-card, .project-card, .chart-card {
-                break-inside: avoid;
-                margin-bottom: 1rem;
-            }
-            body {
-                background: white !important;
-                color: black !important;
-            }
-        }
-    `;
-    document.head.appendChild(printStyles);
-
-    console.log('Project Manager Dashboard loaded successfully');
+    // Rest of your existing JavaScript code...
 </script>
 </body>
 </html>

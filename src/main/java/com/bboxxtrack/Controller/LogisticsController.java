@@ -28,9 +28,21 @@ public class LogisticsController {
         return "logistics/dashboard";
     }
 
+    @GetMapping("/inventory")
+    public String inventory(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("user");
+
+        if (user == null || !"Logistics".equals(user.getRole())) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("inventory", inventoryService.getAllInventory());
+        return "logistics/inventory";
+    }
+
     @PostMapping("/inventory/add")
     public String addInventory(@ModelAttribute Inventory item) {
         inventoryService.saveInventory(item);
-        return "redirect:/logistics/dashboard";
+        return "redirect:/logistics/inventory";
     }
 }

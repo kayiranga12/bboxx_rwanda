@@ -1,6 +1,7 @@
 package com.bboxxtrack.Controller;
 
 import com.bboxxtrack.Model.Inventory;
+import com.bboxxtrack.Model.Project;
 import com.bboxxtrack.Model.User;
 import com.bboxxtrack.Service.*;
 import jakarta.servlet.http.HttpSession;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -80,9 +83,36 @@ public class AdminController {
         dashboardStats.add(createStat("Total Tasks", taskService.getAllTasks().size()));
         dashboardStats.add(createStat("Total Inventory", inventoryService.getAllInventory().size()));
 
-        long doneTasks = taskService.getAllTasks().stream()
-                .filter(t -> "Done".equalsIgnoreCase(t.getStatus())).count();
-        long pendingTasks = taskService.getAllTasks().size() - doneTasks;
+        // Calculate task statuses for the chart
+        List<com.bboxxtrack.Model.Task> allTasks = taskService.getAllTasks();
+
+        long completedTasks = allTasks.stream()
+                .filter(t -> "COMPLETED".equalsIgnoreCase(t.getStatus()) || "Done".equalsIgnoreCase(t.getStatus()))
+                .count();
+
+        long inProgressTasks = allTasks.stream()
+                .filter(t -> "IN_PROGRESS".equalsIgnoreCase(t.getStatus()) || "In Progress".equalsIgnoreCase(t.getStatus()))
+                .count();
+
+        long pendingTasks = allTasks.stream()
+                .filter(t -> "ASSIGNED".equalsIgnoreCase(t.getStatus()) || "Pending".equalsIgnoreCase(t.getStatus()))
+                .count();
+
+        long overdueTasks = allTasks.stream()
+                .filter(t -> "OVERDUE".equalsIgnoreCase(t.getStatus()) || "Overdue".equalsIgnoreCase(t.getStatus()))
+                .count();
+
+        // If no specific overdue status, calculate based on due dates using LocalDate
+        if (overdueTasks == 0) {
+            overdueTasks = allTasks.stream()
+                    .filter(t -> t.getDueDate() != null && t.getDueDate().isBefore(LocalDate.now())
+                            && !"COMPLETED".equalsIgnoreCase(t.getStatus())
+                            && !"Done".equalsIgnoreCase(t.getStatus()))
+                    .count();
+        }
+
+        long doneTasks = completedTasks; // Keep for backward compatibility
+        long totalPendingTasks = allTasks.size() - completedTasks; // Keep for backward compatibility
 
         long ongoingProjects = projectService.getAllProjects().stream()
                 .filter(p -> "Ongoing".equalsIgnoreCase(p.getStatus())).count();
@@ -99,12 +129,44 @@ public class AdminController {
                 .map(Inventory::getQuantityAvailable)
                 .collect(Collectors.toList());
 
+        List<Project> allProjects = projectService.getAllProjects();
+        List<String> projectNames = new ArrayList<>();
+        List<String> projectStartDates = new ArrayList<>();
+        List<String> projectEndDates = new ArrayList<>();
+        List<String> projectStatuses = new ArrayList<>();
+        List<Long> projectDurations = new ArrayList<>();
+
+        for (Project project : allProjects) {
+            projectNames.add(project.getProjectTitle());
+            projectStartDates.add(project.getStartDate().toString()); // Convert LocalDate to String
+            projectEndDates.add(project.getEndDate().toString());
+            projectStatuses.add(project.getStatus());
+
+            // Calculate duration in days
+            long duration = ChronoUnit.DAYS.between(project.getStartDate(), project.getEndDate());
+            projectDurations.add(duration);
+        }
+
+        // Add to model for Gantt chart
+        model.addAttribute("projectNames", projectNames);
+        model.addAttribute("projectStartDates", projectStartDates);
+        model.addAttribute("projectEndDates", projectEndDates);
+        model.addAttribute("projectStatuses", projectStatuses);
+        model.addAttribute("projectDurations", projectDurations);
+
         model.addAttribute("dashboardStats", dashboardStats);
         model.addAttribute("totalUsers", userService.getAllUsers().size());
         model.addAttribute("totalProjects", projectService.getAllProjects().size());
         model.addAttribute("totalTasks", taskService.getAllTasks().size());
         model.addAttribute("doneTasks", doneTasks);
-        model.addAttribute("pendingTasks", pendingTasks);
+        model.addAttribute("pendingTasks", totalPendingTasks);
+
+        // Add new task status data for the chart
+        model.addAttribute("completedTasks", completedTasks);
+        model.addAttribute("inProgressTasks", inProgressTasks);
+        model.addAttribute("pendingTasksChart", pendingTasks);
+        model.addAttribute("overdueTasks", overdueTasks);
+
         model.addAttribute("ongoingProjects", ongoingProjects);
         model.addAttribute("completedProjects", completedProjects);
         model.addAttribute("upcomingProjects", upcomingProjects);

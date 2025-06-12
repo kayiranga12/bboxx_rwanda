@@ -53,6 +53,11 @@ public class ManagerTaskController {
                 .filter(t -> t.getAssignedToUserId() == null)
                 .collect(Collectors.toList());
 
+        // 5) **Load all tickets with assignedToUserId (assigned tickets)
+        List<Ticket> assignedTickets = ticketService.all().stream()
+                .filter(t -> t.getAssignedToUserId() != null)
+                .collect(Collectors.toList());
+
         // Build maps for display (if you need them in the template)
         Map<Long, String> projectNames = projects.stream()
                 .collect(Collectors.toMap(Project::getId, Project::getProjectTitle));
@@ -67,6 +72,7 @@ public class ManagerTaskController {
 
         // Now add exactly these two so Thymeleaf can bind them:
         model.addAttribute("unassignedTickets", unassignedTickets);
+        model.addAttribute("assignedTickets", assignedTickets);
         model.addAttribute("ticketAssignment",  new TicketAssignmentDto());
 
         return "manager/tasks";
