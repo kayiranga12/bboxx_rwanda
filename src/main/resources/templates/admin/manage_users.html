@@ -803,6 +803,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/admin/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/admin/inventory" class="nav-link">
                     <i class="fas fa-boxes"></i>
                     <span>Inventory</span>
@@ -1018,12 +1024,16 @@
                                                 </span>
                                         </td>
                                         <td class="text-center">
-                                            <button class="btn btn-action" data-bs-toggle="tooltip" title="Edit User">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-action delete" data-bs-toggle="tooltip" title="Delete User">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
+<!--                                            <button class="btn btn-action delete" data-bs-toggle="tooltip" title="Delete User">-->
+<!--                                                <i class="fas fa-trash-alt"></i>-->
+<!--                                            </button>-->
+                                            <div class="btn btn-action delete">
+                                                <a th:href="@{/admin/users/delete/{id}(id=${u.id})}"
+                                                   class="action-btn btn-view">
+                                                    <i class="fa fa-trash"></i>
+                                                    <span class="d-none d-lg-inline"></span>
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr th:if="${#lists.isEmpty(users)}">

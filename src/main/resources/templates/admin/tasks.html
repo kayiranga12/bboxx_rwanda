@@ -336,6 +336,20 @@
             background: var(--bboxx-gray);
         }
 
+        .user-avatar-sm {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--bboxx-orange), #E85A2B);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+
         .user-avatar {
             width: 40px;
             height: 40px;
@@ -805,6 +819,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/admin/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/admin/inventory" class="nav-link">
                     <i class="fas fa-boxes"></i>
                     <span>Inventory</span>
@@ -938,60 +958,9 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- … existing Create/Edit Task form … -->
-
-                <!-- ──────────────── Assign Ticket to Technician ──────────────── -->
-                <div class="card mt-4">
-                    <div class="card-header bg-warning text-white">
-                        <i class="fas fa-tasks me-2"></i>Assign Unassigned Ticket
-                    </div>
-                    <div class="card-body">
-                        <form th:action="@{/admin/tasks/assign-ticket}"
-                              th:object="${ticketAssignment}"
-                              method="post"
-                              class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Unassigned Ticket</label>
-                                <select th:field="*{ticketId}" class="form-select" required>
-                                    <!-- note: use plain “value” here instead of th:value -->
-                                    <option value="" disabled>-- Select Ticket --</option>
-                                    <option th:each="t : ${unassignedTickets}"
-                                            th:value="${t.id}"
-                                            th:text="${'#' + t.id + ' – ' + t.title}">
-                                    </option>
-                                </select>
-
-                                <div th:if="${#fields.hasErrors('ticketId')}"
-                                     th:errors="*{ticketId}"
-                                     class="text-danger small"></div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Technician</label>
-                                <select th:field="*{technicianId}" class="form-select" required>
-                                    <option value="" disabled>-- Select Technician --</option>
-                                    <option th:each="tech : ${ticketTechs}"
-                                            th:value="${tech.id}"
-                                            th:text="${tech.username}">
-                                    </option>
-                                </select>
-                                <div th:if="${#fields.hasErrors('technicianId')}"
-                                     th:errors="*{technicianId}"
-                                     class="text-danger small"></div>
-                            </div>
-                            <div class="col-12 text-end">
-                                <button type="submit" class="btn btn-warning">
-                                    <i class="fas fa-paper-plane me-1"></i>Assign
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <!-- ─────────────────────────────────────────────────────────────── -->
-
-
+            </div>
                 <!-- Task List -->
-                <div class="col-lg-7">
+
                     <div class="card mb-4">
                         <div class="card-header bg-secondary text-white">
                             <i class="fas fa-list me-2"></i>Task List
@@ -1000,13 +969,19 @@
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                 <tr>
-                                    <th>Task</th><th>Status</th><th>Tech</th><th>Project</th>
-
+                                    <th>Task</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Assigned To</th>
+                                    <th>Project</th>
+                                    <th>Due Date</th>
+                                    <th>Actions</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <tr th:each="t : ${tasks}">
                                     <td th:text="${t.taskName}"></td>
+                                    <td th:text="${t.description}"></td>
                                     <td>
                                     <span class="badge"
                                           th:text="${t.status}"
@@ -1040,63 +1015,97 @@
                             </table>
                         </div>
                     </div>
-                </div>
-            </div>
 
             <!-- Edit Task Modals -->
             <div th:each="t : ${tasks}">
                 <div class="modal fade" th:id="'editModal' + ${t.id}" tabindex="-1">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <form th:action="@{/admin/tasks/edit}" method="post" class="row g-3 p-3">
-                                <input type="hidden" name="id" th:value="${t.id}"/>
-                                <div class="col-md-6">
-                                    <label class="form-label">Task Name</label>
-                                    <input type="text" name="taskName" class="form-control"
-                                           th:value="${t.taskName}" required/>
+                            <form th:action="@{/admin/tasks/edit}" method="post">
+                                <input type="hidden" name="id" th:value="${t.id}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Task</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Status</label>
-                                    <select name="status" class="form-select">
-                                        <option value="Assigned" th:selected="${t.status=='Assigned'}">Assigned</option>
-                                        <option value="In Progress" th:selected="${t.status=='In Progress'}">In Progress</option>
-                                        <option value="Done" th:selected="${t.status=='Done'}">Done</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Due Date</label>
-                                    <input type="date" name="dueDate" class="form-control"
-                                           th:value="${#temporals.format(t.dueDate,'yyyy-MM-dd')}" required/>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Assigned To</label>
-                                    <select name="assignedTo.id" class="form-select">
-                                        <option value="">-- Select Technician --</option>
-                                        <option th:each="u : ${technicians}"
-                                                th:value="${u.id}"
-                                                th:text="${u.username}"
-                                                th:selected="${u.id == t.assignedTo?.id}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label">Description</label>
-                                    <textarea name="description" class="form-control" rows="3"
-                                              th:text="${t.description}"></textarea>
-                                </div>
+                                <div class="modal-body row g-3">
+                                    <!-- Task Name -->
+                                    <div class="col-md-6">
+                                        <label class="form-label">Task Name</label>
+                                        <input type="text"
+                                               name="taskName"
+                                               class="form-control"
+                                               th:value="${t.taskName}"
+                                               required>
+                                    </div>
 
-                                <div class="col-12 text-end">
-                                    <button class="btn btn-primary">
-                                        <i class="fas fa-save me-1"></i>Save Changes
-                                    </button>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        Cancel
-                                    </button>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Project</label>
+                                        <select name="projectId" class="form-select" required>
+                                            <option value="">Select Project</option>
+                                            <option th:each="proj : ${projects}"
+                                                    th:value="${proj.id}"
+                                                    th:text="${proj.projectTitle}"
+                                                    th:selected="${t.project != null and t.project.id == proj.id}">
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Status (fixed to use quoted literals) -->
+                                    <div class="col-md-6">
+                                        <label class="form-label">Status</label>
+                                        <select name="status" class="form-select" required>
+                                            <option th:value="'Assigned'"
+                                                    th:selected="${t.status == 'Assigned'}">Assigned</option>
+                                            <option th:value="'In Progress'"
+                                                    th:selected="${t.status == 'In Progress'}">In Progress</option>
+                                            <option th:value="'Done'"
+                                                    th:selected="${t.status == 'Done'}">Done</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Due Date -->
+                                    <div class="col-md-6">
+                                        <label class="form-label">Due Date</label>
+                                        <input type="date"
+                                               name="dueDate"
+                                               class="form-control"
+                                               th:value="${#temporals.format(t.dueDate, 'yyyy-MM-dd')}"
+                                               required>
+                                    </div>
+
+                                    <!-- Technician (already correct) -->
+                                    <div class="col-md-6">
+                                        <label class="form-label">Technician</label>
+                                        <select name="assignedToUserId" class="form-select" required>
+                                            <option value="">Select Technician</option>
+                                            <option th:each="tech : ${technicians}"
+                                                    th:value="${tech.id}"
+                                                    th:text="${tech.username}"
+                                                    th:selected="${t.assignedTo != null and tech.id == t.assignedTo.id}">
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="col-12">
+                                        <label class="form-label">Description</label>
+                                        <textarea name="description"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  th:text="${t.description}"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
             <!-- Recurrence Picker Script -->
             <script th:inline="javascript">

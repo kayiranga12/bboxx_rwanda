@@ -104,7 +104,7 @@ public class SupportTicketController {
 //            }
 
             // 3) Set the stage to ASSIGNED_TO_PM
-            ticket.setStage(TicketStage.ASSIGNED_TO_PM);
+            ticket.setStage(TicketStage.CREATED);
 
             // 4) Ensure priority is set
             if (ticket.getPriority() == null) {
@@ -198,7 +198,7 @@ public class SupportTicketController {
         Ticket t = ticketService.get(id);
         if (t != null) {
             // Instead of t.setStatus(TicketStatus.ESCALATED), we do:
-            t.setStage(TicketStage.ASSIGNED_TO_PM);
+            t.setStage(TicketStage.CREATED);
             ticketService.save(t);
 
             emailService.sendEmail(

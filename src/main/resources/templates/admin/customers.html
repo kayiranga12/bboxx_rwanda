@@ -760,6 +760,34 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--bboxx-dark-orange);
         }
+        .project-actions {
+         flex-direction: column;
+        }
+        .project-actions {
+          display: flex;
+          gap: 0.5rem;
+         }
+         {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .btn-view {
+      background: rgba(255, 0, 0, 0.5);
+      color: var(--bboxx-blue);
+    }
+
+    .btn-view:hover {
+      background: var(--bboxx-blue);
+      color: white;
+    }
     </style>
 </head>
 <body>
@@ -804,6 +832,12 @@
                 <a href="/admin/tasks" class="nav-link">
                     <i class="fas fa-tasks"></i>
                     <span>Field Tasks</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -1034,27 +1068,6 @@
                                             </label>
                                         </div>
                                     </div>
-
-                                    <!-- Attachments -->
-                                    <div class="col-12">
-                                        <label for="files" class="form-label">Attachments (optional)</label>
-                                        <div class="input-group">
-                        <span class="input-group-text bg-light">
-                            <i class="fas fa-paperclip text-primary"></i>
-                        </span>
-                                            <input type="file"
-                                                   name="files"
-                                                   multiple
-                                                   accept="image/*,application/pdf"
-                                                   class="form-control"
-                                                   id="files"/>
-                                        </div>
-                                        <div class="form-text mt-1">
-                                            <i class="fas fa-info-circle text-primary me-1"></i>
-                                            Upload photos or ID docs (max. 10MB each).
-                                        </div>
-                                    </div>
-
                                     <!-- Submit buttons -->
                                     <div class="col-12 text-end">
                                         <button type="reset" class="btn btn-light me-2">
@@ -1090,7 +1103,7 @@
                                         <th>Phone</th>
                                         <th>Plan</th>
                                         <th>Status</th>
-                                        <th>Attachments</th>
+                                        <th>Action</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -1124,32 +1137,15 @@
                                                 </span>
                                         </td>
                                         <td>
-                                            <div class="d-flex">
-                                                <div th:each="doc, docStat : ${@documentService.getByRef('CUSTOMER', c.id)}"
-                                                     class="position-relative me-1"
-                                                     th:if="${docStat.index < 3}">
-                                                    <img th:if="${doc.contentType.startsWith('image/')}"
-                                                         th:src="@{/attachments/{id}(id=${doc.id})}"
-                                                         class="img-thumbnail" style="height:40px; width:40px; object-fit:cover;"/>
-                                                    <a th:if="${!doc.contentType.startsWith('image/')}"
-                                                       th:href="@{/attachments/{id}(id=${doc.id})}"
-                                                       class="badge bg-secondary d-flex align-items-center justify-content-center"
-                                                       style="height:40px; width:40px">
-                                                        <i class="fas fa-file-pdf"></i>
-                                                    </a>
-                                                </div>
-                                                <div th:if="${#lists.size(@documentService.getByRef('CUSTOMER', c.id)) > 3}"
-                                                     class="badge rounded-circle bg-light text-primary d-flex align-items-center justify-content-center"
-                                                     style="height:40px; width:40px">
-                                                    +<span th:text="${#lists.size(@documentService.getByRef('CUSTOMER', c.id)) - 3}"></span>
-                                                </div>
-                                                <div th:if="${#lists.isEmpty(@documentService.getByRef('CUSTOMER', c.id))}"
-                                                     class="text-muted small">
-                                                    <i class="fas fa-ban me-1"></i>None
-                                                </div>
+                                            <div class="project-actions">
+                                                <a th:href="@{/admin/customers/delete/{id}(id=${c.id})}"
+                                                   class="action-btn btn-view">
+                                                    <i class="fa fa-trash"></i>
+                                                    <span class="d-none d-lg-inline"></span>
+                                                </a>
                                             </div>
                                         </td>
-                                    </tr>
+
                                     <tr th:if="${#lists.isEmpty(customers)}">
                                         <td colspan="5" class="text-center p-4">
                                             <div class="text-muted">

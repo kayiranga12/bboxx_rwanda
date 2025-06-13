@@ -4,6 +4,7 @@ import com.bboxxtrack.Model.Customer;
 import com.bboxxtrack.Model.User;
 import com.bboxxtrack.Repository.CustomerRepository;
 import com.bboxxtrack.Repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,5 +53,12 @@ public class CustomerService {
         }
         // Additional validation (e.g. well‐formed email) could go here
         return customerRepository.save(customer);
+    }
+    @Transactional
+    public void deleteCustomer(Long id) {
+        if (!customerRepository.existsById(id)) {
+            throw new IllegalArgumentException("Customer not found with ID: " + id);
+        }
+        customerRepository.deleteById(id);
     }
 }

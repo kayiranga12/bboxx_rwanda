@@ -1,11 +1,7 @@
 package com.bboxxtrack.Controller;
 
-import com.bboxxtrack.Model.Tracker;
-import com.bboxxtrack.Model.User;
-import com.bboxxtrack.Service.EmailService;
-import com.bboxxtrack.Service.SmsService;
-import com.bboxxtrack.Service.TrackerService;
-import com.bboxxtrack.Service.ZoneService;
+import com.bboxxtrack.Model.*;
+import com.bboxxtrack.Service.*;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +22,8 @@ public class TechnicianTrackerController {
 
     @Autowired
     private TrackerService trackerService;
-    @Autowired private ZoneService zoneService;
-    @Autowired private EmailService emailService;
-    @Autowired private SmsService smsService;
+    @Autowired private TicketService ticketService;
+
 
     @GetMapping("/tracker")
     public String viewTracker(Model model, HttpSession session) {
@@ -53,33 +49,97 @@ public class TechnicianTrackerController {
         return "technician/tracker";
     }
 
-    @PostMapping("/tracker/add")
-    public String addTracker(@ModelAttribute Tracker tracker, HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null || !"Technician".equals(user.getRole())) {
+    @PostMapping("/tracker")
+    public String saveTracker(@RequestParam String gpsCoordinates,
+                              @RequestParam String statusUpdate,
+                              @RequestParam Long ticketId,
+                              @RequestParam String statusType,
+                              HttpSession session) {
+
+        User technician = (User) session.getAttribute("user");
+        if (technician == null || !"Technician".equals(technician.getRole())) {
             return "redirect:/login";
         }
-        tracker.setUserId(user.getId());
+
+        // Create new Tracker object
+        Tracker tracker = new Tracker();
+
+        // Set basic fields
+        tracker.setUserId(technician.getId());
+        tracker.setGpsCoordinates(gpsCoordinates);
+
+        // Combine status type and description for better tracking
+        String combinedStatus = statusType + ": " + statusUpdate;
+        tracker.setStatusUpdate(combinedStatus);
+
+        // Get the ticket
+        Ticket ticket = ticketService.findById(ticketId);
+        if (ticket == null) {
+            return "technician/tracker";
+        }
+        tracker.setTicket(ticket);
+
+        // Update ticket stage and closedAt based on status type
+        updateTicketBasedOnStatus(ticket, statusType);
+
+        // Save the tracker
         trackerService.save(tracker);
 
-        // geofence check
-        double lat = Double.parseDouble(tracker.getGpsCoordinates().split(",")[0].trim());
-        double lng = Double.parseDouble(tracker.getGpsCoordinates().split(",")[1].trim());
-        boolean inside = (zoneService.findZoneContaining(lat, lng) != null);
+        // Save the updated ticket
+        ticketService.save(ticket);
 
-        if (!inside) {
-            String msg = "Alert: Technician " + user.getUsername() +
-                    " reported from outside any zone at " + tracker.getGpsCoordinates();
-            // email HQ
-            emailService.sendEmail("hq@bboxxtrack.com",
-                    "Geofence breach by " + user.getUsername(),
-                    msg);
-            // SMS HQ
-            smsService.sendSms("+2507XXXXXXXX", msg);
-        }
-
-        return "redirect:/technician/tracker";
+        return "technician/tracker";
     }
+
+
+    private void updateTicketBasedOnStatus(Ticket ticket, String statusType) {
+        switch (statusType.toLowerCase()) {
+            case "completed":
+                // Task completed - set stage to COMPLETED and set closedAt
+                ticket.setStage(TicketStage.COMPLETED);
+                ticket.setClosedAt(LocalDateTime.now());
+                break;
+
+            case "arrived":
+                // Technician arrived at site - set to IN_PROGRESS
+                ticket.setStage(TicketStage.IN_PROGRESS);
+                break;
+
+            case "installation":
+                // Installation in progress
+                ticket.setStage(TicketStage.IN_PROGRESS);
+                break;
+
+            case "testing":
+                // Testing equipment
+                ticket.setStage(TicketStage.IN_PROGRESS);
+                break;
+
+            case "issue":
+                ticket.setStage(TicketStage.IN_PROGRESS);
+                break;
+
+            case "break":
+                if (ticket.getStage() == TicketStage.ASSIGNED) {
+                    ticket.setStage(TicketStage.IN_PROGRESS);
+                }
+                break;
+
+            case "travelling":
+                if (ticket.getStage() == TicketStage.ASSIGNED) {
+                    ticket.setStage(TicketStage.IN_PROGRESS);
+                }
+                break;
+
+            default:
+                // For any other status, set to IN_PROGRESS if currently ASSIGNED
+                if (ticket.getStage() == TicketStage.ASSIGNED) {
+                    ticket.setStage(TicketStage.IN_PROGRESS);
+                }
+                break;
+        }
+    }
+
 
     @GetMapping("/tracker/export")
     public void exportCsv(HttpServletResponse response, HttpSession session) throws Exception {

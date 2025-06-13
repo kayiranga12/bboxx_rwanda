@@ -948,12 +948,23 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/manager/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/manager/kanban" class="nav-link">
                     <i class="fas fa-columns"></i>
                     <span>Kanban Board</span>
                 </a>
             </li>
-
+            <li class="nav-item">
+                <a href="/zones/manager" class="nav-link">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Service Areas</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="/manager/reports" class="nav-link">
                     <i class="fas fa-chart-bar"></i>
@@ -1078,11 +1089,6 @@
                                     <label class="form-label">End Date</label>
                                     <input type="date" th:field="*{endDate}" class="form-control" required>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label">Attachments</label>
-                                    <input type="file" name="files" multiple accept="image/*,application/pdf" class="form-control"/>
-                                    <div class="form-text">Site surveys, signed agreements, etc.</div>
-                                </div>
                                 <div class="col-12 text-end">
                                     <button class="btn btn-success">
                                         <i class="fas fa-save me-1"></i>Create
@@ -1108,7 +1114,6 @@
                                     <th>Location</th>
                                     <th>Start</th>
                                     <th>End</th>
-                                    <th>Attachments</th>
                                     <th>Actions</th>
                                 </tr>
                                 </thead>
@@ -1122,18 +1127,6 @@
                                     <td th:text="${p.location}"></td>
                                     <td th:text="${#temporals.format(p.startDate,'yyyy-MM-dd')}"></td>
                                     <td th:text="${#temporals.format(p.endDate,'yyyy-MM-dd')}"></td>
-                                    <td>
-                                        <div th:each="doc : ${@documentService.getByRef('PROJECT', p.id)}" class="d-inline-block me-1">
-                                            <img th:if="${doc.contentType.startsWith('image/')}"
-                                                 th:src="@{/attachments/{id}(id=${doc.id})}"
-                                                 class="img-thumbnail" style="height:40px;"/>
-                                            <a th:if="${!doc.contentType.startsWith('image/')}"
-                                               th:href="@{/attachments/{id}(id=${doc.id})}"
-                                               class="badge bg-secondary">
-                                                <i class="fas fa-file-pdf"></i>
-                                            </a>
-                                        </div>
-                                    </td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" th:data-bs-target="'#editModal' + ${p.id}">
                                             <i class="fas fa-edit"></i>

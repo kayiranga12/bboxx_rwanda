@@ -1042,6 +1042,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/admin/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/admin/inventory" class="nav-link">
                     <i class="fas fa-boxes"></i>
                     <span>Inventory</span>
@@ -1196,7 +1202,7 @@
                 <div class="stats-icon warning">
                     <i class="fas fa-tasks"></i>
                 </div>
-                <div class="stats-value" th:text="${totalTasks ?: '342'}">342</div>
+                <div class="stats-value" th:text="${totalTasks ?: '0'}">0</div>
                 <div class="stats-label">Field Tasks</div>
             </div>
 
@@ -1204,8 +1210,8 @@
                 <div class="stats-icon info">
                     <i class="fas fa-home"></i>
                 </div>
-                <div class="stats-value">2,847</div>
-                <div class="stats-label">Homes Electrified</div>
+                <div class="stats-value" th:text="${customers ?: '0'}">0</div>
+                <div class="stats-label">Active Customers</div>
             </div>
         </div>
 

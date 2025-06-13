@@ -88,4 +88,10 @@ public class CustomerController {
         redirectAttributes.addFlashAttribute("message", "Customer registered successfully");
         return "redirect:/admin/customers";
     }
+
+    @GetMapping("/delete/{id}")
+    public String deleteCustomer(@PathVariable Long id, HttpSession session) {
+        customerService.deleteCustomer(id);
+        return "redirect:/admin/projects";
+    }
 }

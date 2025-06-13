@@ -75,7 +75,11 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketComment> comments;
 
-    // Getters & setters below
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Tracker> trackers;
+
+
+// Getters & setters below
 
     public Long getId() {
         return id;
@@ -203,5 +207,13 @@ public class Ticket {
 
     public void setComments(List<TicketComment> comments) {
         this.comments = comments;
+    }
+
+    public List<Tracker> getTrackers() {
+        return trackers;
+    }
+
+    public void setTrackers(List<Tracker> trackers) {
+        this.trackers = trackers;
     }
 }

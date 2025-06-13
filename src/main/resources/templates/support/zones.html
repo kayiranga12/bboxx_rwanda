@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>GPS Tracker – Technician | BBOXXTrack</title>
+    <title>GPS Tracker – Support | BBOXXTrack</title>
 
     <!-- Bootstrap & FontAwesome -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
@@ -127,7 +127,7 @@
 
         .nav-link.active {
             background: #1677ff;
-            box-shadow: 0 4px 15px rgb(32 92 158 / 30%);
+            box-shadow: 0 4px 15px #426fb1;
         }
 
         .nav-link i {
@@ -608,38 +608,34 @@
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <a href="/technician/dashboard" class="logo">
+        <a href="/support/dashboard" class="logo">
             BBOXX<span class="track">Track</span>
         </a>
         <div class="user-badge">
-            <i class="fas fa-tools me-1"></i>Field Technician
+            <i class="fas fa-headset me-1"></i>Support Team
         </div>
     </div>
 
     <div class="sidebar-menu">
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a href="/technician/dashboard" class="nav-link">
+                <a href="/support/dashboard" class="nav-link">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/technician/tasks" class="nav-link">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span>My Tasks</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/tenchnician/tickets" class="nav-link">
-                    <i class="fa-solid fa-ticket"></i>
+                <a href="/support/tickets" class="nav-link ">
+                    <i class="fas fa-ticket-alt"></i>
                     <span>Support Tickets</span>
+
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/technician/tracker" class="nav-link active">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>GPS Tracker</span>
+                <a href="/zones/support" class="nav-link active">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Service Areas</span>
+
                 </a>
             </li>
             <li class="nav-item mt-auto">
@@ -660,28 +656,19 @@
             <button class="sidebar-toggle" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="welcome-message">
-                Good Morning, John! 👋
-            </div>
         </div>
 
         <div class="navbar-right">
-            <div class="status-indicator status-online">
-                <i class="fas fa-circle"></i>
-                <span>Online</span>
-            </div>
-            <div class="weather-widget">
-                <i class="fas fa-sun"></i>
-                <span>24°C</span>
-            </div>
+
             <div class="user-menu" data-bs-toggle="dropdown">
-                <div class="user-avatar">JD</div>
-                <i class="fas fa-chevron-down d-none d-md-inline"></i>
+                <div class="user-avatar">PM</div>
+
+                <i class="fas fa-chevron-down ms-2"></i>
                 <div class="dropdown-menu dropdown-menu-end">
-                    <a class="dropdown-item" href="/technician/profile">
+                    <a class="dropdown-item" href="/manager/profile">
                         <i class="fas fa-user me-2"></i> My Profile
                     </a>
-                    <a class="dropdown-item" href="/technician/settings">
+                    <a class="dropdown-item" href="/manager/settings">
                         <i class="fas fa-cog me-2"></i> Settings
                     </a>
                     <div class="dropdown-divider"></div>
@@ -769,8 +756,10 @@
                         </tr>
                         </thead>
                         <tbody>
+
                         <tr th:each="t : ${trackers}"
                             th:attr="data-gps=${t.gpsCoordinates}, data-status=${t.statusUpdate}, data-ticket=${t.ticket.title}, data-customer=${t.ticket.customer.fullName}, data-time=${#temporals.format(t.timestamp,'yyyy-MM-dd HH:mm')}">
+
                             <td>
                                 <span class="gps-badge">
                                     <i class="fas fa-map-marker-alt me-1"></i>

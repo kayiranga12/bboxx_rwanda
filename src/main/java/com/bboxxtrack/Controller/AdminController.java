@@ -1,5 +1,6 @@
 package com.bboxxtrack.Controller;
 
+import com.bboxxtrack.Model.Customer;
 import com.bboxxtrack.Model.Inventory;
 import com.bboxxtrack.Model.Project;
 import com.bboxxtrack.Model.User;
@@ -33,6 +34,8 @@ public class AdminController {
 
     @Autowired
     private InventoryService inventoryService;
+    @Autowired
+    private CustomerService customerService;
 
     @PostMapping("/users/add")
     public String addUser(@ModelAttribute User user) {
@@ -173,6 +176,8 @@ public class AdminController {
         model.addAttribute("inventoryLabels", inventoryLabels);
         model.addAttribute("inventoryQuantities", inventoryQuantities);
 
+        model.addAttribute("customers", customerService.getAllCustomers().size());
+
         return "admin/dashboard";
     }
 
@@ -181,5 +186,11 @@ public class AdminController {
         stat.put("label", label);
         stat.put("value", value);
         return stat;
+    }
+
+    @GetMapping("/users/delete/{id}")
+    public String deleteUser(@PathVariable Long id, HttpSession session) {
+        userService.deleteUser(id);
+        return "redirect:/admin/users";
     }
 }

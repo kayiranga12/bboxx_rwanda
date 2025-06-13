@@ -1,56 +1,39 @@
 package com.bboxxtrack.Controller;
 
-import com.bboxxtrack.Model.TechnicianTracker;
-import com.bboxxtrack.Model.Task;
 import com.bboxxtrack.Model.Ticket;
 import com.bboxxtrack.Model.User;
-import com.bboxxtrack.Service.TaskService;
-import com.bboxxtrack.Service.TechnicianTrackerService;
+import com.bboxxtrack.Service.DocumentService;
 import com.bboxxtrack.Service.TicketService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/technician")
-public class TechnicianController {
+public class TechnicianTicketsController {
 
-    @Autowired private TaskService taskService;
-    @Autowired private TechnicianTrackerService trackerService;
+    @Autowired
+    private DocumentService documentService;
     @Autowired private TicketService ticketService;
 
-    @GetMapping("/dashboard")
-    public String technicianDashboard(HttpSession session, Model model,
-                                      @RequestParam(required = false) String status,
-                                      @RequestParam(required = false) String q) {
+    @GetMapping("/tickets")
+    public String showTickets(HttpSession session, Model model,
+                            @RequestParam(required = false) String status,
+                            @RequestParam(required = false) String q) {
         User user = (User) session.getAttribute("user");
         if (user == null || !"Technician".equals(user.getRole())) {
             return "redirect:/login";
         }
 
-        List<Task> tasks = taskService.getTasksByTechnician(user.getId(), status, q);
-        model.addAttribute("tasks", tasks);
         model.addAttribute("filterStatus", status);
         model.addAttribute("searchQuery", q);
-
-        // KPI metrics
-        long assignedCount = tasks.stream().filter(t -> "Assigned".equals(t.getStatus())).count();
-        long inProgressCount = tasks.stream().filter(t -> "In Progress".equals(t.getStatus())).count();
-        long doneCount = tasks.stream().filter(t -> "Done".equals(t.getStatus())).count();
-        long totalTasks = tasks.size();
-        long overdueTasks = tasks.stream()
-                .filter(t -> t.getDueDate().isBefore(java.time.LocalDate.now()) && !"Done".equals(t.getStatus()))
-                .count();
-        long dueTodayTasks = tasks.stream()
-                .filter(t -> t.getDueDate().isEqual(java.time.LocalDate.now()) && !"Done".equals(t.getStatus()))
-                .count();
-        String completionRate = totalTasks > 0 ? String.format("%.0f%%", (doneCount * 100.0) / totalTasks) : "0%";
 
         // Get assigned tickets
         List<Ticket> assignedTickets = ticketService.all().stream()
@@ -61,9 +44,6 @@ public class TechnicianController {
         long totalTickets = assignedTickets.size();
 
         // Ticket counts by stage
-        long ticketsAssigned = assignedTickets.stream()
-                .filter(t -> "ASSIGNED".equals(t.getStage() != null ? t.getStage().name() : ""))
-                .count();
         long ticketsInProgress = assignedTickets.stream()
                 .filter(t -> "IN_PROGRESS".equals(t.getStage() != null ? t.getStage().name() : ""))
                 .count();
@@ -111,21 +91,13 @@ public class TechnicianController {
             techNames.put(techId, "Technician " + techId); // Temporary - replace with actual user lookup
         }
 
-        model.addAttribute("assignedCount", assignedCount);
-        model.addAttribute("inProgressCount", inProgressCount);
-        model.addAttribute("doneCount", doneCount);
-        model.addAttribute("totalTasks", totalTasks);
-        model.addAttribute("overdueTasks", overdueTasks);
-        model.addAttribute("dueTodayTasks", dueTodayTasks);
-        model.addAttribute("completionRate", completionRate);
+
         model.addAttribute("statusLabels", List.of("Done", "In Progress", "Assigned"));
-        model.addAttribute("statusData", List.of(doneCount, inProgressCount, assignedCount));
 
         // Add ticket attributes to model
         model.addAttribute("assignedTickets", assignedTickets);
         model.addAttribute("techNames", techNames);
         model.addAttribute("totalTickets", totalTickets);
-        model.addAttribute("ticketsAssigned", ticketsAssigned);
         model.addAttribute("ticketsInProgress", ticketsInProgress);
         model.addAttribute("ticketsCompleted", ticketsCompleted);
         model.addAttribute("highPriorityTickets", highPriorityTickets);
@@ -137,13 +109,13 @@ public class TechnicianController {
 
         // Ticket stage data for charts
         model.addAttribute("ticketStageLabels", List.of("Completed", "In Progress", "Assigned"));
-        model.addAttribute("ticketStageData", List.of(ticketsCompleted, ticketsInProgress, ticketsAssigned));
+        model.addAttribute("ticketStageData", List.of(ticketsCompleted, ticketsInProgress));
 
         // Ticket priority data for charts
         model.addAttribute("ticketPriorityLabels", List.of("High", "Medium", "Normal"));
         model.addAttribute("ticketPriorityData", List.of(highPriorityTickets, mediumPriorityTickets, normalPriorityTickets));
 
-        return "technician/dashboard";
+        return "technician/tickets";
     }
 
 }

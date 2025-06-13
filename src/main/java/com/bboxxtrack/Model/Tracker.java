@@ -15,6 +15,10 @@ public class Tracker {
     private String statusUpdate;
     private LocalDateTime timestamp;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ticket_id", nullable = false)
+    private Ticket ticket;
+
     @PrePersist
     public void prePersist() {
         this.timestamp = LocalDateTime.now();
@@ -32,6 +36,14 @@ public class Tracker {
 
     public String getStatusUpdate() { return statusUpdate; }
     public void setStatusUpdate(String statusUpdate) { this.statusUpdate = statusUpdate; }
+
+    public Ticket getTicket() {
+        return ticket;
+    }
+
+    public void setTicket(Ticket ticket) {
+        this.ticket = ticket;
+    }
 
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
