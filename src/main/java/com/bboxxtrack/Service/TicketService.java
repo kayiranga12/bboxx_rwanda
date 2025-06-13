@@ -7,7 +7,9 @@ import com.bboxxtrack.Repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TicketService {
@@ -40,4 +42,21 @@ public class TicketService {
     public List<Ticket> findAllByAssignedToUserIdIsNull() {
         return repo.findAllByAssignedToUserIdIsNull();
     }
+
+    // Add this method to find ticket by ID
+    public Ticket findById(Long ticketId) {
+        return repo.findById(ticketId).orElse(null);
+    }
+
+    // Alternative with Optional return type (recommended)
+    public Optional<Ticket> findByIdOptional(Long ticketId) {
+        return repo.findById(ticketId);
+    }
+    // Get active tickets (not completed) for tracker form
+    public List<Ticket> getActiveTicketsForTechnician(Long technicianId) {
+        // Get tickets that are ASSIGNED or IN_PROGRESS
+        List<TicketStage> activeStages = Arrays.asList(TicketStage.ASSIGNED, TicketStage.IN_PROGRESS);
+        return repo.findByAssignedToUserIdAndStageIn(technicianId, activeStages);
+    }
+
 }

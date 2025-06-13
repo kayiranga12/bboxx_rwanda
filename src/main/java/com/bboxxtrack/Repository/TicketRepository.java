@@ -12,4 +12,6 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     List<Ticket> findByStage(TicketStage stage);
     // If you have a `@ManyToOne User assignedTo` field:
     List<Ticket> findAllByAssignedToUserIdIsNull();
+    List<Ticket> findByAssignedToUserIdAndStageIn(Long assignedToUserId, List<TicketStage> stages);
+
 }

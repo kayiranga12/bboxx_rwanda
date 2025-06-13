@@ -454,8 +454,22 @@
       color: white;
       padding: 1.5rem 2rem;
       display: flex;
-      justify-content: between;
+      justify-content: space-between;
       align-items: center;
+    }
+
+    .projects-header .btn-light {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .projects-header .btn-light:hover {
+      background: white;
+      color: var(--bboxx-blue);
+      transform: translateY(-2px);
     }
 
     .projects-header h5 {
@@ -592,50 +606,6 @@
       color: #666;
     }
 
-    .attachments-preview {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .attachment-item {
-      position: relative;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .attachment-img {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 2px solid #E1E5E9;
-      transition: all 0.3s ease;
-    }
-
-    .attachment-img:hover {
-      border-color: var(--bboxx-orange);
-      transform: scale(1.1);
-    }
-
-    .attachment-file {
-      width: 40px;
-      height: 40px;
-      background: var(--bboxx-orange);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    .attachment-file:hover {
-      background: var(--bboxx-dark-orange);
-      color: white;
-      transform: scale(1.1);
-    }
 
     .project-actions {
       display: flex;
@@ -665,7 +635,7 @@
     }
 
     .btn-view {
-      background: rgba(27, 54, 93, 0.1);
+      background: rgba(255, 0, 0, 0.5);
       color: var(--bboxx-blue);
     }
 
@@ -824,6 +794,12 @@
         </a>
       </li>
       <li class="nav-item">
+        <a href="/admin/tickets" class="nav-link">
+          <i class="fa-solid fa-ticket"></i>
+          <span>Support Tickets</span>
+        </a>
+      </li>
+      <li class="nav-item">
         <a href="/admin/inventory" class="nav-link">
           <i class="fas fa-boxes"></i>
           <span>Inventory</span>
@@ -833,13 +809,6 @@
         <a href="/admin/zones" class="nav-link">
           <i class="fas fa-map-marked-alt"></i>
           <span>Service Areas</span>
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="/admin/reports" class="nav-link">
-          <i class="fa-solid fa-file"></i>
-          <span>Reports</span>
         </a>
       </li>
       <li class="nav-item mt-auto">
@@ -961,21 +930,7 @@
                   <input type="date" name="endDate" class="form-control" required/>
                 </div>
               </div>
-
-              <div class="form-group">
-                <label class="form-label">Project Attachments</label>
-                <div class="file-upload-area" id="fileUploadArea">
-                  <div class="upload-icon">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                  </div>
-                  <h6>Drag & drop files here or click to browse</h6>
-                  <p class="text-muted mb-0">Site surveys, agreements, photos (PDF, Images)</p>
-                  <input type="file" name="files" multiple accept="image/*,application/pdf"
-                         class="d-none" id="fileInput"/>
-                </div>
-                <div id="filePreview" class="mt-2"></div>
-              </div>
-
+              <br></br>
               <div class="text-end">
                 <button type="submit" class="btn btn-primary">
                   <i class="fas fa-save me-2"></i>Create Project
@@ -984,11 +939,15 @@
             </form>
           </div>
         </div>
+    </div>
 
       <!-- Projects List -->
       <div class="projects-list-card">
         <div class="projects-header">
           <h5><i class="fas fa-list-ul"></i> Active Solar Projects</h5>
+          <button id="downloadCSV" class="btn btn-light btn-sm">
+            <i class="fas fa-download me-2"></i>Export CSV
+          </button>
         </div>
 
         <!-- Search and Filter Bar -->
@@ -1017,7 +976,6 @@
                 <th>Status</th>
                 <th>Location</th>
                 <th>Timeline</th>
-                <th>Attachments</th>
                 <th>Actions</th>
               </tr>
               </thead>
@@ -1025,10 +983,6 @@
               <tr th:each="p : ${projects}">
                 <td>
                   <div class="project-title" th:text="${p.projectTitle}">
-                    Nyarugenge Solar Installation
-                  </div>
-                  <div class="project-description">
-                    Solar energy project for rural communities
                   </div>
                 </td>
                 <td>
@@ -1057,40 +1011,11 @@
                   </div>
                 </td>
                 <td>
-                  <div class="attachments-preview">
-                    <div th:each="doc : ${@documentService.getByRef('PROJECT', p.id)}"
-                         class="attachment-item">
-                      <img th:if="${doc.contentType.startsWith('image/')}"
-                           th:src="@{/attachments/{id}(id=${doc.id})}"
-                           class="attachment-img"
-                           th:alt="${doc.fileName}"
-                           data-bs-toggle="tooltip"
-                           th:data-bs-title="${doc.fileName}"/>
-                      <a th:if="${!doc.contentType.startsWith('image/')}"
-                         th:href="@{/attachments/{id}(id=${doc.id})}"
-                         class="attachment-file"
-                         data-bs-toggle="tooltip"
-                         th:data-bs-title="${doc.fileName}">
-                        <i class="fas fa-file-pdf"></i>
-                      </a>
-                    </div>
-                    <div th:if="${#lists.isEmpty(@documentService.getByRef('PROJECT', p.id))}"
-                         class="text-muted">
-                      <small>No attachments</small>
-                    </div>
-                  </div>
-                </td>
-                <td>
                   <div class="project-actions">
-                    <a th:href="@{/admin/projects/{id}/view(id=${p.id})}"
+                    <a th:href="@{/admin/projects/delete/{id}(id=${p.id})}"
                        class="action-btn btn-view">
-                      <i class="fas fa-eye"></i>
-                      <span class="d-none d-lg-inline">View</span>
-                    </a>
-                    <a th:href="@{/admin/projects/{id}/edit(id=${p.id})}"
-                       class="action-btn btn-edit">
-                      <i class="fas fa-edit"></i>
-                      <span class="d-none d-lg-inline">Edit</span>
+                      <i class="fa fa-trash"></i>
+                      <span class="d-none d-lg-inline">Delete</span>
                     </a>
                   </div>
                 </td>
@@ -1110,7 +1035,6 @@
           </div>
         </div>
       </div>
-    </div>
   </div>
 </div>
 
@@ -1135,83 +1059,6 @@
     });
   }
 
-  // File Upload Handling
-  const fileUploadArea = document.getElementById('fileUploadArea');
-  const fileInput = document.getElementById('fileInput');
-  const filePreview = document.getElementById('filePreview');
-
-  fileUploadArea.addEventListener('click', () => {
-    fileInput.click();
-  });
-
-  fileUploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    fileUploadArea.classList.add('dragover');
-  });
-
-  fileUploadArea.addEventListener('dragleave', () => {
-    fileUploadArea.classList.remove('dragover');
-  });
-
-  fileUploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    fileUploadArea.classList.remove('dragover');
-    fileInput.files = e.dataTransfer.files;
-    displayFilePreview(e.dataTransfer.files);
-  });
-
-  fileInput.addEventListener('change', (e) => {
-    displayFilePreview(e.target.files);
-  });
-
-  function displayFilePreview(files) {
-    filePreview.innerHTML = '';
-
-    if (files.length === 0) return;
-
-    const previewContainer = document.createElement('div');
-    previewContainer.className = 'd-flex flex-wrap gap-2 mt-2';
-
-    Array.from(files).forEach((file, index) => {
-      const fileItem = document.createElement('div');
-      fileItem.className = 'file-preview-item d-flex align-items-center bg-light p-2 rounded';
-      fileItem.style.maxWidth = '200px';
-
-      const fileIcon = document.createElement('i');
-      fileIcon.className = file.type.startsWith('image/') ? 'fas fa-image text-primary' : 'fas fa-file-pdf text-danger';
-
-      const fileName = document.createElement('span');
-      fileName.className = 'ms-2 text-truncate';
-      fileName.textContent = file.name;
-      fileName.style.fontSize = '0.8rem';
-
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'btn btn-sm btn-outline-danger ms-auto';
-      removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-      removeBtn.onclick = () => removeFile(index);
-
-      fileItem.appendChild(fileIcon);
-      fileItem.appendChild(fileName);
-      fileItem.appendChild(removeBtn);
-      previewContainer.appendChild(fileItem);
-    });
-
-    filePreview.appendChild(previewContainer);
-  }
-
-  function removeFile(index) {
-    const dt = new DataTransfer();
-    const files = fileInput.files;
-
-    for (let i = 0; i < files.length; i++) {
-      if (i !== index) {
-        dt.items.add(files[i]);
-      }
-    }
-
-    fileInput.files = dt.files;
-    displayFilePreview(dt.files);
-  }
 
   // Form Validation and Submission
   const projectForm = document.getElementById('projectForm');
@@ -1407,6 +1254,98 @@
       });
     }
   });
+
+  // CSV Download Functionality
+function downloadTableAsCSV() {
+  const table = document.querySelector('.projects-table table');
+  const rows = table.querySelectorAll('tr');
+  const csvContent = [];
+
+  // Get headers
+  const headers = [];
+  const headerCells = rows[0].querySelectorAll('th');
+  headerCells.forEach(header => {
+    // Skip the Actions column
+    if (!header.textContent.trim().toLowerCase().includes('actions')) {
+      headers.push(header.textContent.trim());
+    }
+  });
+  csvContent.push(headers.join(','));
+
+  // Get data rows (skip header row)
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const cells = row.querySelectorAll('td');
+    const rowData = [];
+
+    // Only process visible rows
+    if (row.style.display !== 'none') {
+      // Project Title
+      const titleCell = cells[0];
+      const title = titleCell.querySelector('.project-title')?.textContent.trim() || '';
+      rowData.push(`"${title}"`);
+
+      // Status
+      const statusCell = cells[1];
+      const status = statusCell.querySelector('.status-badge')?.textContent.trim() || '';
+      rowData.push(`"${status}"`);
+
+      // Location
+      const locationCell = cells[2];
+      const location = locationCell.querySelector('.location-info span')?.textContent.trim() || '';
+      rowData.push(`"${location}"`);
+
+      // Timeline
+      const timelineCell = cells[3];
+      const startDate = timelineCell.querySelector('.date-start')?.textContent.trim() || '';
+      const endDate = timelineCell.querySelector('.date-end')?.textContent.trim() || '';
+      const timeline = `${startDate} ${endDate}`;
+      rowData.push(`"${timeline}"`);
+
+      // Skip Actions column (last column)
+
+      csvContent.push(rowData.join(','));
+    }
+  }
+
+  // Create and download CSV file
+  const csvString = csvContent.join('\n');
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `solar_projects_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
+
+// Add event listener for download button
+document.addEventListener('DOMContentLoaded', function() {
+  const downloadBtn = document.getElementById('downloadCSV');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function() {
+      // Add loading state
+      const originalText = this.innerHTML;
+      this.innerHTML = '<div class="loading me-2"></div>Exporting...';
+      this.disabled = true;
+
+      // Small delay to show loading state
+      setTimeout(() => {
+        downloadTableAsCSV();
+        this.innerHTML = originalText;
+        this.disabled = false;
+
+        // Show success message
+        showAlert('CSV file downloaded successfully!', 'success');
+      }, 500);
+    });
+  }
+});
 </script>
 </body>
 </html>

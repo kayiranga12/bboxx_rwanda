@@ -120,7 +120,7 @@
             transform: translateX(5px);
         }
 
-        ..nav-link.active {
+        .nav-link.active {
             background: #1677ff;
             box-shadow: 0 4px 15px rgb(32 92 158 / 30%);
         }
@@ -774,6 +774,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/technician/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/technician/tracker" class="nav-link">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>GPS Tracker</span>
@@ -831,47 +837,58 @@
         </div>
     </nav>
 
-    <h5 class="mb-0">My Assigned Tasks</h5>
-    <div class="ms-auto">
-        <a href="/technician/tasks/export" class="btn btn-sm btn-outline-success">
-            <i class="fas fa-file-csv me-1"></i>Export CSV
-        </a>
-    </div>
         <!-- Main Content -->
         <main class="container-fluid px-4 py-4 flex-grow-1">
-            <!-- Redesigned Filter Form -->
-            <form class="filter-form row g-3 mb-4" th:action="@{/technician/tasks}" method="get">
-                <div class="col-md-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="fas fa-filter text-primary"></i>
-                        </span>
-                        <select name="status" class="form-select border-start-0">
-                            <option value="">All Status</option>
-                            <option value="Assigned" th:selected="${filterStatus=='Assigned'}">Assigned</option>
-                            <option value="In Progress" th:selected="${filterStatus=='In Progress'}">In Progress</option>
-                            <option value="Done" th:selected="${filterStatus=='Done'}">Done</option>
-                        </select>
+            <div class="page-header mb-4 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Assigned Tasks</h4>
+            </div>
+
+            <div class="page-header mb-4">
+                <!-- Enhanced Filter Form -->
+                <form class="filter-form needs-validation" th:action="@{/technician/tasks}" method="get" novalidate>
+                    <div class="row g-3 align-items-end">
+                        <!-- Status Filter -->
+                        <div class="col-12 col-md-3 col-lg-2">
+                            <label for="statusFilter" class="form-label small text-muted mb-1">Filter by status</label>
+                            <div class="input-group has-validation">
+                    <span class="input-group-text bg-white">
+                        <i class="fas fa-filter text-primary"></i>
+                    </span>
+                                <select name="status" id="statusFilter" class="form-select">
+                                    <option value="">All Statuses</option>
+                                    <option value="Assigned" th:selected="${filterStatus=='Assigned'}">Assigned</option>
+                                    <option value="In Progress" th:selected="${filterStatus=='In Progress'}">In Progress</option>
+                                    <option value="Done" th:selected="${filterStatus=='Done'}">Done</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Search Field -->
+                        <div class="col-12 col-md-6 col-lg-5">
+                            <label for="searchInput" class="form-label small text-muted mb-1">Search tasks</label>
+                            <div class="input-group has-validation">
+                    <span class="input-group-text bg-white">
+                        <i class="fas fa-search text-primary"></i>
+                    </span>
+                                <input type="text" name="q" id="searchInput" class="form-control"
+                                       placeholder="Task name, description..." th:value="${searchQuery}"/>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="col-12 col-md-3 col-lg-5 d-flex justify-content-end">
+                            <div class="btn-group" role="group">
+                                <button type="submit" class="btn btn-primary px-3">
+                                    <i class="fas fa-filter me-2"></i>Filter
+                                </button>
+                                <a href="/technician/tasks" class="btn btn-outline-secondary px-3">
+                                    <i class="fas fa-redo-alt me-2"></i>Reset
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-5">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="fas fa-search text-primary"></i>
-                        </span>
-                        <input type="text" name="q" class="form-control border-start-0" placeholder="Search by task name or description..."
-                               th:value="${searchQuery}"/>
-                    </div>
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <button type="submit" class="btn btn-outline-primary me-2">
-                        <i class="fas fa-filter me-1"></i>Apply Filters
-                    </button>
-                    <a href="/technician/tasks" class="btn btn-outline-secondary">
-                        <i class="fas fa-redo-alt me-1"></i>Reset
-                    </a>
-                </div>
-            </form>
+                </form>
+            </div>
 
             <!-- Redesigned KPI and Status Breakdown -->
             <div class="row mb-4">
@@ -920,8 +937,11 @@
                     <h6 class="mb-0 fw-bold text-primary">
                         <i class="fas fa-clipboard-list me-2"></i>My Task List
                     </h6>
-                    <div>
+                    <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-primary rounded-pill" th:text="${#lists.size(tasks) ?: 0} + ' Tasks'">0 Tasks</span>
+                        <button class="btn btn-outline-primary btn-sm" onclick="downloadMyTasksCSV()">
+                            <i class="fas fa-download me-1"></i>Download CSV
+                        </button>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -980,89 +1000,6 @@
                             </tr>
                             </tbody>
                         </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Redesigned Update Task Modal -->
-            <div th:each="task : ${tasks}" class="modal fade task-modal" th:id="'updateModal' + ${task.id}" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form th:action="@{/technician/tasks/update}" method="post" enctype="multipart/form-data">
-                            <div class="modal-header">
-                                <h5 class="modal-title">
-                                    <i class="fas fa-edit me-2"></i>Update Task Status
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body row g-3">
-                                <input type="hidden" name="id" th:value="${task.id}"/>
-
-                                <div class="col-12">
-                                    <div class="bg-light p-3 rounded mb-3">
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <h6 class="fw-bold mb-1" th:text="${task.taskName}"></h6>
-                                                <p class="text-muted small mb-0" th:text="${task.description}"></p>
-                                            </div>
-                                            <div class="text-end">
-                                                <div class="text-muted small" th:text="'Due: ' + ${#temporals.format(task.dueDate,'MMM dd, yyyy')}"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Update Status</label>
-                                    <select name="status" class="form-select">
-                                        <option value="In Progress" th:selected="${task.status=='In Progress'}">In Progress</option>
-                                        <option value="Done" th:selected="${task.status=='Done'}">Done</option>
-                                    </select>
-                                    <div class="form-text text-muted">Change task status to reflect your current progress</div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Upload Proof of Work</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white">
-                                            <i class="fas fa-paperclip text-primary"></i>
-                                        </span>
-                                        <input type="file" name="files" multiple accept="image/*,application/pdf"
-                                               class="form-control"/>
-                                    </div>
-                                    <div class="form-text">Upload photos or PDF documents as proof of completed work (Max: 5MB per file)</div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Current Attachments</label>
-                                    <div class="attachment-preview"
-                                         th:if="${!#lists.isEmpty(@documentService.getByRef('TASK', task.id))}">
-                                        <div class="attachment-item"
-                                             th:each="doc : ${@documentService.getByRef('TASK', task.id)}">
-                                            <img th:if="${doc.contentType.startsWith('image/')}"
-                                                 th:src="@{/attachments/{id}(id=${doc.id})}"
-                                                 class="img-thumbnail"/>
-                                            <a th:if="${!doc.contentType.startsWith('image/')}"
-                                               th:href="@{/attachments/{id}(id=${doc.id})}"
-                                               class="btn btn-sm btn-light d-block text-center p-2" target="_blank">
-                                                <i class="fas fa-file-pdf text-danger fa-2x mb-1"></i>
-                                                <span class="d-block small">View PDF</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="text-muted fst-italic small"
-                                         th:if="${#lists.isEmpty(@documentService.getByRef('TASK', task.id))}">
-                                        No attachments uploaded yet
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-save me-1"></i>Save Changes
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                            </div>
-                        </form>
                     </div>
                 </div>
             </div>
@@ -1143,6 +1080,57 @@
         }
     });
     /*]]>*/
+</script>
+<script>
+    function downloadMyTasksCSV() {
+        // Get table data
+        const table = document.querySelector('.task-table');
+        const rows = table.querySelectorAll('tbody tr');
+
+        // Check if there are tasks
+        if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) {
+            alert('No tasks to download');
+            return;
+        }
+
+        // CSV headers
+        const headers = ['Task Name', 'Description', 'Status', 'Due Date'];
+        let csvContent = headers.join(',') + '\n';
+
+        // Extract data from each row
+        rows.forEach(row => {
+            // Skip the "No tasks assigned" row
+            if (row.cells.length === 1) return;
+
+            const rowData = [];
+            // Get first 4 cells (excluding Actions column)
+            for (let i = 0; i < 4; i++) {
+                let cellText = row.cells[i].textContent.trim();
+
+                // Clean up the text - remove extra whitespace and line breaks
+                cellText = cellText.replace(/\s+/g, ' ').trim();
+
+                // Escape quotes and wrap in quotes if contains comma
+                cellText = cellText.replace(/"/g, '""');
+                if (cellText.includes(',') || cellText.includes('"') || cellText.includes('\n')) {
+                    cellText = '"' + cellText + '"';
+                }
+                rowData.push(cellText);
+            }
+            csvContent += rowData.join(',') + '\n';
+        });
+
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'my_tasks_' + new Date().toISOString().split('T')[0] + '.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 </script>
 </body>
 </html>

@@ -756,6 +756,49 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--bboxx-dark-orange);
         }
+        /* Download button styles */
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+}
+
+/* Role badge styles */
+.role-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Loading spinner styles */
+.spinner-border-sm {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-width: 0.125em;
+}
+
+.spinner-border {
+    display: inline-block;
+    vertical-align: text-bottom;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
     </style>
 </head>
 <body>
@@ -803,6 +846,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/admin/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/admin/inventory" class="nav-link">
                     <i class="fas fa-boxes"></i>
                     <span>Inventory</span>
@@ -812,13 +861,6 @@
                 <a href="/admin/zones" class="nav-link">
                     <i class="fas fa-map-marked-alt"></i>
                     <span>Service Areas</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="/admin/reports" class="nav-link">
-                    <i class="fa-solid fa-file"></i>
-                    <span>Reports</span>
                 </a>
             </li>
             <li class="nav-item mt-auto">
@@ -958,9 +1000,14 @@
                     <div class="card mb-4">
                         <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                             <div><i class="fas fa-users me-2"></i>All Users</div>
-                            <div class="input-group input-group-sm" style="width: 200px;">
-                                <input type="text" class="form-control" id="userSearch" placeholder="Search users...">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <div class="d-flex gap-2 align-items-center">
+                                <div class="input-group input-group-sm" style="width: 200px;">
+                                    <input type="text" class="form-control" id="userSearch" placeholder="Search users...">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <button id="downloadUsersCSV" class="btn btn-outline-light btn-sm">
+                                    <i class="fas fa-download me-1"></i>Export CSV
+                                </button>
                             </div>
                         </div>
                         <div class="card-body p-0">
@@ -1018,12 +1065,16 @@
                                                 </span>
                                         </td>
                                         <td class="text-center">
-                                            <button class="btn btn-action" data-bs-toggle="tooltip" title="Edit User">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-action delete" data-bs-toggle="tooltip" title="Delete User">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
+<!--                                            <button class="btn btn-action delete" data-bs-toggle="tooltip" title="Delete User">-->
+<!--                                                <i class="fas fa-trash-alt"></i>-->
+<!--                                            </button>-->
+                                            <div class="btn btn-action delete">
+                                                <a th:href="@{/admin/users/delete/{id}(id=${u.id})}"
+                                                   class="action-btn btn-view">
+                                                    <i class="fa fa-trash"></i>
+                                                    <span class="d-none d-lg-inline"></span>
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr th:if="${#lists.isEmpty(users)}">
@@ -1103,6 +1154,137 @@
             });
         });
     });
+
+    // CSV Download Functionality for Users
+function downloadUsersAsCSV() {
+    const table = document.getElementById('usersTable');
+    const rows = table.querySelectorAll('tbody tr');
+    const csvContent = [];
+
+    // CSV Headers
+    const headers = ['Username', 'Email', 'Phone', 'Role'];
+    csvContent.push(headers.join(','));
+
+    // Get data rows
+    rows.forEach(row => {
+        // Skip empty state row
+        if (row.querySelector('.fa-user-slash')) {
+            return;
+        }
+
+        // Only process visible rows (respects search filter)
+        if (row.style.display !== 'none') {
+            const cells = row.querySelectorAll('td');
+            if (cells.length > 0) {
+                const rowData = [];
+
+                // Username (first column)
+                const usernameCell = cells[0];
+                const username = usernameCell.textContent.trim().replace(/\s+/g, ' ');
+                rowData.push(`"${username}"`);
+
+                // Email (second column)
+                const emailCell = cells[1];
+                const email = emailCell.querySelector('span')?.textContent.trim() || '';
+                rowData.push(`"${email}"`);
+
+                // Phone (third column)
+                const phoneCell = cells[2];
+                const phone = phoneCell.querySelector('span')?.textContent.trim() || '';
+                rowData.push(`"${phone}"`);
+
+                // Role (fourth column)
+                const roleCell = cells[3];
+                const roleBadge = roleCell.querySelector('.role-badge');
+                let role = '';
+                if (roleBadge) {
+                    // Extract role text, removing icon
+                    role = roleBadge.textContent.trim().replace(/\s+/g, ' ');
+                }
+                rowData.push(`"${role}"`);
+
+                csvContent.push(rowData.join(','));
+            }
+        }
+    });
+
+    // Create and download CSV file
+    const csvString = csvContent.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `users_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+// Alert function for success message
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Sidebar Toggle functionality
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+const mainContent = document.getElementById('mainContent');
+
+sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('expanded');
+});
+
+// Mobile sidebar
+if (window.innerWidth <= 768) {
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+    });
+}
+
+// Add event listener for download button
+document.addEventListener('DOMContentLoaded', function() {
+    // ... your existing DOMContentLoaded code ...
+
+    // Add download functionality
+    const downloadBtn = document.getElementById('downloadUsersCSV');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Add loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>Exporting...';
+            this.disabled = true;
+
+            // Small delay to show loading state
+            setTimeout(() => {
+                downloadUsersAsCSV();
+                this.innerHTML = originalText;
+                this.disabled = false;
+
+                // Show success message
+                showAlert('Users data exported successfully!', 'success');
+            }, 500);
+        });
+    }
+});
 </script>
 </body>
 </html>

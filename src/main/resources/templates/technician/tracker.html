@@ -11,8 +11,6 @@
 
     <!-- Leaflet -->
     <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
@@ -151,25 +149,6 @@
             margin-right: 0;
         }
 
-        .nav-badge {
-            background: var(--bboxx-red);
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: auto;
-        }
-
-        .sidebar.collapsed .nav-badge {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-        }
-
         /* Main Content */
         .main-content {
             margin-left: var(--sidebar-width);
@@ -222,17 +201,6 @@
             color: var(--bboxx-dark-blue);
         }
 
-        .location-display {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255, 107, 53, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: var(--bboxx-orange);
-        }
-
         .navbar-right {
             display: flex;
             align-items: center;
@@ -254,9 +222,12 @@
             color: var(--bboxx-green);
         }
 
-        .status-offline {
-            background: rgba(220, 53, 69, 0.1);
-            color: var(--bboxx-red);
+        .weather-widget {
+            background: linear-gradient(135deg, #87CEEB, #4682B4);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
         }
 
         .user-menu {
@@ -286,270 +257,123 @@
             font-size: 0.8rem;
         }
 
-        /* Main Content Area */
-        .dashboard-content {
-            padding: 2rem;
-        }
-
-        .page-header {
-            background: white;
-            padding: 2rem;
+        /* Map Styles */
+        #map {
+            height: 500px;
+            width: 100%;
             border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
             margin-bottom: 2rem;
         }
 
-        .header-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--bboxx-dark-blue);
-            margin-bottom: 0.5rem;
-        }
-
-        .header-subtitle {
-            color: #666;
-            font-size: 1rem;
-        }
-
-        .weather-widget {
-            background: linear-gradient(135deg, #87CEEB, #4682B4);
-            color: white;
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
+        .map-container {
             background: white;
             border-radius: 15px;
             padding: 1.5rem;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-        }
-
-        .stat-card.tasks::before {
-            background: var(--bboxx-orange);
-        }
-
-        .stat-card.completed::before {
-            background: var(--bboxx-green);
-        }
-
-        .stat-card.pending::before {
-            background: var(--bboxx-yellow);
-        }
-
-        .stat-card.efficiency::before {
-            background: var(--bboxx-blue);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat-icon.orange {
-            background: rgba(255, 107, 53, 0.1);
-            color: var(--bboxx-orange);
-        }
-
-        .stat-icon.green {
-            background: rgba(76, 175, 80, 0.1);
-            color: var(--bboxx-green);
-        }
-
-        .stat-icon.yellow {
-            background: rgba(255, 193, 7, 0.1);
-            color: var(--bboxx-yellow);
-        }
-
-        .stat-icon.blue {
-            background: rgba(27, 54, 93, 0.1);
-            color: var(--bboxx-blue);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--bboxx-dark-blue);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: #666;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 2rem;
         }
 
-        .actions-title {
+        .map-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .map-title {
             font-size: 1.3rem;
             font-weight: 600;
             color: var(--bboxx-dark-blue);
-            margin-bottom: 1.5rem;
+            margin: 0;
         }
 
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+        .map-controls {
+            display: flex;
+            gap: 0.5rem;
         }
 
-        .action-btn {
-            background: white;
-            border: 2px solid #E1E5E9;
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: var(--bboxx-dark-gray);
+        .map-btn {
+            background: var(--bboxx-orange);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .action-btn:hover {
-            border-color: var(--bboxx-orange);
-            color: var(--bboxx-orange);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.15);
+        .map-btn:hover {
+            background: var(--bboxx-dark-orange);
+            transform: translateY(-2px);
         }
 
-        .action-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--bboxx-orange);
+        .map-btn.secondary {
+            background: #6c757d;
         }
 
-        .action-title {
+        .map-btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Custom Leaflet Popup Styles */
+        .custom-popup {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .popup-header {
+            background: var(--bboxx-orange);
+            color: white;
+            padding: 0.5rem;
+            margin: -0.5rem -0.5rem 0.5rem -0.5rem;
+            border-radius: 4px 4px 0 0;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .action-desc {
-            font-size: 0.85rem;
+        .popup-content {
+            padding: 0.25rem 0;
+        }
+
+        .popup-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .popup-row:last-child {
+            border-bottom: none;
+        }
+
+        .popup-label {
+            font-weight: 600;
+            color: var(--bboxx-dark-blue);
+            font-size: 0.8rem;
+        }
+
+        .popup-value {
             color: #666;
+            font-size: 0.8rem;
+            text-align: right;
+            max-width: 150px;
+            word-wrap: break-word;
         }
 
-        /* GPS Tracker Section */
-        .tracker-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .tracker-card {
+        /* Table Styles */
+        .table-card {
             background: white;
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             overflow: hidden;
         }
 
-        .tracker-header {
-            background: linear-gradient(135deg, var(--bboxx-green), #45a049);
-            color: white;
+        .card-header {
             padding: 1.5rem 2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .tracker-body {
-            padding: 2rem;
-        }
-
-        .form-floating {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-control {
-            border: 2px solid #E1E5E9;
-            border-radius: 10px;
-            padding: 0.8rem 1rem;
-            transition: all 0.3s ease;
-            background: #FAFBFC;
-        }
-
-        .form-control:focus {
-            border-color: var(--bboxx-orange);
-            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
-            background: white;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: var(--bboxx-dark-blue);
-            margin-bottom: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
-        }
-
-        .gps-helper {
-            background: rgba(255, 107, 53, 0.05);
-            border: 1px solid rgba(255, 107, 53, 0.2);
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        /* History Section */
-        .history-header {
-            background: var(--bboxx-blue);
-            color: white;
-            padding: 1.5rem 2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            background: var(--bboxx-blue) !important;
+            border-bottom: none;
         }
 
         .table {
@@ -575,47 +399,26 @@
             background: rgba(255, 107, 53, 0.02);
         }
 
-        .status-badge {
+        .gps-badge {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--bboxx-orange);
             padding: 0.3rem 0.8rem;
             border-radius: 15px;
             font-size: 0.8rem;
             font-weight: 600;
         }
 
-        .status-completed {
-            background: rgba(76, 175, 80, 0.1);
-            color: var(--bboxx-green);
-        }
-
-        .status-progress {
-            background: rgba(255, 193, 7, 0.1);
-            color: var(--bboxx-yellow);
-        }
-
-        .status-onsite {
-            background: rgba(255, 107, 53, 0.1);
-            color: var(--bboxx-orange);
-        }
-
-        /* Map Integration */
-        .map-preview {
-            height: 200px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .timestamp {
             color: #666;
-            margin-top: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            color: var(--bboxx-dark-gray);
         }
 
         /* Responsive Design */
-        @media (max-width: 1200px) {
-            .tracker-section {
-                grid-template-columns: 1fr;
-            }
-        }
-
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -634,32 +437,12 @@
                 padding: 0 1rem;
             }
 
-            .dashboard-content {
+            #map {
+                height: 300px;
+            }
+
+            .map-container {
                 padding: 1rem;
-            }
-
-            .page-header {
-                padding: 1.5rem;
-            }
-
-            .header-title {
-                font-size: 1.5rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .actions-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .navbar-right {
-                gap: 0.5rem;
-            }
-
-            .location-display {
-                display: none;
             }
         }
 
@@ -678,79 +461,146 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--bboxx-orange);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--bboxx-dark-orange);
-        }
-
-        /* Notification Styles */
-        .notification-toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-        }
-
-        /* Emergency Button */
-        .emergency-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--bboxx-red);
-            color: white;
-            border: none;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .emergency-btn:hover {
-            background: #c82333;
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
-        }
-
-        /* PWA Styles */
-        .pwa-install {
-            background: rgba(255, 107, 53, 0.1);
-            border: 1px solid rgba(255, 107, 53, 0.3);
-            border-radius: 10px;
-            padding: 1rem;
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 2rem;
-            text-align: center;
+        }
+        /* Map Styles */
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 3px solid #fff;
+            margin-bottom: 2rem;
         }
 
-        .install-btn {
-            background: var(--bboxx-orange);
+        .map-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .map-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1B365D;
+            margin: 0;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .map-btn {
+            background: #FF6B35;
             color: white;
             border: none;
-            padding: 0.5rem 1.5rem;
-            border-radius: 20px;
-            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
             transition: all 0.3s ease;
         }
 
-        .install-btn:hover {
-            background: var(--bboxx-dark-orange);
+        .map-btn:hover {
+            background: #E55A2E;
             transform: translateY(-2px);
+        }
+
+        .map-btn.secondary {
+            background: #6c757d;
+        }
+
+        .map-btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Custom marker popup styles */
+        .custom-popup {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .popup-header {
+            background: #FF6B35;
+            color: white;
+            padding: 0.5rem;
+            margin: -0.5rem -0.5rem 0.5rem -0.5rem;
+            border-radius: 4px 4px 0 0;
+            font-weight: 600;
+        }
+
+        .popup-content {
+            padding: 0.5rem 0;
+        }
+
+        .popup-status {
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            border-left: 3px solid #FF6B35;
+        }
+
+        .popup-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Legend */
+        .map-legend {
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .legend-completed { background: #4CAF50; }
+        .legend-progress { background: #FFC107; }
+        .legend-started { background: #FF6B35; }
+        .legend-issue { background: #DC3545; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #map {
+                height: 400px;
+            }
+
+            .map-controls {
+                flex-direction: column;
+            }
+
+            .map-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -778,6 +628,12 @@
                 <a href="/technician/tasks" class="nav-link">
                     <i class="fas fa-clipboard-list"></i>
                     <span>My Tasks</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/tenchnician/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -837,178 +693,322 @@
         </div>
     </nav>
 
-        <!-- Main Section -->
-        <div class="container-fluid px-4 py-4">
-            <div class="page-header mb-4 d-flex justify-content-between align-items-center">
-                <h4 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>GPS Tracker</h4>
-            </div>
-
-
-                    <!-- Map Container -->
-                    <div id="map" class="mb-4"></div>
-
-                    <!-- Location Legend -->
-                    <div class="d-flex justify-content-end mb-3">
-                        <div class="bg-white px-3 py-2 rounded shadow-sm">
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <i class="fas fa-map-marker-alt text-danger me-1"></i>
-                                    <span class="text-muted">Current Location</span>
-                                </div>
-                                <div>
-                                    <i class="fas fa-history text-primary me-1"></i>
-                                    <span class="text-muted">Previous Locations</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- History Table -->
-                    <div class="card table-card">
-                        <div class="card-header bg-secondary text-white">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fas fa-history me-2"></i>Location History
-                                </div>
-                                <div class="btn-group btn-group-sm">
-                                    <button type="button" class="btn btn-light" title="Refresh">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-light" title="Filter">
-                                        <i class="fas fa-filter"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table tracker-table table-hover mb-0">
-                                    <thead>
-                                    <tr>
-                                        <th style="width: 25%">GPS Coordinates</th>
-                                        <th style="width: 50%">Status Update</th>
-                                        <th style="width: 25%">Timestamp</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr th:each="t : ${trackers}">
-                                        <td>
-                                            <span class="gps-badge">
-                                                <i class="fas fa-map-marker-alt me-1"></i>
-                                                <span th:text="${t.gpsCoordinates}"></span>
-                                            </span>
-                                        </td>
-                                        <td class="status-text" th:text="${t.statusUpdate}"></td>
-                                        <td>
-                                            <span class="timestamp">
-                                                <i class="far fa-clock me-1"></i>
-                                                <span th:text="${#temporals.format(t.timestamp,'yyyy-MM-dd HH:mm')}"></span>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(trackers)}">
-                                        <td colspan="3" class="text-center py-4">
-                                            <div class="text-muted">
-                                                <i class="fas fa-map-marked-alt fa-2x mb-2"></i>
-                                                <p class="mb-0">No location records yet.</p>
-                                                <small>Your logged locations will appear here.</small>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Main Section -->
+    <div class="container-fluid px-4 py-4">
+        <div class="page-header mb-4 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>GPS Tracker</h4>
         </div>
 
-        <!-- Footer -->
-        <footer class="bg-light text-center p-3 mt-auto">
-            <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
-        </footer>
-    </div>
-</div>
+        <!-- Map Container -->
+        <div class="map-container">
+            <div class="map-header">
+                <h5 class="map-title">
+                    <i class="fas fa-map me-2"></i>Live Location Tracking
+                </h5>
+                <div class="map-controls">
+                    <button class="map-btn" onclick="centerMapOnLatest()">
+                        <i class="fas fa-crosshairs me-1"></i>Latest Location
+                    </button>
+                    <button class="map-btn secondary" onclick="fitAllMarkers()">
+                        <i class="fas fa-expand-arrows-alt me-1"></i>Show All
+                    </button>
+                </div>
+            </div>
 
+            <div id="map"></div>
+
+            <!-- Map Legend -->
+            <div class="map-legend mt-3">
+                <h6><i class="fas fa-info-circle me-1"></i>Status Legend</h6>
+                <div class="legend-item">
+                    <div class="legend-icon legend-completed"></div>
+                    <span>Task Completed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon legend-progress"></div>
+                    <span>In Progress</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon legend-started"></div>
+                    <span>Arrived/Started</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon legend-issue"></div>
+                    <span>Issue Encountered</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="card table-card">
+            <div class="card-header bg-secondary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-history me-2"></i>Location History
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-light" onclick="refreshData()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="btn btn-light" onclick="exportData()">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table tracker-table table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width: 25%">GPS Coordinates</th>
+                            <th style="width: 40%">Status Update</th>
+                            <th style="width: 25%">Ticket</th>
+                            <th style="width: 30%">Customer</th>
+                            <th style="width: 35%">Timestamp</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="t : ${trackers}"
+                            th:attr="data-gps=${t.gpsCoordinates}, data-status=${t.statusUpdate}, data-ticket=${t.ticket.title}, data-customer=${t.ticket.customer.fullName}, data-time=${#temporals.format(t.timestamp,'yyyy-MM-dd HH:mm')}">
+                            <td>
+                                <span class="gps-badge">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    <span th:text="${t.gpsCoordinates}"></span>
+                                </span>
+                            </td>
+                            <td class="status-text" th:text="${t.statusUpdate}"></td>
+                            <td class="status-text" th:text="${t.ticket.title}"></td>
+                            <td class="status-text" th:text="${t.ticket.customer.fullName}"></td>
+                            <td>
+                                <span class="timestamp">
+                                    <i class="far fa-clock me-1"></i>
+                                    <span th:text="${#temporals.format(t.timestamp,'yyyy-MM-dd HH:mm')}"></span>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(trackers)}">
+                            <td colspan="5" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-map-marked-alt fa-2x mb-2"></i>
+                                    <p class="mb-0">No location records yet.</p>
+                                    <small>Your logged locations will appear here.</small>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center p-3 mt-auto">
+        <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
+    </footer>
+</div>
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    // Initialize map
-    var map = L.map('map').setView([0, 0], 2);
-
-    // Use a nicer map tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }).addTo(map);
-
-    // Custom icon for current location
-    var currentIcon = L.icon({
-        iconUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-icon.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png',
-        shadowSize: [41, 41]
-    });
-
-    // Create a polyline for the path
-    var points = /*[[${points}]]*/ [];
-    var pathCoordinates = [];
-    var bounds = [];
-
-    if (points && points.length) {
-        points.forEach(function(p, index) {
-            var latlng = [p.lat, p.lng];
-            pathCoordinates.push(latlng);
-            bounds.push(latlng);
-
-            // Create marker
-            var marker = L.marker(latlng).addTo(map);
-
-            // Special styling for current location (first point)
-            if (index === 0) {
-                marker.setIcon(currentIcon);
-            }
-
-            // Create custom popup content
-            var popupContent = `
-                <div class="map-popup">
-                    <div class="map-popup-status">${p.status}</div>
-                    <div class="map-popup-time">${p.time}</div>
-                </div>
-            `;
-
-            marker.bindPopup(popupContent);
-        });
-
-        // Create a path line connecting all points
-        if (pathCoordinates.length > 1) {
-            var path = L.polyline(pathCoordinates, {
-                color: '#3b82f6',
-                weight: 3,
-                opacity: 0.7,
-                dashArray: '5, 8'
-            }).addTo(map);
-        }
-
-        // Set view to fit all points
-        if (bounds.length) {
-            map.fitBounds(bounds);
-        } else {
-            // If only one point, center on it
-            map.setView(pathCoordinates[0], 13);
-        }
-    }
-
-    // Sidebar toggle functionality
-    document.getElementById('sidebarToggle').addEventListener('click', function(){
-        document.getElementById('wrapper').classList.toggle('toggled');
-    });
-    /*]]>*/
-</script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Initialize map
+    let map;
+    let markersGroup;
+    let trackerData = [];
+
+    // Initialize map when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeMap();
+        loadTrackerData();
+        plotMarkersOnMap();
+    });
+
+    function initializeMap() {
+        // Initialize map centered on Kigali, Rwanda
+        map = L.map('map').setView([-1.9441, 30.0619], 12);
+
+        // Add tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18,
+            minZoom: 3
+        }).addTo(map);
+
+        // Create markers group for easy management
+        markersGroup = L.layerGroup().addTo(map);
+
+        // Add map controls
+        map.addControl(new L.Control.Scale());
+    }
+
+    function loadTrackerData() {
+        // Get data from table rows
+        const tableRows = document.querySelectorAll('tbody tr[data-gps]');
+        trackerData = [];
+
+        tableRows.forEach((row, index) => {
+            const gps = row.getAttribute('data-gps');
+            const status = row.getAttribute('data-status');
+            const ticket = row.getAttribute('data-ticket');
+            const customer = row.getAttribute('data-customer');
+            const time = row.getAttribute('data-time');
+
+            if (gps && gps.trim() !== '') {
+                try {
+                    const [lat, lng] = gps.split(',').map(coord => parseFloat(coord.trim()));
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        trackerData.push({
+                            id: index,
+                            lat: lat,
+                            lng: lng,
+                            gps: gps,
+                            status: status,
+                            ticket: ticket,
+                            customer: customer,
+                            time: time
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error parsing GPS coordinates:', gps, error);
+                }
+            }
+        });
+
+        console.log('Loaded tracker data:', trackerData.length, 'points');
+    }
+
+    function getMarkerColor(status) {
+        const statusLower = status.toLowerCase();
+
+        if (statusLower.includes('completed')) {
+            return '#4CAF50'; // Green
+        } else if (statusLower.includes('progress') || statusLower.includes('installation') || statusLower.includes('testing')) {
+            return '#FFC107'; // Yellow
+        } else if (statusLower.includes('arrived') || statusLower.includes('started')) {
+            return '#FF6B35'; // Orange
+        } else if (statusLower.includes('issue') || statusLower.includes('problem')) {
+            return '#DC3545'; // Red
+        } else {
+            return '#6c757d'; // Gray for others
+        }
+    }
+
+    function createCustomIcon(color) {
+        return L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div style="
+                background-color: ${color};
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                border: 3px solid white;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            "></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+    }
+
+    function plotMarkersOnMap() {
+        // Clear existing markers
+        markersGroup.clearLayers();
+
+        if (trackerData.length === 0) {
+            console.log('No tracker data to plot');
+            return;
+        }
+
+        // Add markers for each location
+        trackerData.forEach((data, index) => {
+            const color = getMarkerColor(data.status);
+            const icon = createCustomIcon(color);
+
+            const marker = L.marker([data.lat, data.lng], { icon: icon })
+                .bindPopup(`
+                    <div class="custom-popup">
+                        <div class="popup-header">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            Location #${index + 1}
+                        </div>
+                        <div class="popup-content">
+                            <strong>📍 GPS:</strong> ${data.gps}<br>
+                            <strong>🎫 Ticket:</strong> ${data.ticket}<br>
+                            <strong>👤 Customer:</strong> ${data.customer}<br>
+                            <div class="popup-status">
+                                <strong>📋 Status:</strong><br>
+                                ${data.status}
+                            </div>
+                            <div class="popup-time">
+                                <i class="fas fa-clock me-1"></i>${data.time}
+                            </div>
+                        </div>
+                    </div>
+                `);
+
+            markersGroup.addLayer(marker);
+        });
+
+        // Fit map to show all markers if we have data
+        if (trackerData.length > 0) {
+            fitAllMarkers();
+        }
+    }
+
+    function centerMapOnLatest() {
+        if (trackerData.length > 0) {
+            const latest = trackerData[0]; // First item is latest (assuming desc order)
+            map.setView([latest.lat, latest.lng], 15);
+
+            // Show popup for latest marker
+            markersGroup.eachLayer(function(layer) {
+                if (layer.getLatLng().lat === latest.lat && layer.getLatLng().lng === latest.lng) {
+                    layer.openPopup();
+                }
+            });
+        }
+    }
+
+    function fitAllMarkers() {
+        if (trackerData.length > 0) {
+            const group = new L.featureGroup(markersGroup.getLayers());
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+    }
+
+    function refreshData() {
+        // Reload the page to get fresh data
+        window.location.reload();
+    }
+
+    function exportData() {
+        // Simple CSV export
+        if (trackerData.length === 0) {
+            alert('No data to export');
+            return;
+        }
+
+        let csv = 'GPS Coordinates,Status,Ticket,Customer,Timestamp\n';
+        trackerData.forEach(data => {
+            csv += `"${data.gps}","${data.status}","${data.ticket}","${data.customer}","${data.time}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tracker-data-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    // Auto-refresh every 5 minutes
+    setInterval(refreshData, 5 * 60 * 1000);
+</script>
+
 </body>
 </html>

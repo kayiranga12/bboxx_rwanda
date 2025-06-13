@@ -3,7 +3,6 @@ package com.bboxxtrack.Controller;
 import com.bboxxtrack.Model.*;
 import com.bboxxtrack.Model.TicketAssignmentDto;
 import com.bboxxtrack.Service.ProjectService;
-import com.bboxxtrack.Service.TaskService;
 import com.bboxxtrack.Service.TicketService;
 import com.bboxxtrack.Service.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -21,23 +20,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/admin/tasks")
-public class AdminTaskController {
+@RequestMapping("/admin/tickets")
+public class AdminTicketController {
 
-    @Autowired private TaskService taskService;
     @Autowired private UserService userService;
     @Autowired private ProjectService projectService;
     @Autowired private TicketService ticketService;
 
-    /**
-     * GET /admin/tasks
-     *
-     *  - loads all existing “tasks” (for your normal AdminTask page),
-     *  - plus “unassignedTickets” and “technicians” for the ticket‐assignment form,
-     *  - and attaches a fresh TicketAssignmentDto.
-     */
+
     @GetMapping
-    public String showTasks(
+    public String showTickets(
             HttpSession session,
             Model model
     ) {
@@ -47,8 +39,6 @@ public class AdminTaskController {
             return "redirect:/login";
         }
 
-        // — 1) Load existing Tasks / Technicians / Projects for the normal “Create/Edit Task” form: —
-        List<Task>    tasks       = taskService.getAllTasks();
         List<User>    technicians = userService.getUsersByRole("Technician");
         List<Project> projects    = projectService.getAllProjects();
 
@@ -72,7 +62,6 @@ public class AdminTaskController {
                 .filter(t -> t.getAssignedToUserId() != null)
                 .collect(Collectors.toList());
 
-        model.addAttribute("tasks",        tasks);
         model.addAttribute("technicians",  technicians);
         model.addAttribute("projects",     projects);
         model.addAttribute("techNames",    techNames);
@@ -87,107 +76,14 @@ public class AdminTaskController {
         model.addAttribute("ticketTechs", technicians);
 
         // DTO that binds to the “Assign Ticket → Technician” form
-        model.addAttribute("ticketAssignment", new TicketAssignmentDto());
+        model.addAttribute("ticketAssignment", new com.bboxxtrack.Model.TicketAssignmentDto());
 
         model.addAttribute("assignedTickets", assignedTickets);
 
-        return "admin/tasks";
+        return "admin/tickets";
     }
 
-    /**
-     * POST /admin/tasks/add
-     *
-     * Handles “Create Task” as before.
-     */
-    @PostMapping("/add")
-    public String addTask(
-            @Valid @ModelAttribute("newTask") Task task,
-            BindingResult bindingResult,
-            HttpSession session,
-            Model model,
-            RedirectAttributes redirectAttributes
-    ) {
-        User user = (User) session.getAttribute("user");
-        if (user == null || !"Admin".equals(user.getRole())) {
-            return "redirect:/login";
-        }
 
-        if (bindingResult.hasErrors()) {
-            // On validation error, reload everything into the same page:
-            showTasks(session, model);
-            return "admin/tasks";
-        }
-
-        task.setAssignedDate(LocalDate.now());
-        taskService.saveTask(task);
-        redirectAttributes.addFlashAttribute("message","Task created successfully");
-        return "redirect:/admin/tasks";
-    }
-
-    /**
-     * POST /admin/tasks/edit
-     *
-     * Handles “Edit Task” (same as you had).
-     */
-    @PostMapping("/edit")
-    public String editTask(
-            @RequestParam Long id,
-            @RequestParam String taskName,
-            @RequestParam String description,
-            @RequestParam String status,
-            @RequestParam Long projectId,
-            @RequestParam Long assignedToUserId,
-            HttpSession session,
-            RedirectAttributes redirectAttributes
-    ) {
-        User manager = (User) session.getAttribute("user");
-        if (manager == null || !"Admin".equals(manager.getRole())) {
-            return "redirect:/login";
-        }
-
-        try {
-            Task existing = taskService.getTaskById(id);
-            existing.setTaskName(taskName);
-            existing.setDescription(description);
-            existing.setStatus(status);
-
-            existing.setProject(projectService.getById(projectId));
-
-            User tech = userService.getUserById(assignedToUserId);
-            existing.setAssignedTo(tech);
-
-            taskService.saveTask(existing);
-            redirectAttributes.addFlashAttribute("message","Task updated successfully");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error","Failed to update task: " + e.getMessage());
-        }
-        return "redirect:/admin/tasks";
-    }
-
-    /**
-     * GET /admin/tasks/delete/{id}
-     */
-    @GetMapping("/delete/{id}")
-    public String deleteTask(
-            @PathVariable Long id,
-            HttpSession session,
-            RedirectAttributes redirectAttributes
-    ) {
-        User user = (User) session.getAttribute("user");
-        if (user == null || !"Admin".equals(user.getRole())) {
-            return "redirect:/login";
-        }
-        taskService.deleteTask(id);
-        redirectAttributes.addFlashAttribute("message","Task deleted");
-        return "redirect:/admin/tasks";
-    }
-
-    /**
-     * POST /admin/tasks/assign-ticket
-     *
-     * This handles “Assign a Ticket → Technician”. We consume the TicketAssignmentDto,
-     * validate it, then set assignedToUserId on the Ticket and advance its stage.
-     */
     @PostMapping("/assign-ticket")
     public String assignTicketToTechnician(
             @Valid @ModelAttribute("ticketAssignment") TicketAssignmentDto dto,
@@ -201,11 +97,6 @@ public class AdminTaskController {
             return "redirect:/login";
         }
 
-        if (bindingResult.hasErrors()) {
-            // On validation errors, re‐load the same “/admin/tasks” page:
-            showTasks(session, model);
-            return "admin/tasks";
-        }
 
         Long ticketId     = dto.getTicketId();
         Long technicianId = dto.getTechnicianId();
@@ -215,11 +106,11 @@ public class AdminTaskController {
 
         if (ticket == null) {
             redirectAttributes.addFlashAttribute("error", "Selected ticket not found.");
-            return "redirect:/admin/tasks";
+            return "redirect:/admin/tickets";
         }
         if (tech == null || !"Technician".equals(tech.getRole())) {
             redirectAttributes.addFlashAttribute("error", "Selected user is not a technician.");
-            return "redirect:/admin/tasks";
+            return "redirect:/admin/tickets";
         }
 
         // Assign the technician’s ID
@@ -234,6 +125,6 @@ public class AdminTaskController {
                 "message",
                 "Ticket #" + ticket.getId() + " has been assigned to “" + tech.getUsername() + "”"
         );
-        return "redirect:/admin/tasks";
+        return "redirect:/admin/tickets";
     }
 }

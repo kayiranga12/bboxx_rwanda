@@ -1001,6 +1001,34 @@
     color: #ddd;
 }
 
+/* Download button styles */
+.dropdown-item:hover {
+    background-color: var(--bboxx-orange);
+    color: white;
+}
+
+/* Loading spinner styles */
+.spinner-border-sm {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-width: 0.125em;
+}
+
+.spinner-border {
+    display: inline-block;
+    vertical-align: text-bottom;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Responsive improvements */
 @media (max-width: 768px) {
     .timeline-controls {
@@ -1128,16 +1156,21 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/manager/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/manager/kanban" class="nav-link">
                     <i class="fas fa-columns"></i>
                     <span>Kanban Board</span>
                 </a>
             </li>
-
             <li class="nav-item">
-                <a href="/manager/reports" class="nav-link">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reports</span>
+                <a href="/zones/manager" class="nav-link">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Service Areas</span>
                 </a>
             </li>
             <li class="nav-item mt-auto">
@@ -1207,7 +1240,7 @@
                 <h1 class="page-title">Project Manager Dashboard</h1>
                 <p class="page-subtitle">Manage your solar energy projects across Rwanda with real-time insights</p>
             </div>
-            <div class="header-actions">
+                <div class="header-actions">
                 <a href="/manager/reports/export" class="header-btn">
                     <i class="fas fa-download"></i>
                     Export Data
@@ -1257,8 +1290,6 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a class="dropdown-item" href="#">Export as PNG</a>
-                            <a class="dropdown-item" href="#">View Details</a>
-                            <a class="dropdown-item" href="#">Configure</a>
                         </div>
                     </div>
                 </div>
@@ -1276,8 +1307,6 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a class="dropdown-item" href="#">Export as PNG</a>
-                            <a class="dropdown-item" href="#">View Details</a>
-                            <a class="dropdown-item" href="#">Configure</a>
                         </div>
                     </div>
                 </div>
@@ -1291,12 +1320,13 @@
             <div class="activity-section">
                 <div class="activity-header">
                     <h3>Project Timeline & Duration</h3>
-                    <div class="chart-controls">
-                        <select id="timelineView" class="form-select form-select-sm" style="width: auto;">
-                            <option value="month">Month View</option>
-                            <option value="quarter">Quarter View</option>
-                            <option value="year">Year View</option>
-                        </select>
+                    <div class="chart-menu">
+                        <button class="chart-menu-btn" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="#" id="timelineExportBtn">Export as PNG</a>
+                        </div>
                     </div>
                 </div>
                 <div class="chart-container" style="height: 400px; position: relative;">
@@ -1736,7 +1766,121 @@
         if (projectTimelineChart) projectTimelineChart.resize();
     });
 
-    // Rest of your existing JavaScript code...
+    /// Chart PNG Download Functions
+function downloadChartAsPNG(chartInstance, filename) {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = chartInstance.toBase64Image('image/png', 1.0);
+    link.click();
+}
+
+// Alert function for success message
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Add event listeners for chart downloads
+function setupChartDownloads() {
+    // Get all dropdown items that contain "Export as PNG"
+    const exportButtons = document.querySelectorAll('.dropdown-item');
+
+    exportButtons.forEach(button => {
+        if (button.textContent.trim() === 'Export as PNG') {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Find which chart this button belongs to
+                const chartCard = this.closest('.chart-card') || this.closest('.activity-section');
+                const chartCanvas = chartCard.querySelector('canvas');
+
+                if (!chartCanvas) {
+                    showAlert('Chart not found!', 'error');
+                    return;
+                }
+
+                // Add loading state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>Exporting...';
+
+                // Small delay to show loading state
+                setTimeout(() => {
+                    let chartInstance = null;
+                    let filename = '';
+
+                    // Determine which chart instance to use based on canvas ID
+                    if (chartCanvas.id === 'taskCompletionChart') {
+                        chartInstance = taskCompletionChart;
+                        filename = 'task-completion-chart.png';
+                    } else if (chartCanvas.id === 'projectStatusChart') {
+                        chartInstance = projectStatusChart;
+                        filename = 'project-status-chart.png';
+                    } else if (chartCanvas.id === 'projectTimelineChart') {
+                        chartInstance = projectTimelineChart;
+                        filename = 'project-timeline-chart.png';
+                    }
+
+                    if (chartInstance) {
+                        downloadChartAsPNG(chartInstance, filename);
+                        showAlert('Chart downloaded successfully!', 'success');
+                    } else {
+                        showAlert('Chart instance not found!', 'error');
+                    }
+
+                    // Restore button text
+                    this.innerHTML = originalText;
+                }, 500);
+            });
+        }
+    });
+}
+
+// Sidebar Toggle (add this if it's missing)
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+const mainContent = document.getElementById('mainContent');
+
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+    });
+}
+
+// Mobile sidebar
+if (window.innerWidth <= 768) {
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+    }
+}
+
+// Update the existing DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+
+    // Setup chart downloads after charts are initialized
+    setTimeout(() => {
+        setupChartDownloads();
+    }, 1000);
+
+    // Handle timeline view changes
+    document.getElementById('timelineView')?.addEventListener('change', function() {
+        initializeProjectTimelineChart();
+    });
+});
 </script>
 </body>
 </html>

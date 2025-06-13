@@ -760,6 +760,34 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--bboxx-dark-orange);
         }
+        .project-actions {
+         flex-direction: column;
+        }
+        .project-actions {
+          display: flex;
+          gap: 0.5rem;
+         }
+         {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .btn-view {
+      background: rgba(255, 0, 0, 0.5);
+      color: var(--bboxx-blue);
+    }
+
+    .btn-view:hover {
+      background: var(--bboxx-blue);
+      color: white;
+    }
     </style>
 </head>
 <body>
@@ -807,6 +835,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/admin/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/admin/inventory" class="nav-link">
                     <i class="fas fa-boxes"></i>
                     <span>Inventory</span>
@@ -816,12 +850,6 @@
                 <a href="/admin/zones" class="nav-link">
                     <i class="fas fa-map-marked-alt"></i>
                     <span>Service Areas</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/admin/reports" class="nav-link">
-                    <i class="fa-solid fa-file"></i>
-                    <span>Reports</span>
                 </a>
             </li>
             <li class="nav-item mt-auto">
@@ -1034,27 +1062,6 @@
                                             </label>
                                         </div>
                                     </div>
-
-                                    <!-- Attachments -->
-                                    <div class="col-12">
-                                        <label for="files" class="form-label">Attachments (optional)</label>
-                                        <div class="input-group">
-                        <span class="input-group-text bg-light">
-                            <i class="fas fa-paperclip text-primary"></i>
-                        </span>
-                                            <input type="file"
-                                                   name="files"
-                                                   multiple
-                                                   accept="image/*,application/pdf"
-                                                   class="form-control"
-                                                   id="files"/>
-                                        </div>
-                                        <div class="form-text mt-1">
-                                            <i class="fas fa-info-circle text-primary me-1"></i>
-                                            Upload photos or ID docs (max. 10MB each).
-                                        </div>
-                                    </div>
-
                                     <!-- Submit buttons -->
                                     <div class="col-12 text-end">
                                         <button type="reset" class="btn btn-light me-2">
@@ -1090,7 +1097,7 @@
                                         <th>Phone</th>
                                         <th>Plan</th>
                                         <th>Status</th>
-                                        <th>Attachments</th>
+                                        <th>Action</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -1108,6 +1115,7 @@
                                         </td>
                                         <td>
                                             <a href="#" class="text-decoration-none" th:text="${c.phoneNumber}">Phone</a>
+                                            <small class="text-muted" th:text="${c.email}">Email</small>
                                         </td>
                                         <td>
                                                 <span th:class="${'badge bg-' +
@@ -1124,32 +1132,15 @@
                                                 </span>
                                         </td>
                                         <td>
-                                            <div class="d-flex">
-                                                <div th:each="doc, docStat : ${@documentService.getByRef('CUSTOMER', c.id)}"
-                                                     class="position-relative me-1"
-                                                     th:if="${docStat.index < 3}">
-                                                    <img th:if="${doc.contentType.startsWith('image/')}"
-                                                         th:src="@{/attachments/{id}(id=${doc.id})}"
-                                                         class="img-thumbnail" style="height:40px; width:40px; object-fit:cover;"/>
-                                                    <a th:if="${!doc.contentType.startsWith('image/')}"
-                                                       th:href="@{/attachments/{id}(id=${doc.id})}"
-                                                       class="badge bg-secondary d-flex align-items-center justify-content-center"
-                                                       style="height:40px; width:40px">
-                                                        <i class="fas fa-file-pdf"></i>
-                                                    </a>
-                                                </div>
-                                                <div th:if="${#lists.size(@documentService.getByRef('CUSTOMER', c.id)) > 3}"
-                                                     class="badge rounded-circle bg-light text-primary d-flex align-items-center justify-content-center"
-                                                     style="height:40px; width:40px">
-                                                    +<span th:text="${#lists.size(@documentService.getByRef('CUSTOMER', c.id)) - 3}"></span>
-                                                </div>
-                                                <div th:if="${#lists.isEmpty(@documentService.getByRef('CUSTOMER', c.id))}"
-                                                     class="text-muted small">
-                                                    <i class="fas fa-ban me-1"></i>None
-                                                </div>
+                                            <div class="project-actions">
+                                                <a th:href="@{/admin/customers/delete/{id}(id=${c.id})}"
+                                                   class="action-btn btn-view">
+                                                    <i class="fa fa-trash"></i>
+                                                    <span class="d-none d-lg-inline"></span>
+                                                </a>
                                             </div>
                                         </td>
-                                    </tr>
+
                                     <tr th:if="${#lists.isEmpty(customers)}">
                                         <td colspan="5" class="text-center p-4">
                                             <div class="text-muted">
@@ -1166,8 +1157,8 @@
                         <div class="card-footer bg-light p-2">
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted">Showing all registered customers</small>
-                                <a href="#" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-download me-1"></i>Export
+                                <a href="#" id="exportCustomersCSV" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download me-1"></i>Export CSV
                                 </a>
                             </div>
                         </div>
@@ -1219,6 +1210,138 @@
             });
         }, false);
     })();
+
+    // Sidebar Toggle functionality (keep your existing code)
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+const mainContent = document.getElementById('mainContent');
+
+sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('expanded');
+});
+
+// Mobile sidebar
+if (window.innerWidth <= 768) {
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+    });
+}
+
+// CSV Download Functionality for Customers
+function downloadCustomersAsCSV() {
+    const table = document.querySelector('.table');
+    const rows = table.querySelectorAll('tbody tr');
+    const csvContent = [];
+
+    // CSV Headers
+    const headers = ['Full Name', 'Address', 'Phone Number', 'Email', 'Energy Plan', 'Payment Status'];
+    csvContent.push(headers.join(','));
+
+    // Get data rows
+    rows.forEach(row => {
+        // Skip empty state row
+        if (row.querySelector('.text-muted') && row.querySelector('.fa-info-circle')) {
+            return;
+        }
+
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 0) {
+            const rowData = [];
+
+            // Name and Address (first column)
+            const nameCell = cells[0];
+            const fullName = nameCell.querySelector('.fw-bold')?.textContent.trim() || '';
+            const address = nameCell.querySelector('.text-muted')?.textContent.trim() || '';
+            rowData.push(`"${fullName}"`);
+            rowData.push(`"${address}"`);
+
+            // Phone and Email (second column)
+            const contactCell = cells[1];
+            const phone = contactCell.querySelector('a')?.textContent.trim() || '';
+            const email = contactCell.querySelector('.text-muted')?.textContent.trim() || '';
+            rowData.push(`"${phone}"`);
+            rowData.push(`"${email}"`);
+
+            // Energy Plan (third column)
+            const planCell = cells[2];
+            const plan = planCell.querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${plan}"`);
+
+            // Payment Status (fourth column)
+            const statusCell = cells[3];
+            const statusBadge = statusCell.querySelector('.badge');
+            let status = '';
+            if (statusBadge) {
+                if (statusBadge.classList.contains('bg-success')) {
+                    status = 'Paid';
+                } else if (statusBadge.classList.contains('bg-warning')) {
+                    status = 'Pending';
+                }
+            }
+            rowData.push(`"${status}"`);
+
+            csvContent.push(rowData.join(','));
+        }
+    });
+
+    // Create and download CSV file
+    const csvString = csvContent.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `customers_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+// Alert function for success message
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Add event listener for export button
+document.addEventListener('DOMContentLoaded', function() {
+    const exportBtn = document.getElementById('exportCustomersCSV');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Add loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>Exporting...';
+            this.disabled = true;
+
+            // Small delay to show loading state
+            setTimeout(() => {
+                downloadCustomersAsCSV();
+                this.innerHTML = originalText;
+                this.disabled = false;
+
+                // Show success message
+                showAlert('Customer data exported successfully!', 'success');
+            }, 500);
+        });
+    }
+});
 </script>
 </body>
 </html>

@@ -83,4 +83,10 @@ public class AdminProjectController {
         return "redirect:/admin/projects";
     }
 
+    @GetMapping("/delete/{id}")
+    public String deleteProject(@PathVariable Long id, HttpSession session) {
+        projectService.deleteProject(id);
+        return "redirect:/admin/projects";
+    }
+
 }

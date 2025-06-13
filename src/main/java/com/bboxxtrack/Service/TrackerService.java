@@ -17,4 +17,8 @@ public class TrackerService {
     public List<Tracker> getByUser(Long userId) {
         return repo.findAllByUserIdOrderByTimestampDesc(userId);
     }
+
+    public List<Tracker> getAll() {
+        return repo.findAllByOrderByTimestampDesc();
+    }
 }

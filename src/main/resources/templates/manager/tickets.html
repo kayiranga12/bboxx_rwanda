@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Support Tickets – Project Manager | BBOXXTrack</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+        --bboxx-orange: #FF6B35;
+        --bboxx-dark-orange: #E85A2B;
+        --bboxx-blue: #1B365D;
+        --bboxx-dark-blue: #0F1F35;
+        --bboxx-light-blue: #2E5984;
+        --bboxx-green: #4CAF50;
+        --bboxx-yellow: #FFC107;
+        --bboxx-red: #DC3545;
+        --bboxx-gray: #F8F9FA;
+        --bboxx-dark-gray: #333333;
+        --sidebar-width: 280px;
+        --header-height: 70px;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        background: var(--bboxx-gray);
+        color: var(--bboxx-dark-gray);
+        overflow-x: hidden;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: var(--sidebar-width);
+        height: 100vh;
+        background: linear-gradient(180deg, var(--bboxx-blue) 0%, var(--bboxx-dark-blue) 100%);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.collapsed {
+        width: 80px;
+    }
+
+    .user-badge {
+        background: rgba(255, 107, 53, 0.2);
+        border: 1px solid rgba(255, 107, 53, 0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+
+    .sidebar.collapsed .user-badge {
+        display: none;
+    }
+
+    .sidebar-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+
+    .logo {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 900;
+        text-decoration: none;
+        display: block;
+        transition: all 0.3s ease;
+    }
+
+    .logo .track {
+        color: var(--bboxx-orange);
+        font-weight: 400;
+    }
+
+    .sidebar-menu {
+        padding: 1rem 0;
+        height: calc(100vh - 140px);
+        overflow-y: auto;
+    }
+
+    .sidebar-menu::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sidebar-menu::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-menu::-webkit-scrollbar-thumb {
+        background: var(--bboxx-orange);
+        border-radius: 2px;
+    }
+
+    .nav-item {
+        margin: 0.2rem 1rem;
+    }
+
+    .nav-link {
+        color: rgba(255, 255, 255, 0.8) !important;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+        transition: left 0.5s;
+    }
+
+    .nav-link:hover::before {
+        left: 100%;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+        background: rgba(255, 107, 53, 0.15);
+        color: white !important;
+        transform: translateX(5px);
+    }
+
+    .nav-link.active {
+        background: var(--bboxx-orange);
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    }
+
+    .nav-link i {
+        width: 20px;
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+    }
+
+    .sidebar.collapsed .nav-link span {
+        display: none;
+    }
+
+    .sidebar.collapsed .nav-link {
+        justify-content: center;
+        margin: 0.2rem 0.5rem;
+    }
+
+    .sidebar.collapsed .nav-link i {
+        margin-right: 0;
+    }
+
+    /* Main Content */
+    .main-content {
+        margin-left: var(--sidebar-width);
+        transition: all 0.3s ease;
+        min-height: 100vh;
+    }
+
+    .main-content.expanded {
+        margin-left: 80px;
+    }
+
+    /* Top Navigation */
+    .top-navbar {
+        background: white;
+        height: var(--header-height);
+        padding: 0 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 999;
+    }
+
+    .navbar-left {
+        display: flex;
+        align-items: center;
+    }
+
+    .sidebar-toggle {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: var(--bboxx-dark-gray);
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin-right: 1rem;
+    }
+
+    .sidebar-toggle:hover {
+        background: var(--bboxx-gray);
+        color: var(--bboxx-orange);
+    }
+
+    .search-box {
+        position: relative;
+        width: 350px;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.6rem 1rem 0.6rem 2.5rem;
+        border: 2px solid #E1E5E9;
+        border-radius: 25px;
+        background: #F8F9FA;
+        transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        border-color: var(--bboxx-orange);
+        background: white;
+        box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+        outline: none;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+    }
+
+    .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .quick-action-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        background: var(--bboxx-gray);
+        color: var(--bboxx-dark-gray);
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .quick-action-btn:hover {
+        background: var(--bboxx-orange);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .notifications {
+        position: relative;
+    }
+
+    .notification-btn {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: var(--bboxx-dark-gray);
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .notification-btn:hover {
+        background: var(--bboxx-gray);
+        color: var(--bboxx-orange);
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: var(--bboxx-red);
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .user-menu {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .user-menu:hover {
+        background: var(--bboxx-gray);
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--bboxx-orange), #E85A2B);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--bboxx-dark-gray);
+    }
+
+    .user-role {
+        font-size: 0.75rem;
+        color: #666;
+    }
+
+    /* Main Content Area */
+    .dashboard-content {
+        padding: 2rem;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        background: white;
+        padding: 1.5rem 2rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--bboxx-dark-blue);
+        margin: 0;
+    }
+
+    .page-subtitle {
+        color: #666;
+        font-size: 0.95rem;
+        margin-top: 0.25rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .header-btn {
+        padding: 0.6rem 1.2rem;
+        border: 2px solid var(--bboxx-orange);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--bboxx-orange);
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .header-btn.primary {
+        background: var(--bboxx-orange);
+        color: white;
+    }
+
+    .header-btn:hover {
+        background: var(--bboxx-orange);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stats-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .stats-icon.primary {
+        background: rgba(255, 107, 53, 0.1);
+        color: var(--bboxx-orange);
+    }
+
+    .stats-icon.success {
+        background: rgba(76, 175, 80, 0.1);
+        color: var(--bboxx-green);
+    }
+
+    .stats-icon.warning {
+        background: rgba(255, 193, 7, 0.1);
+        color: var(--bboxx-yellow);
+    }
+
+    .stats-icon.info {
+        background: rgba(27, 54, 93, 0.1);
+        color: var(--bboxx-blue);
+    }
+
+    .stats-icon.danger {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--bboxx-red);
+    }
+
+    .stats-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--bboxx-dark-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-label {
+        font-size: 0.95rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .stats-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        margin-top: 0.75rem;
+    }
+
+    .trend-up {
+        color: var(--bboxx-green);
+    }
+
+    .trend-down {
+        color: var(--bboxx-red);
+    }
+
+    /* Project Cards */
+    .projects-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .project-list {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #E1E5E9;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--bboxx-dark-blue);
+    }
+
+    .project-card {
+        border: 1px solid #E1E5E9;
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        background: white;
+    }
+
+    .project-card:hover {
+        border-color: var(--bboxx-orange);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .project-title {
+        font-weight: 600;
+        color: var(--bboxx-dark-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .project-location {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .project-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .status-ongoing {
+        background: rgba(255, 193, 7, 0.1);
+        color: var(--bboxx-yellow);
+    }
+
+    .status-completed {
+        background: rgba(76, 175, 80, 0.1);
+        color: var(--bboxx-green);
+    }
+
+    .status-upcoming {
+        background: rgba(27, 54, 93, 0.1);
+        color: var(--bboxx-blue);
+    }
+
+    .status-delayed {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--bboxx-red);
+    }
+
+    .project-progress {
+        margin-bottom: 1rem;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .progress-percentage {
+        font-weight: 600;
+        color: var(--bboxx-dark-blue);
+    }
+
+    .progress-bar-container {
+        height: 8px;
+        background: #E1E5E9;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: var(--bboxx-orange);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .project-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .project-team {
+        display: flex;
+        gap: -0.5rem;
+    }
+
+    .team-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--bboxx-orange);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border: 2px solid white;
+        margin-left: -8px;
+    }
+
+    .team-avatar:first-child {
+        margin-left: 0;
+    }
+
+    /* Task Panel */
+    .task-panel {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .task-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .task-item:last-child {
+        border-bottom: none;
+    }
+
+    .task-checkbox {
+        margin-right: 1rem;
+    }
+
+    .task-content {
+        flex: 1;
+    }
+
+    .task-title {
+        font-weight: 500;
+        color: var(--bboxx-dark-gray);
+        margin-bottom: 0.25rem;
+    }
+
+    .task-meta {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .task-priority {
+        padding: 0.2rem 0.5rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        margin-left: 1rem;
+    }
+
+    .priority-high {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--bboxx-red);
+    }
+
+    .priority-medium {
+        background: rgba(255, 193, 7, 0.1);
+        color: var(--bboxx-yellow);
+    }
+
+    .priority-low {
+        background: rgba(76, 175, 80, 0.1);
+        color: var(--bboxx-green);
+    }
+
+    /* Charts Section */
+    .charts-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+
+    /* Timeline Section */
+    .timeline-section {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 1rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #E1E5E9;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -1.5rem;
+        top: 0.5rem;
+        width: 12px;
+        height: 12px;
+        background: var(--bboxx-orange);
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px var(--bboxx-orange);
+    }
+
+    .timeline-content {
+        background: #F8F9FA;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 3px solid var(--bboxx-orange);
+    }
+
+    .timeline-title {
+        font-weight: 600;
+        color: var(--bboxx-dark-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .timeline-text {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-time {
+        font-size: 0.8rem;
+        color: var(--bboxx-orange);
+        font-weight: 500;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .projects-section,
+        .charts-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 100%;
+            transform: translateX(-100%);
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+
+        .top-navbar {
+            padding: 0 1rem;
+        }
+
+        .search-box {
+            width: 200px;
+        }
+
+        .dashboard-content {
+            padding: 1rem;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .header-actions {
+            justify-content: center;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .user-info {
+            display: none;
+        }
+    }
+
+    /* Loading Animation */
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 107, 53, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--bboxx-orange);
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--bboxx-orange);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--bboxx-dark-orange);
+    }
+    .user-avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bboxx-orange), #E85A2B);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bboxx-orange), #E85A2B);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+    /* Download button styles */
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+}
+
+/* Loading spinner styles */
+.spinner-border-sm {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-width: 0.125em;
+}
+
+.spinner-border {
+    display: inline-block;
+    vertical-align: text-bottom;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+  </style>
+</head>
+<body>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a href="/manager/dashboard" class="logo">
+      BBOXX<span class="track">Track</span>
+    </a>
+    <div class="user-badge">
+      <i class="fas fa-tools me-1"></i>Project Manager
+    </div>
+  </div>
+
+  <div class="sidebar-menu">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a href="/manager/dashboard" class="nav-link">
+          <i class="fas fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/manager/projects" class="nav-link">
+          <i class="fas fa-project-diagram"></i>
+          <span>My Projects</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/manager/tasks" class="nav-link">
+          <i class="fas fa-tasks"></i>
+          <span>Task Management</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/manager/tickets" class="nav-link active">
+          <i class="fa-solid fa-ticket"></i>
+          <span>Support Tickets</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/manager/kanban" class="nav-link">
+          <i class="fas fa-columns"></i>
+          <span>Kanban Board</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/zones/manager" class="nav-link">
+          <i class="fas fa-map-marked-alt"></i>
+          <span>Service Areas</span>
+        </a>
+      </li>
+      <li class="nav-item mt-auto">
+        <a href="/logout" class="nav-link">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+  <!-- Top Navigation -->
+  <nav class="top-navbar">
+    <div class="navbar-left">
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search projects, tasks, team members...">
+      </div>
+    </div>
+
+    <div class="navbar-right">
+      <div class="quick-actions">
+        <a href="/manager/projects" class="quick-action-btn">
+          <i class="fas fa-plus"></i>
+          <span>New Project</span>
+        </a>
+        <a href="/manager/tasks" class="quick-action-btn">
+          <i class="fas fa-clipboard-list"></i>
+          <span>Assign Task</span>
+        </a>
+      </div>
+
+      <div class="user-menu" data-bs-toggle="dropdown">
+        <div class="user-avatar">PM</div>
+        <div class="user-info">
+          <div class="user-name">Project Manager</div>
+          <div class="user-role">Solar Project Manager</div>
+        </div>
+        <i class="fas fa-chevron-down ms-2"></i>
+        <div class="dropdown-menu dropdown-menu-end">
+          <a class="dropdown-item" href="/manager/profile">
+            <i class="fas fa-user me-2"></i> My Profile
+          </a>
+          <a class="dropdown-item" href="/manager/settings">
+            <i class="fas fa-cog me-2"></i> Settings
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="/logout">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid px-4 py-4">
+    <h2 class="mb-4">Support Tickets</h2>
+
+    <!-- Feedback messages -->
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <!-- ─────────────── Assign Unassigned Ticket ─────────────── -->
+    <div class="card mt-4">
+      <div class="card-header bg-warning text-white">
+        <i class="fas fa-tasks me-2"></i>Assign Unassigned Ticket
+      </div>
+      <div class="card-body">
+        <form th:action="@{/manager/tasks/assign-ticket}"
+              th:object="${ticketAssignment}"
+              method="post"
+              class="row g-3">
+
+          <div class="col-md-6">
+            <label class="form-label">Unassigned Ticket</label>
+            <select th:field="*{ticketId}" class="form-select" required>
+              <option value="" disabled>-- Select Ticket --</option>
+              <option th:each="t : ${unassignedTickets}"
+                      th:value="${t.id}"
+                      th:text="${'#' + t.id + ' – ' + t.title}">
+              </option>
+            </select>
+            <div th:if="${#fields.hasErrors('ticketId')}"
+                 th:errors="*{ticketId}"
+                 class="text-danger small"></div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Technician</label>
+            <select th:field="*{technicianId}" class="form-select" required>
+              <option value="" disabled>-- Select Technician --</option>
+              <option th:each="tech : ${technicians}"
+                      th:value="${tech.id}"
+                      th:text="${tech.username}">
+              </option>
+            </select>
+            <div th:if="${#fields.hasErrors('technicianId')}"
+                 th:errors="*{technicianId}"
+                 class="text-danger small"></div>
+          </div>
+
+          <div class="col-12 text-end">
+            <button type="submit" class="btn btn-warning">
+              <i class="fas fa-paper-plane me-1"></i>Assign
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- Unassigned Tickets Table -->
+    <div class="card mt-4">
+      <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+    <span>
+        <i class="fas fa-exclamation-triangle me-2"></i>Unassigned Tickets
+        <span class="badge bg-light text-dark ms-2" th:text="${#lists.size(unassignedTickets)}">0</span>
+    </span>
+        <button id="downloadUnassignedCSV" class="btn btn-outline-light btn-sm">
+          <i class="fas fa-download me-1"></i>Export CSV
+        </button>
+      </div>
+      <div class="card-body">
+        <div th:if="${#lists.isEmpty(unassignedTickets)}" class="text-center text-muted py-4">
+          <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+          <h5>No Unassigned Tickets</h5>
+          <p class="mb-0">All tickets have been assigned to technicians.</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(unassignedTickets)}" class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+            <tr>
+              <th>Ticket ID</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Urgency</th>
+              <th>Customer</th>
+              <th>Location</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="ticket : ${unassignedTickets}">
+              <td>
+                <span class="badge bg-secondary" th:text="'#' + ${ticket.id}">#001</span>
+              </td>
+              <td>
+                <div class="fw-bold" th:text="${ticket.title}">Sample Ticket Title</div>
+                <small class="text-muted" th:text="${#strings.abbreviate(ticket.description, 50)}">
+                  Sample description...
+                </small>
+              </td>
+              <td>
+                <span class="badge bg-primary" th:text="${ticket.category}">INSTALLATION</span>
+              </td>
+              <td>
+                            <span th:class="'badge ' + (${ticket.priority?.name()} == 'HIGH' ? 'bg-danger' :
+                                           (${ticket.priority?.name()} == 'MEDIUM' ? 'bg-warning' : 'bg-success'))"
+                                  th:text="${ticket.priority ?: 'NORMAL'}">HIGH</span>
+              </td>
+              <td>
+                            <span th:class="'badge ' + (${ticket.urgency?.name()} == 'URGENT' ? 'bg-danger' :
+                                           (${ticket.urgency?.name()} == 'HIGH' ? 'bg-warning' : 'bg-info'))"
+                                  th:text="${ticket.urgency ?: 'NORMAL'}">URGENT</span>
+              </td>
+              <td>
+                <div class="fw-bold" th:text="${ticket.customer.fullName}">Customer Name</div>
+                <small class="text-muted" th:text="${ticket.contactNumber}">+250-XXX-XXX</small>
+              </td>
+              <td>
+                <i class="fas fa-map-marker-alt text-muted me-1"></i>
+                <span th:text="${ticket.location ?: 'Not specified'}">Kigali, Rwanda</span>
+              </td>
+              <td>
+                <div th:text="${#temporals.format(ticket.createdAt, 'MMM dd')}">Jan 15</div>
+                <small class="text-muted" th:text="${#temporals.format(ticket.createdAt, 'HH:mm')}">14:30</small>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary"
+                        data-bs-toggle="modal"
+                        th:data-bs-target="'#assignModal' + ${ticket.id}"
+                        title="Assign to Technician">
+                  <i class="fas fa-user-plus"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-info ms-1"
+                        data-bs-toggle="modal"
+                        th:data-bs-target="'#viewModal' + ${ticket.id}"
+                        title="View Details">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assignment Modals for each unassigned ticket -->
+    <div th:each="ticket : ${unassignedTickets}">
+      <!-- Assign Modal -->
+      <div class="modal fade" th:id="'assignModal' + ${ticket.id}" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form th:action="@{/manager/tasks/assign-ticket}" method="post">
+              <input type="hidden" name="ticketId" th:value="${ticket.id}">
+              <div class="modal-header">
+                <h5 class="modal-title">
+                  <i class="fas fa-user-plus me-2"></i>
+                  Assign Ticket <span class="badge bg-secondary" th:text="'#' + ${ticket.id}">#001</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <!-- Ticket Summary -->
+                <div class="card bg-light mb-3">
+                  <div class="card-body">
+                    <h6 class="card-title" th:text="${ticket.title}">Ticket Title</h6>
+                    <p class="card-text small text-muted" th:text="${ticket.description}">Ticket description...</p>
+                    <div class="row">
+                      <div class="col-6">
+                        <small><strong>Category:</strong> <span th:text="${ticket.category}">INSTALLATION</span></small>
+                      </div>
+                      <div class="col-6">
+                        <small><strong>Priority:</strong> <span th:text="${ticket.priority ?: 'NORMAL'}">HIGH</span></small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Technician Selection -->
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="fas fa-user me-1"></i>Assign to Technician
+                  </label>
+                  <select name="technicianId" class="form-select" required>
+                    <option value="" disabled selected>-- Select Technician --</option>
+                    <option th:each="tech : ${technicians}"
+                            th:value="${tech.id}"
+                            th:text="${tech.username}">
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-check me-1"></i>Assign Ticket
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- View Details Modal -->
+      <div class="modal fade" th:id="'viewModal' + ${ticket.id}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="fas fa-ticket-alt me-2"></i>
+                Ticket Details <span class="badge bg-secondary" th:text="'#' + ${ticket.id}">#001</span>
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="text-muted">Basic Information</h6>
+                  <table class="table table-sm">
+                    <tr>
+                      <td><strong>Title:</strong></td>
+                      <td th:text="${ticket.title}">Sample Title</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Category:</strong></td>
+                      <td>
+                        <span class="badge bg-primary" th:text="${ticket.category}">INSTALLATION</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Priority:</strong></td>
+                      <td>
+                                        <span th:class="'badge ' + (${ticket.priority?.name()} == 'HIGH' ? 'bg-danger' :
+                                                       (${ticket.priority?.name()} == 'MEDIUM' ? 'bg-warning' : 'bg-success'))"
+                                              th:text="${ticket.priority ?: 'NORMAL'}">HIGH</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Urgency:</strong></td>
+                      <td>
+                                        <span th:class="'badge ' + (${ticket.urgency?.name()} == 'URGENT' ? 'bg-danger' :
+                                                       (${ticket.urgency?.name()} == 'HIGH' ? 'bg-warning' : 'bg-info'))"
+                                              th:text="${ticket.urgency ?: 'NORMAL'}">URGENT</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Stage:</strong></td>
+                      <td>
+                        <span class="badge bg-warning" th:text="${ticket.stage}">CREATED</span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-muted">Customer & Location</h6>
+                  <table class="table table-sm">
+                    <tr>
+                      <td><strong>Customer:</strong></td>
+                      <td th:text="${ticket.customer.fullName}">Customer Name</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Contact:</strong></td>
+                      <td th:text="${ticket.contactNumber}">+250-XXX-XXX</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Location:</strong></td>
+                      <td th:text="${ticket.location ?: 'Not specified'}">Kigali, Rwanda</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Created:</strong></td>
+                      <td th:text="${#temporals.format(ticket.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-15 14:30</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-12">
+                  <h6 class="text-muted">Description</h6>
+                  <div class="border rounded p-3 bg-light">
+                    <p class="mb-0" th:text="${ticket.description}">
+                      Detailed description of the ticket issue...
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary"
+                      data-bs-dismiss="modal"
+                      data-bs-toggle="modal"
+                      th:data-bs-target="'#assignModal' + ${ticket.id}">
+                <i class="fas fa-user-plus me-1"></i>Assign to Technician
+              </button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assigned Tickets Table -->
+    <div class="card mt-4">
+      <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+    <span>
+        <i class="fas fa-user-check me-2"></i>Assigned Tickets
+        <span class="badge bg-light text-dark ms-2" th:text="${#lists.size(assignedTickets)}">0</span>
+    </span>
+        <button id="downloadAssignedCSV" class="btn btn-outline-light btn-sm">
+          <i class="fas fa-download me-1"></i>Export CSV
+        </button>
+      </div>
+      <div class="card-body">
+        <div th:if="${#lists.isEmpty(assignedTickets)}" class="text-center text-muted py-4">
+          <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+          <h5>No Assigned Tickets</h5>
+          <p class="mb-0">No tickets have been assigned to technicians yet.</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(assignedTickets)}" class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+            <tr>
+              <th>Ticket ID</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Stage</th>
+              <th>Assigned To</th>
+              <th>Customer</th>
+              <th>Location</th>
+              <th>Assigned Date</th>
+              <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="ticket : ${assignedTickets}">
+              <td>
+                <span class="badge bg-success" th:text="'#' + ${ticket.id}">#001</span>
+              </td>
+              <td>
+                <div class="fw-bold" th:text="${ticket.title}">Sample Ticket Title</div>
+                <small class="text-muted" th:text="${#strings.abbreviate(ticket.description, 50)}">
+                  Sample description...
+                </small>
+              </td>
+              <td>
+                <span class="badge bg-primary" th:text="${ticket.category}">INSTALLATION</span>
+              </td>
+              <td>
+                            <span th:class="'badge ' + (${ticket.priority?.name()} == 'HIGH' ? 'bg-danger' :
+                                           (${ticket.priority?.name()} == 'MEDIUM' ? 'bg-warning' : 'bg-success'))"
+                                  th:text="${ticket.priority ?: 'NORMAL'}">HIGH</span>
+              </td>
+              <td>
+                            <span th:class="'badge ' + (${ticket.stage?.name()} == 'COMPLETED' ? 'bg-success' :
+                                           (${ticket.stage?.name()} == 'IN_PROGRESS' ? 'bg-warning' :
+                                           (${ticket.stage?.name()} == 'ASSIGNED' ? 'bg-info' : 'bg-secondary')))"
+                                  th:text="${ticket.stage}">ASSIGNED</span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="user-avatar-sm me-2">
+                    <span th:text="${#strings.substring(techNames[ticket.assignedToUserId], 0, 2).toUpperCase()}">TN</span>
+                  </div>
+                  <div>
+                    <div class="fw-bold small" th:text="${techNames[ticket.assignedToUserId]}">Technician Name</div>
+                    <small class="text-muted">Technician</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="fw-bold" th:text="${ticket.customer.fullName}">Customer Name</div>
+                <small class="text-muted" th:text="${ticket.contactNumber}">+250-XXX-XXX</small>
+              </td>
+              <td>
+                <i class="fas fa-map-marker-alt text-muted me-1"></i>
+                <span th:text="${ticket.location ?: 'Not specified'}">Kigali, Rwanda</span>
+              </td>
+              <td>
+                <div th:text="${#temporals.format(ticket.updatedAt, 'MMM dd')}">Jan 15</div>
+                <small class="text-muted" th:text="${#temporals.format(ticket.updatedAt, 'HH:mm')}">14:30</small>
+              </td>
+              <td>
+                <div class="btn-group" role="group">
+                  <button class="btn btn-sm btn-outline-info"
+                          data-bs-toggle="modal"
+                          th:data-bs-target="'#viewAssignedModal' + ${ticket.id}"
+                          title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modals for assigned tickets -->
+    <div th:each="ticket : ${assignedTickets}">
+      <!-- View Details Modal -->
+      <div class="modal fade" th:id="'viewAssignedModal' + ${ticket.id}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="fas fa-ticket-alt me-2"></i>
+                Assigned Ticket Details <span class="badge bg-success" th:text="'#' + ${ticket.id}">#001</span>
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Assignment Info Card -->
+              <div class="card bg-light mb-3">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h6 class="text-muted mb-2">
+                        <i class="fas fa-user me-1"></i>Assigned To
+                      </h6>
+                      <div class="d-flex align-items-center">
+                        <div class="user-avatar me-2">
+                          <span th:text="${#strings.substring(techNames[ticket.assignedToUserId], 0, 2).toUpperCase()}">TN</span>
+                        </div>
+                        <div>
+                          <div class="fw-bold" th:text="${techNames[ticket.assignedToUserId]}">Technician Name</div>
+                          <small class="text-muted">Solar Technician</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <h6 class="text-muted mb-2">
+                        <i class="fas fa-clock me-1"></i>Assignment Date
+                      </h6>
+                      <div th:text="${#temporals.format(ticket.updatedAt, 'yyyy-MM-dd HH:mm')}">2025-01-15 14:30</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="text-muted">Basic Information</h6>
+                  <table class="table table-sm">
+                    <tr>
+                      <td><strong>Title:</strong></td>
+                      <td th:text="${ticket.title}">Sample Title</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Category:</strong></td>
+                      <td>
+                        <span class="badge bg-primary" th:text="${ticket.category}">INSTALLATION</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Priority:</strong></td>
+                      <td>
+                                        <span th:class="'badge ' + (${ticket.priority?.name()} == 'HIGH' ? 'bg-danger' :
+                                                       (${ticket.priority?.name()} == 'MEDIUM' ? 'bg-warning' : 'bg-success'))"
+                                              th:text="${ticket.priority ?: 'NORMAL'}">HIGH</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Urgency:</strong></td>
+                      <td>
+                                        <span th:class="'badge ' + (${ticket.urgency?.name()} == 'URGENT' ? 'bg-danger' :
+                                                       (${ticket.urgency?.name()} == 'HIGH' ? 'bg-warning' : 'bg-info'))"
+                                              th:text="${ticket.urgency ?: 'NORMAL'}">URGENT</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Stage:</strong></td>
+                      <td>
+                                        <span th:class="'badge ' + (${ticket.stage?.name()} == 'COMPLETED' ? 'bg-success' :
+                                                       (${ticket.stage?.name()} == 'IN_PROGRESS' ? 'bg-warning' :
+                                                       (${ticket.stage?.name()} == 'ASSIGNED' ? 'bg-info' : 'bg-secondary')))"
+                                              th:text="${ticket.stage}">ASSIGNED</span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-muted">Customer & Location</h6>
+                  <table class="table table-sm">
+                    <tr>
+                      <td><strong>Customer:</strong></td>
+                      <td th:text="${ticket.customer.fullName}">Customer Name</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Contact:</strong></td>
+                      <td th:text="${ticket.contactNumber}">+250-XXX-XXX</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Location:</strong></td>
+                      <td th:text="${ticket.location ?: 'Not specified'}">Kigali, Rwanda</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Created:</strong></td>
+                      <td th:text="${#temporals.format(ticket.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-15 14:30</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-12">
+                  <h6 class="text-muted">Description</h6>
+                  <div class="border rounded p-3 bg-light">
+                    <p class="mb-0" th:text="${ticket.description}">
+                      Detailed description of the ticket issue...
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Footer -->
+  <footer class="bg-light text-center p-3 mt-auto">
+    <p class="mb-0">&copy; 2025 BBOXX Rwanda. All rights reserved.</p>
+  </footer>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Sidebar Toggle
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.getElementById('mainContent');
+
+  sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      mainContent.classList.toggle('expanded');
+  });
+
+  // Mobile sidebar
+  if (window.innerWidth <= 768) {
+      sidebarToggle.addEventListener('click', () => {
+          sidebar.classList.toggle('show');
+      });
+  }
+
+// CSV Download Functionality for Unassigned Tickets (exact table match)
+function downloadUnassignedTicketsAsCSV() {
+    const table = document.querySelector('.card:has(.bg-info) .table');
+    const rows = table.querySelectorAll('tbody tr');
+    const csvContent = [];
+
+    // CSV Headers - exactly matching table headers
+    const headers = ['Ticket ID', 'Title', 'Category', 'Priority', 'Urgency', 'Customer', 'Location', 'Created'];
+    csvContent.push(headers.join(','));
+
+    // Get data rows
+    rows.forEach(row => {
+        // Skip empty state rows
+        if (row.querySelector('.fa-check-circle') || row.querySelector('.text-muted') && row.cells.length === 1) {
+            return;
+        }
+
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 8) { // Ensure we have enough cells (excluding Actions)
+            const rowData = [];
+
+            // Ticket ID
+            const ticketId = cells[0].querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${ticketId}"`);
+
+            // Title (including description as shown in table)
+            const titleCell = cells[1];
+            const title = titleCell.querySelector('.fw-bold')?.textContent.trim() || '';
+            const description = titleCell.querySelector('.text-muted')?.textContent.trim() || '';
+            const fullTitle = description ? `${title} - ${description}` : title;
+            rowData.push(`"${fullTitle}"`);
+
+            // Category
+            const category = cells[2].querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${category}"`);
+
+            // Priority
+            const priority = cells[3].querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${priority}"`);
+
+            // Urgency
+            const urgency = cells[4].querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${urgency}"`);
+
+            // Customer (including contact as shown in table)
+            const customerCell = cells[5];
+            const customer = customerCell.querySelector('.fw-bold')?.textContent.trim() || '';
+            const contact = customerCell.querySelector('.text-muted')?.textContent.trim() || '';
+            const fullCustomer = contact ? `${customer} (${contact})` : customer;
+            rowData.push(`"${fullCustomer}"`);
+
+            // Location
+            const locationText = cells[6].textContent.trim().replace(/\s+/g, ' ');
+            rowData.push(`"${locationText}"`);
+
+            // Created
+            const createdText = cells[7].textContent.trim().replace(/\s+/g, ' ');
+            rowData.push(`"${createdText}"`);
+
+            csvContent.push(rowData.join(','));
+        }
+    });
+
+    // Create and download CSV file
+    const csvString = csvContent.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `unassigned_tickets_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+// CSV Download Functionality for Assigned Tickets (exact table match) - FIXED
+function downloadAssignedTicketsAsCSV() {
+    // Select the assigned tickets table more specifically using the bg-success class
+    const assignedTable = document.querySelector('.card:has(.bg-success) .table');
+
+    if (!assignedTable) {
+        showAlert('No assigned tickets table found!', 'warning');
+        return;
+    }
+
+    const rows = assignedTable.querySelectorAll('tbody tr');
+    const csvContent = [];
+
+    // CSV Headers - exactly matching table headers
+    const headers = ['Ticket ID', 'Title', 'Category', 'Priority', 'Stage', 'Assigned To', 'Customer', 'Location', 'Assigned Date'];
+    csvContent.push(headers.join(','));
+
+    // Get data rows
+    rows.forEach(row => {
+        // Skip empty state rows
+        if (row.querySelector('.fa-inbox') || (row.querySelector('.text-muted') && row.cells.length === 1)) {
+            return;
+        }
+
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 9) { // Ensure we have enough cells (excluding Actions)
+            const rowData = [];
+
+            // Ticket ID
+            const ticketId = cells[0].querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${ticketId}"`);
+
+            // Title (including description as shown in table)
+            const titleCell = cells[1];
+            const title = titleCell.querySelector('.fw-bold')?.textContent.trim() || '';
+            const description = titleCell.querySelector('.text-muted')?.textContent.trim() || '';
+            const fullTitle = description ? `${title} - ${description}` : title;
+            rowData.push(`"${fullTitle}"`);
+
+            // Category
+            const category = cells[2].querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${category}"`);
+
+            // Priority
+            const priority = cells[3].querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${priority}"`);
+
+            // Stage
+            const stage = cells[4].querySelector('.badge')?.textContent.trim() || '';
+            rowData.push(`"${stage}"`);
+
+            // Assigned To (as shown in table)
+            const assignedCell = cells[5];
+            const assignedTo = assignedCell.querySelector('.fw-bold')?.textContent.trim() || '';
+            rowData.push(`"${assignedTo}"`);
+
+            // Customer (including contact as shown in table)
+            const customerCell = cells[6];
+            const customer = customerCell.querySelector('.fw-bold')?.textContent.trim() || '';
+            const contact = customerCell.querySelector('.text-muted')?.textContent.trim() || '';
+            const fullCustomer = contact ? `${customer} (${contact})` : customer;
+            rowData.push(`"${fullCustomer}"`);
+
+            // Location
+            const locationText = cells[7].textContent.trim().replace(/\s+/g, ' ');
+            rowData.push(`"${locationText}"`);
+
+            // Assigned Date
+            const assignedDateText = cells[8].textContent.trim().replace(/\s+/g, ' ');
+            rowData.push(`"${assignedDateText}"`);
+
+            csvContent.push(rowData.join(','));
+        }
+    });
+
+    // Create and download CSV file
+    const csvString = csvContent.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `assigned_tickets_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+// Alert function for success message
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Add event listeners for download buttons
+document.addEventListener('DOMContentLoaded', function() {
+    // Unassigned tickets download
+    const downloadUnassignedBtn = document.getElementById('downloadUnassignedCSV');
+    if (downloadUnassignedBtn) {
+        downloadUnassignedBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Add loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>Exporting...';
+            this.disabled = true;
+
+            // Small delay to show loading state
+            setTimeout(() => {
+                downloadUnassignedTicketsAsCSV();
+                this.innerHTML = originalText;
+                this.disabled = false;
+
+                // Show success message
+                showAlert('Unassigned tickets exported successfully!', 'success');
+            }, 500);
+        });
+    }
+
+    // Assigned tickets download
+    const downloadAssignedBtn = document.getElementById('downloadAssignedCSV');
+    if (downloadAssignedBtn) {
+        downloadAssignedBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Add loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>Exporting...';
+            this.disabled = true;
+
+            // Small delay to show loading state
+            setTimeout(() => {
+                downloadAssignedTicketsAsCSV();
+                this.innerHTML = originalText;
+                this.disabled = false;
+
+                // Show success message
+                showAlert('Assigned tickets exported successfully!', 'success');
+            }, 500);
+        });
+    }
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

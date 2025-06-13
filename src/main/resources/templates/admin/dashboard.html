@@ -1042,6 +1042,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/admin/tickets" class="nav-link">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Support Tickets</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/admin/inventory" class="nav-link">
                     <i class="fas fa-boxes"></i>
                     <span>Inventory</span>
@@ -1051,13 +1057,6 @@
                 <a href="/admin/zones" class="nav-link">
                     <i class="fas fa-map-marked-alt"></i>
                     <span>Service Areas</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="/admin/reports" class="nav-link">
-                    <i class="fa-solid fa-file"></i>
-                    <span>Reports</span>
                 </a>
             </li>
             <li class="nav-item mt-auto">
@@ -1196,7 +1195,7 @@
                 <div class="stats-icon warning">
                     <i class="fas fa-tasks"></i>
                 </div>
-                <div class="stats-value" th:text="${totalTasks ?: '342'}">342</div>
+                <div class="stats-value" th:text="${totalTasks ?: '0'}">0</div>
                 <div class="stats-label">Field Tasks</div>
             </div>
 
@@ -1204,8 +1203,8 @@
                 <div class="stats-icon info">
                     <i class="fas fa-home"></i>
                 </div>
-                <div class="stats-value">2,847</div>
-                <div class="stats-label">Homes Electrified</div>
+                <div class="stats-value" th:text="${customers ?: '0'}">0</div>
+                <div class="stats-label">Active Customers</div>
             </div>
         </div>
 
@@ -1220,8 +1219,6 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a class="dropdown-item" href="#">Export as PNG</a>
-                            <a class="dropdown-item" href="#">View Details</a>
-                            <a class="dropdown-item" href="#">Configure</a>
                         </div>
                     </div>
                 </div>
@@ -1239,8 +1236,6 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a class="dropdown-item" href="#">Export as PNG</a>
-                            <a class="dropdown-item" href="#">View Details</a>
-                            <a class="dropdown-item" href="#">Configure</a>
                         </div>
                     </div>
                 </div>
@@ -1255,12 +1250,13 @@
         <div class="activity-section">
             <div class="activity-header">
                 <h3>Project Timeline & Duration</h3>
-                <div class="chart-controls">
-                    <select id="timelineView" class="form-select form-select-sm" style="width: auto;">
-                        <option value="month">Month View</option>
-                        <option value="quarter">Quarter View</option>
-                        <option value="year">Year View</option>
-                    </select>
+                <div class="chart-menu">
+                    <button class="chart-menu-btn" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="#">Export as PNG</a>
+                    </div>
                 </div>
             </div>
             <div class="chart-container" style="height: 400px; position: relative;">
@@ -1667,8 +1663,6 @@
         }, 500);
     });
 
-    setInterval(updateMetrics, 30000);
-
     // Search functionality
     const searchInput = document.querySelector('.search-box input');
     if (searchInput) {
@@ -1730,6 +1724,56 @@
     }
 
     window.addEventListener('resize', handleChartResize);
+
+    // Chart PNG Download Functions
+function downloadChartAsPNG(chartInstance, filename) {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = chartInstance.toBase64Image();
+    link.click();
+}
+
+// Add event listeners for Export as PNG buttons
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for charts to be initialized
+    setTimeout(() => {
+        // Task Completion Chart Export
+        const taskExportBtn = document.querySelector('#taskCompletionChart').closest('.chart-card').querySelector('.dropdown-menu .dropdown-item');
+        if (taskExportBtn) {
+            taskExportBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const chartInstance = Chart.getChart('taskCompletionChart');
+                if (chartInstance) {
+                    downloadChartAsPNG(chartInstance, 'task-completion-chart.png');
+                }
+            });
+        }
+
+        // Project Status Chart Export
+        const projectExportBtn = document.querySelector('#projectStatusChart').closest('.chart-card').querySelector('.dropdown-menu .dropdown-item');
+        if (projectExportBtn) {
+            projectExportBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const chartInstance = Chart.getChart('projectStatusChart');
+                if (chartInstance) {
+                    downloadChartAsPNG(chartInstance, 'project-status-chart.png');
+                }
+            });
+        }
+
+        // Project Timeline Chart Export (this one needs special handling since it's in a different section)
+        const timelineSection = document.querySelector('.activity-section');
+        const timelineExportBtn = timelineSection ? timelineSection.querySelector('.dropdown-menu .dropdown-item') : null;
+        if (timelineExportBtn) {
+            timelineExportBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (projectTimelineChart) {
+                    downloadChartAsPNG(projectTimelineChart, 'project-timeline-chart.png');
+                }
+            });
+        }
+    }, 1000); // Wait 1 second for charts to be fully initialized
+});
 </script>
 </body>
 </html>

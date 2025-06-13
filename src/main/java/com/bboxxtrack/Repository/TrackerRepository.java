@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface TrackerRepository extends JpaRepository<Tracker, Long> {
     List<Tracker> findAllByUserIdOrderByTimestampDesc(Long userId);
+    List<Tracker> findAllByOrderByTimestampDesc();
 }

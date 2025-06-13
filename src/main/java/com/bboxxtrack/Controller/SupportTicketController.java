@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/support/tickets")
@@ -43,7 +45,12 @@ public class SupportTicketController {
         } else {
             tickets = ticketService.all();
         }
+        List<User> techs = userService.getUsersByRole("Technician");
+        Map<Long, String> techNames = techs.stream()
+                .collect(Collectors.toMap(User::getId, User::getUsername));
 
+        model.addAttribute("techNames",         techNames);
+        model.addAttribute("technicians",       techs);
         model.addAttribute("tickets", tickets);
         model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("searchQuery", q);
@@ -104,7 +111,7 @@ public class SupportTicketController {
 //            }
 
             // 3) Set the stage to ASSIGNED_TO_PM
-            ticket.setStage(TicketStage.ASSIGNED_TO_PM);
+            ticket.setStage(TicketStage.CREATED);
 
             // 4) Ensure priority is set
             if (ticket.getPriority() == null) {
@@ -198,7 +205,7 @@ public class SupportTicketController {
         Ticket t = ticketService.get(id);
         if (t != null) {
             // Instead of t.setStatus(TicketStatus.ESCALATED), we do:
-            t.setStage(TicketStage.ASSIGNED_TO_PM);
+            t.setStage(TicketStage.CREATED);
             ticketService.save(t);
 
             emailService.sendEmail(

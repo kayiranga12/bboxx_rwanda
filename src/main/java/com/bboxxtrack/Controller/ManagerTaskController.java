@@ -19,6 +19,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -83,6 +85,7 @@ public class ManagerTaskController {
             @RequestParam String taskName,
             @RequestParam String description,
             @RequestParam Long projectId,
+            @RequestParam LocalDate duedate,
             @RequestParam Long assignedToUserId,
             HttpSession session,
             RedirectAttributes redirectAttributes
@@ -96,6 +99,7 @@ public class ManagerTaskController {
             Task task = new Task();
             task.setTaskName(taskName);
             task.setDescription(description);
+            task.setDueDate(duedate);
             task.setAssignedDate(java.time.LocalDate.now());
             task.setStatus("Assigned");
 
@@ -180,30 +184,15 @@ public class ManagerTaskController {
             return "redirect:/login";
         }
 
-        if (bindingResult.hasErrors()) {
-            // Validation failed → re‐populate the page so errors show up
-            showTasks(model, session);
-            return "manager/tasks";
-        }
-
         Long ticketId     = dto.getTicketId();
         Long technicianId = dto.getTechnicianId();
 
         Ticket ticket = ticketService.get(ticketId);
         User tech     = userService.getUserById(technicianId);
 
-        if (ticket == null) {
-            redirectAttributes.addFlashAttribute("error","Selected ticket not found.");
-            return "redirect:/manager/tasks";
-        }
-        if (tech == null || !"Technician".equals(tech.getRole())) {
-            redirectAttributes.addFlashAttribute("error","Selected user is not a technician.");
-            return "redirect:/manager/tasks";
-        }
-
         // Assign and advance stage:
         ticket.setAssignedToUserId(technicianId);
-        ticket.setStage(TicketStage.ASSIGNED_TO_TECH);
+        ticket.setStage(TicketStage.ASSIGNED);
         ticketService.save(ticket);
 
         redirectAttributes.addFlashAttribute(
