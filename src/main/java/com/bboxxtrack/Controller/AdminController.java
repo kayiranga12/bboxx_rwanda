@@ -44,14 +44,15 @@ public class AdminController {
 
         userService.saveUser(user);
 
-        String message = "Hello " + user.getUsername() + ",\n\n" +
-                "Your BBOXXTrack account has been created.\n\n" +
-                "Email: " + user.getEmail() + "\n" +
-                "Password: " + generatedPassword + "\n\n" +
-                "Login here: http://localhost:8081/login";
+        // Generate HTML email content
+        String htmlContent = emailService.generateWelcomeEmailTemplate(
+                user.getUsername(),
+                user.getEmail(),
+                generatedPassword
+        );
 
         try {
-            emailService.sendEmail(user.getEmail(), "Your BBOXXTrack Credentials", message);
+            emailService.sendEmail(user.getEmail(), "Welcome to BBOXXTrack - Your Account Details", htmlContent);
         } catch (Exception e) {
             // Log error but don't fail the user creation
             System.err.println("Failed to send email: " + e.getMessage());

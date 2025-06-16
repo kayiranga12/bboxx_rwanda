@@ -161,7 +161,7 @@ public class TechnicianTaskController {
             Task task = taskService.getTaskById(id);
             if (task.getAssignedTo() == null || !task.getAssignedTo().getId().equals(user.getId())) {
                 redirectAttributes.addFlashAttribute("error", "You are not authorized to update this task");
-                return "redirect:/technician/dashboard";
+                return "redirect:/technician/tasks";
             }
             task.setStatus(status);
             taskService.saveTask(task);
@@ -170,7 +170,7 @@ public class TechnicianTaskController {
             redirectAttributes.addFlashAttribute("error", "Failed to update task: " + e.getMessage());
         }
 
-        return "redirect:/technician/dashboard";
+        return "redirect:/technician/tasks";
     }
 
     @PostMapping("/tasks/update")

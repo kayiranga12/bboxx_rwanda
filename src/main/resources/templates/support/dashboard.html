@@ -871,6 +871,108 @@
             font-size: 0.85rem;
             font-weight: 500;
         }
+            /* Report Button - Add after existing styles */
+.report-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bboxx-blue), var(--bboxx-dark-blue));
+    color: white;
+    border: none;
+    font-size: 1.4rem;
+    box-shadow: 0 6px 20px rgba(27, 54, 93, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-btn:hover {
+    background: linear-gradient(135deg, var(--bboxx-light-blue), var(--bboxx-blue));
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(27, 54, 93, 0.4);
+}
+
+.report-btn.generating {
+    background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Report Modal */
+.report-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.report-modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.report-options {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.report-option {
+    background: var(--bboxx-gray);
+    border: 2px solid var(--bboxx-orange);
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    max-width: 200px;
+}
+
+.report-option i {
+    font-size: 2rem;
+    color: var(--bboxx-orange);
+    margin-bottom: 0.5rem;
+}
+
+/* Notification Styles */
+.notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .report-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+}
     </style>
 </head>
 <body>
@@ -1084,10 +1186,371 @@
     </div>
 </div>
 
+<!-- Comprehensive Report Button -->
+<button class="report-btn" id="reportBtn" title="Generate Comprehensive Report">
+    <i class="fas fa-file-pdf"></i>
+</button>
+
+<!-- Report Modal -->
+<div class="report-modal" id="reportModal">
+    <div class="report-modal-content">
+        <h4 class="mb-3">
+            <i class="fas fa-file-pdf me-2 text-primary"></i>
+            Generate Support Report
+        </h4>
+        <p class="text-muted mb-4">Generate a comprehensive PDF report of support operations and ticket analytics</p>
+
+        <div class="report-options">
+            <div class="report-option">
+                <i class="fas fa-chart-bar"></i>
+                <h6>Support Report</h6>
+                <p class="small text-muted">Complete overview</p>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary me-2" id="generateReportBtn">
+                <i class="fas fa-download me-1"></i>Generate PDF
+            </button>
+            <button class="btn btn-outline-secondary" id="closeModalBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <!-- Bootstrap JS -->
+<!-- Add jsPDF for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
+    // Report Generation System
+const reportBtn = document.getElementById('reportBtn');
+const reportModal = document.getElementById('reportModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const generateReportBtn = document.getElementById('generateReportBtn');
+
+// Show report modal
+reportBtn.addEventListener('click', function() {
+    reportModal.style.display = 'flex';
+});
+
+// Close modal
+closeModalBtn.addEventListener('click', function() {
+    reportModal.style.display = 'none';
+});
+
+// Close modal when clicking outside
+reportModal.addEventListener('click', function(e) {
+    if (e.target === reportModal) {
+        reportModal.style.display = 'none';
+    }
+});
+
+// Generate PDF Report
+generateReportBtn.addEventListener('click', function() {
+    generateSupportReport();
+    reportModal.style.display = 'none';
+});
+
+function generateSupportReport() {
+    // Show generating state
+    reportBtn.classList.add('generating');
+    reportBtn.innerHTML = '<div class="loading"></div>';
+
+    showAlert('Generating support operations report...', 'info');
+
+    // Collect all data from the page
+    const reportData = collectSupportData();
+
+    // Generate PDF using jsPDF
+    setTimeout(() => {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Set up colors
+            const primaryColor = [27, 54, 93]; // BBOXX Blue
+            const orangeColor = [255, 107, 53]; // BBOXX Orange
+
+            // Page setup
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            let yPosition = 20;
+
+            // Header with logo and title
+            doc.setFillColor(...primaryColor);
+            doc.rect(0, 0, pageWidth, 40, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('BBOXX', 20, 25);
+            doc.setTextColor(...orangeColor);
+            doc.text('Track', 60, 25);
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.text('Support Operations Report', 20, 35);
+
+            yPosition = 60;
+
+            // Support Team info
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('Support Operations Overview', 20, yPosition);
+            yPosition += 10;
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Department: Support Team`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Report Date: ${new Date().toLocaleDateString()}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Report Time: ${new Date().toLocaleTimeString()}`, 20, yPosition);
+            yPosition += 20;
+
+            // Ticket Overview Section
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...primaryColor);
+            doc.text('Ticket Management Overview', 20, yPosition);
+            yPosition += 15;
+
+            // Ticket stats in a table format
+            const ticketStats = [
+                ['Metric', 'Count', 'Status'],
+                ['Total Tickets', reportData.totalTickets, getTicketStatus(reportData.totalTickets)],
+                ['Assigned Tickets', reportData.assignedTickets, getTicketStatus(reportData.assignedTickets)],
+                ['Unassigned Tickets', reportData.unassignedTickets, reportData.unassignedTickets > 5 ? 'Action Needed' : 'Good'],
+                ['Closed Tickets', reportData.closedTickets, getTicketStatus(reportData.closedTickets)],
+                ['High Priority', reportData.highPriority, reportData.highPriority > 10 ? 'Critical' : 'Manageable'],
+                ['Medium Priority', reportData.mediumPriority, 'Normal'],
+                ['Low Priority', reportData.lowPriority, 'Normal']
+            ];
+
+            // Draw ticket table
+            yPosition = drawTable(doc, ticketStats, 20, yPosition, pageWidth - 40);
+            yPosition += 20;
+
+            // Urgency Analysis Section
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...primaryColor);
+            doc.text('Urgency Level Analysis', 20, yPosition);
+            yPosition += 15;
+
+            const urgencyStats = [
+                ['Urgency Level', 'Count', 'Response Required'],
+                ['Emergency', reportData.emergencyUrgency, reportData.emergencyUrgency > 0 ? 'Immediate' : 'None'],
+                ['Urgent', reportData.urgentUrgency, reportData.urgentUrgency > 0 ? 'Within 4 hours' : 'None'],
+                ['Standard', reportData.standardUrgency, 'Within 24 hours']
+            ];
+
+            yPosition = drawTable(doc, urgencyStats, 20, yPosition, pageWidth - 40);
+            yPosition += 20;
+
+            // Performance Analysis
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...primaryColor);
+            doc.text('Support Performance Analysis', 20, yPosition);
+            yPosition += 15;
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 0);
+
+            const analysis = generateSupportAnalysis(reportData);
+            const analysisLines = doc.splitTextToSize(analysis, pageWidth - 40);
+
+            analysisLines.forEach(line => {
+                if (yPosition > pageHeight - 30) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                doc.text(line, 20, yPosition);
+                yPosition += 6;
+            });
+
+            yPosition += 15;
+
+            // Recommendations
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...primaryColor);
+            doc.text('Operational Recommendations', 20, yPosition);
+            yPosition += 15;
+
+            const recommendations = generateSupportRecommendations(reportData);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 0);
+
+            recommendations.forEach((rec, index) => {
+                if (yPosition > pageHeight - 30) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                doc.text(`${index + 1}. ${rec}`, 20, yPosition);
+                yPosition += 8;
+            });
+
+            // Footer
+            const footerY = pageHeight - 20;
+            doc.setFontSize(10);
+            doc.setTextColor(128, 128, 128);
+            doc.text('Generated by BBOXXTrack Support Management System', 20, footerY);
+            doc.text(`Page 1 of ${doc.internal.getNumberOfPages()}`, pageWidth - 60, footerY);
+
+            // Save the PDF
+            const fileName = `BBOXXTrack_Support_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+
+            // Reset button state
+            reportBtn.classList.remove('generating');
+            reportBtn.innerHTML = '<i class="fas fa-file-pdf"></i>';
+
+            showAlert('Support report generated successfully!', 'success');
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            reportBtn.classList.remove('generating');
+            reportBtn.innerHTML = '<i class="fas fa-file-pdf"></i>';
+            showAlert('Error generating report. Please try again.', 'error');
+        }
+    }, 2000);
+}
+
+function collectSupportData() {
+    // Extract data from the page elements
+    const statsValues = document.querySelectorAll('.stats-value');
+    return {
+        totalTickets: parseInt(statsValues[0]?.textContent) || 0,
+        assignedTickets: parseInt(statsValues[1]?.textContent) || 0,
+        unassignedTickets: parseInt(statsValues[2]?.textContent) || 0,
+        closedTickets: parseInt(statsValues[3]?.textContent) || 0,
+        highPriority: parseInt(statsValues[4]?.textContent) || 0,
+        mediumPriority: parseInt(statsValues[5]?.textContent) || 0,
+        lowPriority: parseInt(statsValues[6]?.textContent) || 0,
+        standardUrgency: parseInt(statsValues[7]?.textContent) || 0,
+        urgentUrgency: parseInt(statsValues[8]?.textContent) || 0,
+        emergencyUrgency: parseInt(statsValues[9]?.textContent) || 0
+    };
+}
+
+function drawTable(doc, data, x, y, width) {
+    const rowHeight = 8;
+    const colWidth = width / data[0].length;
+    let currentY = y;
+
+    data.forEach((row, index) => {
+        row.forEach((cell, colIndex) => {
+            const cellX = x + (colIndex * colWidth);
+
+            if (index === 0) {
+                // Header row
+                doc.setFillColor(240, 240, 240);
+                doc.rect(cellX, currentY - 6, colWidth, rowHeight, 'F');
+                doc.setFont(undefined, 'bold');
+            } else {
+                doc.setFont(undefined, 'normal');
+            }
+
+            doc.setTextColor(0, 0, 0);
+            doc.text(String(cell), cellX + 2, currentY);
+        });
+        currentY += rowHeight;
+    });
+
+    return currentY;
+}
+
+function getTicketStatus(count) {
+    if (count > 50) return 'High Volume';
+    if (count > 20) return 'Normal';
+    if (count > 0) return 'Low Volume';
+    return 'None';
+}
+
+function generateSupportAnalysis(data) {
+    const totalTickets = data.totalTickets;
+    const unassignedRatio = totalTickets > 0 ? (data.unassignedTickets / totalTickets * 100).toFixed(1) : 0;
+
+    let analysis = `Support operations currently managing ${totalTickets} total tickets with ${unassignedRatio}% unassigned. `;
+
+    if (data.emergencyUrgency > 0) {
+        analysis += `${data.emergencyUrgency} emergency tickets require immediate attention. `;
+    }
+
+    if (data.urgentUrgency > 0) {
+        analysis += `${data.urgentUrgency} urgent tickets need response within 4 hours. `;
+    }
+
+    if (data.highPriority > 10) {
+        analysis += 'High priority ticket volume indicates increased support demand. ';
+    }
+
+    if (data.unassignedTickets > 5) {
+        analysis += 'Significant number of unassigned tickets may impact response times. ';
+    }
+
+    analysis += 'Overall support operations are maintaining good visibility across all ticket categories and priority levels.';
+
+    return analysis;
+}
+
+function generateSupportRecommendations(data) {
+    const recommendations = [];
+
+    if (data.emergencyUrgency > 0) {
+        recommendations.push('Prioritize emergency tickets for immediate response and resolution');
+    }
+
+    if (data.unassignedTickets > 5) {
+        recommendations.push('Review ticket assignment workflow to reduce unassigned backlog');
+    }
+
+    if (data.highPriority > 10) {
+        recommendations.push('Consider additional support resources for high priority ticket volume');
+    }
+
+    if (data.urgentUrgency > 5) {
+        recommendations.push('Implement escalation procedures for urgent ticket management');
+    }
+
+    recommendations.push('Maintain regular monitoring of ticket distribution and response times');
+    recommendations.push('Continue proactive communication with field technicians');
+
+    if (recommendations.length === 2) {
+        recommendations.unshift('Excellent support operations - maintain current service levels');
+    }
+
+    return recommendations;
+}
+
+// Alert function
+function showAlert(message, type = 'success') {
+    const alertClass = {
+        'success': 'alert-success',
+        'warning': 'alert-warning',
+        'error': 'alert-danger',
+        'info': 'alert-info'
+    }[type];
+
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${alertClass} alert-dismissible fade show notification-toast`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
 </script>
 </body>
 </html>

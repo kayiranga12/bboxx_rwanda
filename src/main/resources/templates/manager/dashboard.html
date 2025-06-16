@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Manager Dashboard | BBOXXTrack</title>
+    <title>Shop Manager Dashboard | BBOXXTrack</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1121,6 +1121,107 @@
 .timeline-container::-webkit-scrollbar-thumb:hover {
     background: #0b5ed7;
 }
+        .report-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bboxx-blue), var(--bboxx-dark-blue));
+    color: white;
+    border: none;
+    font-size: 1.4rem;
+    box-shadow: 0 6px 20px rgba(27, 54, 93, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-btn:hover {
+    background: linear-gradient(135deg, var(--bboxx-light-blue), var(--bboxx-blue));
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(27, 54, 93, 0.4);
+}
+
+.report-btn.generating {
+    background: linear-gradient(135deg, var(--bboxx-orange), var(--bboxx-dark-orange));
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Report Modal */
+.report-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.report-modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.report-options {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.report-option {
+    background: var(--bboxx-gray);
+    border: 2px solid var(--bboxx-orange);
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    max-width: 200px;
+}
+
+.report-option i {
+    font-size: 2rem;
+    color: var(--bboxx-orange);
+    margin-bottom: 0.5rem;
+}
+
+/* Notification Styles */
+.notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .report-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+}
     </style>
 </head>
 <body>
@@ -1131,7 +1232,7 @@
             BBOXX<span class="track">Track</span>
         </a>
         <div class="user-badge">
-            <i class="fas fa-tools me-1"></i>Project Manager
+            <i class="fas fa-tools me-1"></i>Shop Manager
         </div>
     </div>
 
@@ -1210,10 +1311,10 @@
             </div>
 
             <div class="user-menu" data-bs-toggle="dropdown">
-                <div class="user-avatar">PM</div>
+                <div class="user-avatar">SM</div>
                 <div class="user-info">
-                    <div class="user-name">Project Manager</div>
-                    <div class="user-role">Solar Project Manager</div>
+                    <div class="user-name">Shop Manager</div>
+                    <div class="user-role">Solar Shop Manager</div>
                 </div>
                 <i class="fas fa-chevron-down ms-2"></i>
                 <div class="dropdown-menu dropdown-menu-end">
@@ -1237,7 +1338,7 @@
         <!-- Page Header -->
         <div class="page-header">
             <div>
-                <h1 class="page-title">Project Manager Dashboard</h1>
+                <h1 class="page-title">Shop Manager Dashboard</h1>
                 <p class="page-subtitle">Manage your solar energy projects across Rwanda with real-time insights</p>
             </div>
                 <div class="header-actions">
@@ -1357,6 +1458,38 @@
     </div>
 </div>
 
+<!-- Comprehensive Report Button -->
+<button class="report-btn" id="reportBtn" title="Generate Comprehensive Report">
+    <i class="fas fa-file-pdf"></i>
+</button>
+
+<!-- Report Modal -->
+<div class="report-modal" id="reportModal">
+    <div class="report-modal-content">
+        <h4 class="mb-3">
+            <i class="fas fa-file-pdf me-2 text-primary"></i>
+            Generate Project Management Report
+        </h4>
+        <p class="text-muted mb-4">Generate a comprehensive PDF report of project performance and management analytics</p>
+
+        <div class="report-options">
+            <div class="report-option">
+                <i class="fas fa-chart-bar"></i>
+                <h6>Management Report</h6>
+                <p class="small text-muted">Complete overview</p>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary me-2" id="generateReportBtn">
+                <i class="fas fa-download me-1"></i>Generate PDF
+            </button>
+            <button class="btn btn-outline-secondary" id="closeModalBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
@@ -1881,6 +2014,361 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeProjectTimelineChart();
     });
 });
+</script>
+<script>
+    // Report Generation System
+const reportBtn = document.getElementById('reportBtn');
+const reportModal = document.getElementById('reportModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const generateReportBtn = document.getElementById('generateReportBtn');
+
+// Show report modal
+reportBtn.addEventListener('click', function() {
+    reportModal.style.display = 'flex';
+});
+
+// Close modal
+closeModalBtn.addEventListener('click', function() {
+    reportModal.style.display = 'none';
+});
+
+// Close modal when clicking outside
+reportModal.addEventListener('click', function(e) {
+    if (e.target === reportModal) {
+        reportModal.style.display = 'none';
+    }
+});
+
+// Generate PDF Report
+generateReportBtn.addEventListener('click', function() {
+    generateManagerReport();
+    reportModal.style.display = 'none';
+});
+
+function generateManagerReport() {
+    // Show generating state
+    reportBtn.classList.add('generating');
+    reportBtn.innerHTML = '<div class="loading"></div>';
+
+    showAlert('Generating project management report...', 'info');
+
+    // Collect all data from the page
+    const reportData = collectManagerData();
+
+    // Generate PDF using jsPDF
+    setTimeout(() => {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Set up colors
+            const primaryColor = [27, 54, 93]; // BBOXX Blue
+            const orangeColor = [255, 107, 53]; // BBOXX Orange
+
+            // Page setup
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            let yPosition = 20;
+
+            // Header with logo and title
+            doc.setFillColor(...primaryColor);
+            doc.rect(0, 0, pageWidth, 40, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('BBOXX', 20, 25);
+            doc.setTextColor(...orangeColor);
+            doc.text('Track', 60, 25);
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.text('Project Management Report', 20, 35);
+
+            yPosition = 60;
+
+            // Manager info
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('Project Management Overview', 20, yPosition);
+            yPosition += 10;
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Manager: Shop Manager`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Department: Solar Project Management`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Report Date: ${new Date().toLocaleDateString()}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`Report Time: ${new Date().toLocaleTimeString()}`, 20, yPosition);
+            yPosition += 20;
+
+            // Project Portfolio Section
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...primaryColor);
+            doc.text('Project Portfolio Overview', 20, yPosition);
+            yPosition += 15;
+
+            // Project stats in a table format
+            const projectStats = [
+                ['Metric', 'Count', 'Performance'],
+                ['Total Projects', reportData.totalProjects, getProjectPerformance(reportData.totalProjects)],
+                ['Your Projects', reportData.managerProjects, getProjectPerformance(reportData.managerProjects)],
+                ['Ongoing Projects', reportData.ongoingProjects, reportData.ongoingProjects > 0 ? 'Active' : 'None'],
+                ['Completed Projects', reportData.completedProjects, getProjectPerformance(reportData.completedProjects)],
+                ['Upcoming Projects', reportData.upcomingProjects, reportData.upcomingProjects > 0 ? 'Planned' : 'None']
+            ];
+
+            // Draw project table
+            yPosition = drawTable(doc, projectStats, 20, yPosition, pageWidth - 40);
+            yPosition += 20;
+
+            // Task Management Section
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...primaryColor);
+            doc.text('Task Management Analysis', 20, yPosition);
+            yPosition += 15;
+
+            const taskStats = [
+                ['Task Status', 'Count', 'Progress'],
+                ['Total Tasks', reportData.totalTasks, getTaskProgress(reportData.totalTasks)],
+                ['Completed Tasks', reportData.completedTasks, getTaskProgress(reportData.completedTasks)],
+                ['In Progress', reportData.inProgressTasks, 'Active'],
+                ['Pending Tasks', reportData.pendingTasks, reportData.pendingTasks > 10 ? 'High Volume' : 'Normal'],
+                ['Overdue Tasks', reportData.overdueTasks, reportData.overdueTasks > 0 ? 'Attention Needed' : 'On Track']
+            ];
+
+            yPosition = drawTable(doc, taskStats, 20, yPosition, pageWidth - 40);
+            yPosition += 20;
+
+            // Performance Analysis
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...primaryColor);
+            doc.text('Management Performance Analysis', 20, yPosition);
+            yPosition += 15;
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 0);
+
+            const analysis = generateManagerAnalysis(reportData);
+            const analysisLines = doc.splitTextToSize(analysis, pageWidth - 40);
+
+            analysisLines.forEach(line => {
+                if (yPosition > pageHeight - 30) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                doc.text(line, 20, yPosition);
+                yPosition += 6;
+            });
+
+            yPosition += 15;
+
+            // Strategic Recommendations
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...primaryColor);
+            doc.text('Strategic Recommendations', 20, yPosition);
+            yPosition += 15;
+
+            const recommendations = generateManagerRecommendations(reportData);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 0);
+
+            recommendations.forEach((rec, index) => {
+                if (yPosition > pageHeight - 30) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                doc.text(`${index + 1}. ${rec}`, 20, yPosition);
+                yPosition += 8;
+            });
+
+            // Footer
+            const footerY = pageHeight - 20;
+            doc.setFontSize(10);
+            doc.setTextColor(128, 128, 128);
+            doc.text('Generated by BBOXXTrack Project Management System', 20, footerY);
+            doc.text(`Page 1 of ${doc.internal.getNumberOfPages()}`, pageWidth - 60, footerY);
+
+            // Save the PDF
+            const fileName = `BBOXXTrack_Project_Management_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+
+            // Reset button state
+            reportBtn.classList.remove('generating');
+            reportBtn.innerHTML = '<i class="fas fa-file-pdf"></i>';
+
+            showAlert('Project management report generated successfully!', 'success');
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            reportBtn.classList.remove('generating');
+            reportBtn.innerHTML = '<i class="fas fa-file-pdf"></i>';
+            showAlert('Error generating report. Please try again.', 'error');
+        }
+    }, 2000);
+}
+
+function collectManagerData() {
+    // Server-side data from Thymeleaf
+    const serverData = {
+        totalProjects: [[${totalProjects}]],
+        totalTasks: [[${totalTasks}]],
+        managerProjects: [[${managerProjects}]],
+        completedTasks: [[${completedTasks}]],
+        inProgressTasks: [[${inProgressTasks}]],
+        pendingTasks: [[${pendingTasks}]],
+        overdueTasks: [[${overdueTasks}]],
+        ongoingProjects: [[${ongoingProjects}]],
+        completedProjects: [[${completedProjects}]],
+        upcomingProjects: [[${upcomingProjects}]]
+    };
+
+    // Client-side fallback
+    return {
+        totalProjects: serverData.totalProjects || parseInt(document.querySelector('.stats-value')?.textContent) || 89,
+        totalTasks: serverData.totalTasks || parseInt(document.querySelectorAll('.stats-value')[1]?.textContent) || 342,
+        managerProjects: serverData.managerProjects || parseInt(document.querySelectorAll('.stats-value')[2]?.textContent) || 12,
+        completedTasks: serverData.completedTasks || 0,
+        inProgressTasks: serverData.inProgressTasks || 0,
+        pendingTasks: serverData.pendingTasks || 0,
+        overdueTasks: serverData.overdueTasks || 0,
+        ongoingProjects: serverData.ongoingProjects || 0,
+        completedProjects: serverData.completedProjects || 0,
+        upcomingProjects: serverData.upcomingProjects || 0
+    };
+}
+
+function drawTable(doc, data, x, y, width) {
+    const rowHeight = 8;
+    const colWidth = width / data[0].length;
+    let currentY = y;
+
+    data.forEach((row, index) => {
+        row.forEach((cell, colIndex) => {
+            const cellX = x + (colIndex * colWidth);
+
+            if (index === 0) {
+                // Header row
+                doc.setFillColor(240, 240, 240);
+                doc.rect(cellX, currentY - 6, colWidth, rowHeight, 'F');
+                doc.setFont(undefined, 'bold');
+            } else {
+                doc.setFont(undefined, 'normal');
+            }
+
+            doc.setTextColor(0, 0, 0);
+            doc.text(String(cell), cellX + 2, currentY);
+        });
+        currentY += rowHeight;
+    });
+
+    return currentY;
+}
+
+function getProjectPerformance(count) {
+    if (count > 50) return 'High Portfolio';
+    if (count > 20) return 'Strong Portfolio';
+    if (count > 10) return 'Good Portfolio';
+    if (count > 0) return 'Active';
+    return 'None';
+}
+
+function getTaskProgress(count) {
+    if (count > 100) return 'High Volume';
+    if (count > 50) return 'Good Progress';
+    if (count > 20) return 'Normal';
+    if (count > 0) return 'Active';
+    return 'None';
+}
+
+function generateManagerAnalysis(data) {
+    const totalProjects = data.totalProjects;
+    const managerProjects = data.managerProjects;
+    const managementRatio = totalProjects > 0 ? (managerProjects / totalProjects * 100).toFixed(1) : 0;
+
+    let analysis = `Project portfolio shows ${totalProjects} total projects with ${managerProjects} under your direct management (${managementRatio}%). `;
+
+    if (data.overdueTasks > 0) {
+        analysis += `${data.overdueTasks} tasks are overdue requiring immediate attention. `;
+    }
+
+    if (data.completedProjects > 0) {
+        analysis += `${data.completedProjects} projects have been successfully completed demonstrating strong delivery capability. `;
+    }
+
+    if (data.ongoingProjects > 5) {
+        analysis += 'High number of concurrent projects indicates strong project management capacity. ';
+    }
+
+    if (data.pendingTasks > 20) {
+        analysis += 'Significant pending task volume may require resource reallocation or timeline review. ';
+    }
+
+    analysis += 'Overall project management operations show consistent oversight and delivery across the solar energy portfolio.';
+
+    return analysis;
+}
+
+function generateManagerRecommendations(data) {
+    const recommendations = [];
+
+    if (data.overdueTasks > 5) {
+        recommendations.push('Implement task prioritization framework to address overdue items');
+    }
+
+    if (data.ongoingProjects > 10) {
+        recommendations.push('Consider resource load balancing across concurrent projects');
+    }
+
+    if (data.pendingTasks > 30) {
+        recommendations.push('Review task delegation and team capacity planning');
+    }
+
+    if (data.upcomingProjects > 5) {
+        recommendations.push('Develop project pipeline management strategy for upcoming initiatives');
+    }
+
+    recommendations.push('Maintain regular project review cycles and milestone tracking');
+    recommendations.push('Continue stakeholder engagement and progress communication');
+
+    if (recommendations.length === 2) {
+        recommendations.unshift('Excellent project management performance - maintain current standards');
+    }
+
+    return recommendations;
+}
+
+// Alert function
+function showAlert(message, type = 'success') {
+    const alertClass = {
+        'success': 'alert-success',
+        'warning': 'alert-warning',
+        'error': 'alert-danger',
+        'info': 'alert-info'
+    }[type];
+
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${alertClass} alert-dismissible fade show notification-toast`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
 </script>
 </body>
 </html>
