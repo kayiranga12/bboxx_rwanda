@@ -1097,7 +1097,7 @@
         <i class="fas fa-tasks me-2"></i>Assign Unassigned Ticket
       </div>
       <div class="card-body">
-        <form th:action="@{/manager/tasks/assign-ticket}"
+        <form th:action="@{/manager/tickets/assign-ticket}"
               th:object="${ticketAssignment}"
               method="post"
               class="row g-3">
@@ -1235,7 +1235,7 @@
       <div class="modal fade" th:id="'assignModal' + ${ticket.id}" tabindex="-1">
         <div class="modal-dialog">
           <div class="modal-content">
-            <form th:action="@{/manager/tasks/assign-ticket}" method="post">
+            <form th:action="@{/manager/tickets/assign-ticket}" method="post">
               <input type="hidden" name="ticketId" th:value="${ticket.id}">
               <div class="modal-header">
                 <h5 class="modal-title">
