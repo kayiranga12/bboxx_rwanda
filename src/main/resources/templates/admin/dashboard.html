@@ -2140,7 +2140,7 @@ function getSystemStatus(count, benchmark) {
     if (count >= benchmark) return 'Optimal';
     if (count >= benchmark * 0.7) return 'Good';
     if (count >= benchmark * 0.5) return 'Adequate';
-    return 'Below Target';
+    return 'Moderate';
 }
 
 function getProjectStatus(count) {
@@ -2152,9 +2152,9 @@ function getProjectStatus(count) {
 }
 
 function getTaskEfficiency(count) {
-    if (count > 100) return 'High Efficiency';
-    if (count > 50) return 'Good Performance';
-    if (count > 20) return 'Moderate';
+    if (count > 20) return 'High Efficiency';
+    if (count > 10) return 'Good Performance';
+    if (count > 5) return 'Moderate';
     if (count > 0) return 'Active';
     return 'None';
 }
