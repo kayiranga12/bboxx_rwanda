@@ -923,9 +923,6 @@
             <button class="sidebar-toggle" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="welcome-message">
-                Good Morning, John! 👋
-            </div>
         </div>
 
         <div class="navbar-right">
@@ -1149,10 +1146,7 @@
                                 <option th:each="ticket : ${assignedTickets}"
                                         th:value="${ticket.id}"
                                         th:text="${'#' + ticket.id + ' - ' + ticket.title}">
-                                    #001 - Solar Installation - Kigali
                                 </option>
-                                <option value="002">#002 - Maintenance Check - Gasabo</option>
-                                <option value="003">#003 - System Repair - Nyarugenge</option>
                             </select>
                             <label for="ticketId">Ticket</label>
                         </div>
