@@ -943,14 +943,16 @@
                     <select
                             class="form-select"
                             th:field="*{customer.id}"
+                            id="customerSelect"
                             required
                     >
-                        <!-- Changed here: use value="" instead of th:value="" -->
                         <option value="" disabled>-- Select Customer --</option>
                         <option
                                 th:each="cust : ${customers}"
                                 th:value="${cust.id}"
                                 th:text="${cust.fullName + ' (ID:' + cust.id + ')'}"
+                                th:data-location="${cust.address}"
+                                th:data-phone="${cust.phoneNumber}"
                         ></option>
                     </select>
                     <div class="invalid-feedback">
@@ -1048,6 +1050,7 @@
                             type="text"
                             class="form-control"
                             th:field="*{location}"
+                            name="location"
                             placeholder="e.g. Site address or directions"
                     />
                 </div>
@@ -1059,6 +1062,7 @@
                             type="tel"
                             class="form-control"
                             th:field="*{contactNumber}"
+                            name="contactNumber"
                             placeholder="+250 78XXXXXXX"
                     />
                 </div>
@@ -1101,236 +1105,57 @@
         mainContent.classList.toggle('expanded');
     });
 
-    // Mock customer data
-    const customers = [
-        { id: 1, name: 'John Smith', customerId: 'CUST2847', location: 'Kigali, Gasabo' },
-        { id: 2, name: 'Mary Johnson', customerId: 'CUST1523', location: 'Kigali, Nyarugenge' },
-        { id: 3, name: 'David Brown', customerId: 'CUST3961', location: 'Eastern Province' },
-        { id: 4, name: 'Sarah Wilson', customerId: 'CUST4782', location: 'Northern Province' },
-        { id: 5, name: 'Michael Davis', customerId: 'CUST5691', location: 'Kigali, Kicukiro' }
-    ];
+    // Customer Auto-fill Functionality - FIXED VERSION
+    const customerSelect = document.getElementById('customerSelect');
 
-    // Customer Search Functionality
-    const customerSearch = document.getElementById('customerSearch');
-    const searchResults = document.getElementById('searchResults');
-    const selectedCustomerId = document.getElementById('selectedCustomerId');
+    // Wait for DOM to be fully loaded before setting up event listeners
+    document.addEventListener('DOMContentLoaded', function() {
 
-    customerSearch.addEventListener('input', function() {
-        const query = this.value.toLowerCase();
+        if (customerSelect) {
+            customerSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
 
-        if (query.length < 2) {
-            searchResults.style.display = 'none';
-            return;
-        }
+                if (selectedOption.value) {
+                    // Get data attributes from the selected option
+                    const location = selectedOption.getAttribute('data-location');
+                    const phone = selectedOption.getAttribute('data-phone');
 
-        const filteredCustomers = customers.filter(customer =>
-            customer.name.toLowerCase().includes(query) ||
-            customer.customerId.toLowerCase().includes(query)
-        );
+                    // Find fields by name attribute (more reliable than th:field)
+                    const locationField = document.querySelector('input[name="location"]') ||
+                                        document.querySelector('input[placeholder*="address"]') ||
+                                        document.querySelector('input[placeholder*="directions"]');
 
-        if (filteredCustomers.length > 0) {
-            searchResults.innerHTML = filteredCustomers.map(customer => `
-                <div class="search-result" onclick="selectCustomer(${customer.id}, '${customer.name}', '${customer.customerId}')">
-                    <div class="customer-result">
-                        <div class="customer-avatar-small">${customer.name.substring(0, 2).toUpperCase()}</div>
-                        <div>
-                            <div class="customer-name">${customer.name}</div>
-                            <div class="customer-id">${customer.customerId} • ${customer.location}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            searchResults.style.display = 'block';
-        } else {
-            searchResults.innerHTML = '<div class="search-result">No customers found</div>';
-            searchResults.style.display = 'block';
-        }
-    });
+                    const contactField = document.querySelector('input[name="contactNumber"]') ||
+                                       document.querySelector('input[type="tel"]') ||
+                                       document.querySelector('input[placeholder*="250"]');
 
-    function selectCustomer(id, name, customerId) {
-        customerSearch.value = `${name} (${customerId})`;
-        selectedCustomerId.value = id;
-        searchResults.style.display = 'none';
-    }
+                    // Auto-fill the fields if they exist and have data
+                    if (location && locationField) {
+                        locationField.value = location;
+                        console.log('Location filled:', location);
+                    }
 
-    // Hide search results when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!customerSearch.contains(e.target) && !searchResults.contains(e.target)) {
-            searchResults.style.display = 'none';
-        }
-    });
+                    if (phone && contactField) {
+                        contactField.value = phone;
+                        console.log('Phone filled:', phone);
+                    }
 
-    // File Upload Functionality
-    const fileUpload = document.getElementById('fileUpload');
-    const fileInput = document.getElementById('fileInput');
-    const uploadedFiles = document.getElementById('uploadedFiles');
-    let files = [];
+                } else {
+                    // Clear fields if no customer selected
+                    const locationField = document.querySelector('input[name="location"]') ||
+                                        document.querySelector('input[placeholder*="address"]');
+                    const contactField = document.querySelector('input[name="contactNumber"]') ||
+                                       document.querySelector('input[type="tel"]');
 
-    fileUpload.addEventListener('click', () => fileInput.click());
-
-    fileUpload.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        fileUpload.classList.add('dragover');
-    });
-
-    fileUpload.addEventListener('dragleave', () => {
-        fileUpload.classList.remove('dragover');
-    });
-
-    fileUpload.addEventListener('drop', (e) => {
-        e.preventDefault();
-        fileUpload.classList.remove('dragover');
-        const droppedFiles = Array.from(e.dataTransfer.files);
-        addFiles(droppedFiles);
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        const selectedFiles = Array.from(e.target.files);
-        addFiles(selectedFiles);
-    });
-
-    function addFiles(newFiles) {
-        newFiles.forEach(file => {
-            if (file.size <= 10 * 1024 * 1024) { // 10MB limit
-                files.push(file);
-                displayFile(file);
-            } else {
-                showAlert(`File ${file.name} is too large. Maximum size is 10MB.`, 'error');
-            }
-        });
-    }
-
-    function displayFile(file) {
-        const fileItem = document.createElement('div');
-        fileItem.className = 'file-item';
-        fileItem.innerHTML = `
-            <div class="file-info">
-                <i class="fas fa-file file-icon"></i>
-                <div>
-                    <div class="file-name">${file.name}</div>
-                    <div class="file-size">${formatFileSize(file.size)}</div>
-                </div>
-            </div>
-            <button type="button" class="remove-file" onclick="removeFile('${file.name}', this)">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        uploadedFiles.appendChild(fileItem);
-    }
-
-    function removeFile(fileName, button) {
-        files = files.filter(file => file.name !== fileName);
-        button.closest('.file-item').remove();
-    }
-
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // Form Submission
-    const ticketForm = document.getElementById('ticketForm');
-    const loadingOverlay = document.getElementById('loadingOverlay');
-
-    ticketForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        // Validate required fields
-        if (!validateForm()) {
-            return;
-        }
-
-        // Show loading
-        loadingOverlay.style.display = 'flex';
-
-        // Simulate form submission
-        setTimeout(() => {
-            loadingOverlay.style.display = 'none';
-            showAlert('Ticket created successfully! Redirecting...', 'success');
-
-            setTimeout(() => {
-                window.location.href = '/support/tickets';
-            }, 2000);
-        }, 2000);
-    });
-
-    function validateForm() {
-        const customer = selectedCustomerId.value;
-        const title = document.querySelector('[name="title"]').value;
-        const description = document.querySelector('[name="description"]').value;
-        const category = document.querySelector('[name="category"]').value;
-
-        if (!customer) {
-            showAlert('Please select a customer', 'error');
-            customerSearch.focus();
-            return false;
-        }
-
-        if (!title.trim()) {
-            showAlert('Please enter a ticket title', 'error');
-            document.querySelector('[name="title"]').focus();
-            return false;
-        }
-
-        if (!description.trim()) {
-            showAlert('Please enter a detailed description', 'error');
-            document.querySelector('[name="description"]').focus();
-            return false;
-        }
-
-        if (!category) {
-            showAlert('Please select an issue category', 'error');
-            document.querySelector('[name="category"]').focus();
-            return false;
-        }
-
-        return true;
-    }
-
-    // Save Draft Functionality
-    function saveDraft() {
-        const formData = new FormData(ticketForm);
-        const draftData = {};
-
-        for (let [key, value] of formData.entries()) {
-            draftData[key] = value;
-        }
-
-        // Save to localStorage (in real app, this would be sent to server)
-        localStorage.setItem('ticketDraft', JSON.stringify(draftData));
-        showAlert('Draft saved successfully!', 'success');
-    }
-
-    // Load Draft on Page Load
-    function loadDraft() {
-        const draft = localStorage.getItem('ticketDraft');
-        if (draft) {
-            const draftData = JSON.parse(draft);
-
-            // Populate form fields
-            Object.keys(draftData).forEach(key => {
-                const field = document.querySelector(`[name="${key}"]`);
-                if (field) {
-                    field.value = draftData[key];
+                    if (locationField) locationField.value = '';
+                    if (contactField) contactField.value = '';
                 }
             });
-
-            showAlert('Draft loaded. You can continue where you left off.', 'info');
         }
-    }
+    });
 
-    // Auto-save every 30 seconds
-    setInterval(() => {
-        const title = document.querySelector('[name="title"]').value;
-        const description = document.querySelector('[name="description"]').value;
-
-        if (title.trim() || description.trim()) {
-            saveDraft();
-        }
-    }, 30000);
+    // Form Submission (simplified - remove the problematic validation)
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     // Alert function
     function showAlert(message, type = 'success') {
@@ -1356,48 +1181,41 @@
         }, 5000);
     }
 
-    // Priority Selection Visual Feedback
-    document.querySelectorAll('input[name="priority"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            document.querySelectorAll('.priority-label').forEach(label => {
-                label.style.transform = 'scale(1)';
-            });
-
-            if (this.checked) {
-                this.nextElementSibling.style.transform = 'scale(1.05)';
-            }
-        });
-    });
-
     // Category Change Handler
-    document.querySelector('[name="category"]').addEventListener('change', function() {
-        const category = this.value;
-        const urgencyField = document.querySelector('[name="urgency"]');
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelect = document.querySelector('select[name="category"]');
+        const urgencySelect = document.querySelector('select[name="urgency"]');
 
-        // Auto-suggest urgency based on category
-        if (category === 'SOLAR_PANEL' || category === 'BATTERY') {
-            urgencyField.value = 'URGENT';
-        } else if (category === 'PAYMENT_TERMINAL') {
-            urgencyField.value = 'STANDARD';
+        if (categorySelect && urgencySelect) {
+            categorySelect.addEventListener('change', function() {
+                const category = this.value;
+
+                // Auto-suggest urgency based on category
+                if (category === 'SOLAR_PANEL' || category === 'BATTERY') {
+                    urgencySelect.value = 'URGENT';
+                } else if (category === 'PAYMENT_TERMINAL') {
+                    urgencySelect.value = 'STANDARD';
+                }
+            });
         }
     });
 
     // Real-time character count for description
-    const descriptionField = document.querySelector('[name="description"]');
-    const characterCount = document.createElement('div');
-    characterCount.className = 'form-text text-end';
-    characterCount.style.marginTop = '0.5rem';
-    descriptionField.parentNode.appendChild(characterCount);
+    document.addEventListener('DOMContentLoaded', function() {
+        const descriptionField = document.querySelector('textarea[name="description"]');
 
-    descriptionField.addEventListener('input', function() {
-        const length = this.value.length;
-        characterCount.textContent = `${length} characters`;
+        if (descriptionField) {
+            const characterCount = document.createElement('div');
+            characterCount.className = 'form-text text-end';
+            characterCount.style.marginTop = '0.5rem';
+            descriptionField.parentNode.appendChild(characterCount);
 
-        if (length < 50) {
-            characterCount.style.color = '#dc3545';
-            characterCount.textContent += ' (Please provide more details)';
-        } else {
-            characterCount.style.color = '#666';
+            descriptionField.addEventListener('input', function() {
+                const length = this.value.length;
+                characterCount.textContent = `${length} characters`;
+
+
+            });
         }
     });
 
@@ -1416,21 +1234,22 @@
     // Initialize everything when page loads
     document.addEventListener('DOMContentLoaded', function() {
         handleResize();
-        loadDraft();
 
         console.log('BBOXXTrack Support Ticket Form initialized successfully');
 
         // Animate form on load
         setTimeout(() => {
             const formContainer = document.querySelector('.form-container');
-            formContainer.style.opacity = '0';
-            formContainer.style.transform = 'translateY(30px)';
+            if (formContainer) {
+                formContainer.style.opacity = '0';
+                formContainer.style.transform = 'translateY(30px)';
 
-            setTimeout(() => {
-                formContainer.style.transition = 'all 0.6s ease';
-                formContainer.style.opacity = '1';
-                formContainer.style.transform = 'translateY(0)';
-            }, 100);
+                setTimeout(() => {
+                    formContainer.style.transition = 'all 0.6s ease';
+                    formContainer.style.opacity = '1';
+                    formContainer.style.transform = 'translateY(0)';
+                }, 100);
+            }
         }, 200);
     });
 
@@ -1439,25 +1258,6 @@
         if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
             e.preventDefault();
         }
-    });
-
-    // Confirm navigation away with unsaved changes
-    let formChanged = false;
-
-    ticketForm.addEventListener('input', () => {
-        formChanged = true;
-    });
-
-    window.addEventListener('beforeunload', function(e) {
-        if (formChanged) {
-            e.preventDefault();
-            e.returnValue = '';
-        }
-    });
-
-    // Clear changed flag on successful submission
-    ticketForm.addEventListener('submit', () => {
-        formChanged = false;
     });
 </script>
 </body>

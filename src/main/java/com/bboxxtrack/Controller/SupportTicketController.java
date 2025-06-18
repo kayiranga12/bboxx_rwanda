@@ -75,8 +75,13 @@ public class SupportTicketController {
         List<User> allPMs = userService.getUsersByRole("Technician");
         model.addAttribute("technician", allPMs);
 
-        // Also need customers so Support can pick one
-        model.addAttribute("customers", customerService.getAllCustomers());
+
+        List<Customer> customers = customerService.getAllCustomers();
+        model.addAttribute("customers", customers);
+
+        // ADD THIS LINE - Convert customers to JSON for JavaScript
+        model.addAttribute("customersJson", customers);
+
         return "support/ticket_form";
     }
 
@@ -100,16 +105,6 @@ public class SupportTicketController {
             }
             ticket.setCustomer(customer);
 
-//            // 2) Validate that Support picked a PM
-//            Long pmId = ticket.getAssignedToUserId();
-//            if (pmId == null) {
-//                throw new IllegalArgumentException("Support must assign a Project Manager");
-//            }
-//            User pm = userService.getUserById(pmId);
-//            if (pm == null || !"Project Manager".equals(pm.getRole())) {
-//                throw new IllegalArgumentException("Assigned user is not a Project Manager");
-//            }
-
             // 3) Set the stage to ASSIGNED_TO_PM
             ticket.setStage(TicketStage.CREATED);
 
@@ -118,17 +113,7 @@ public class SupportTicketController {
                 ticket.setPriority(Priority.MEDIUM);
             }
 
-            // 5) Persist
             ticketService.save(ticket);
-
-            // 6) (Optionally) store any attachments ...
-
-//            // 7) Email the PM
-//            emailService.sendEmail(
-//                    pm.getEmail(),
-//                    "New ticket assigned: #" + ticket.getId(),
-//                    "A new support ticket has been assigned to you:\n\n" + ticket.getTitle()
-//            );
 
             return "redirect:/support/tickets";
         }
