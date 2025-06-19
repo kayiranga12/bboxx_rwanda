@@ -27,10 +27,7 @@ public class CustomerController {
     @Autowired
     private DocumentService documentService;
 
-    /**
-     * Show the “Register New Customer” form + list of existing customers.
-     * Add an empty Customer (for form binding) plus the list of Customers.
-     */
+
     @GetMapping
     public String showCustomers(Model model, HttpSession session) {
         User user = (User) session.getAttribute("user");
@@ -90,8 +87,87 @@ public class CustomerController {
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteCustomer(@PathVariable Long id, HttpSession session) {
-        customerService.deleteCustomer(id);
-        return "redirect:/admin/projects";
+    public String deleteCustomer(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        User user = (User) session.getAttribute("user");
+        if (user == null || !"Admin".equals(user.getRole())) {
+            return "redirect:/login";
+        }
+
+        try {
+            customerService.deleteCustomer(id);
+            redirectAttributes.addFlashAttribute("message", "Customer deleted successfully");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/admin/customers"; // Fixed: was redirecting to /admin/projects
+    }
+    /**
+     * Show edit form for existing customer
+     */
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null || !"Admin".equals(user.getRole())) {
+            return "redirect:/login";
+        }
+
+        Customer customer = customerService.getCustomerById(id);
+        if (customer == null) {
+            return "redirect:/admin/customers?error=Customer not found";
+        }
+
+        // Add the customer to edit and list of all customers
+        model.addAttribute("customer", customer);
+        model.addAttribute("customers", customerService.getAllCustomers());
+        model.addAttribute("isEditing", true); // Flag to indicate edit mode
+
+        return "admin/customers";
+    }
+
+    /**
+     * Handle the form POST for updating existing customer
+     */
+    @PostMapping("/update/{id}")
+    public String updateCustomer(
+            @PathVariable Long id,
+            @Valid @ModelAttribute("customer") Customer customer,
+            BindingResult bindingResult,
+            @RequestParam(name = "files", required = false) MultipartFile[] files,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ) throws Exception {
+        User admin = (User) session.getAttribute("user");
+        if (admin == null || !"Admin".equals(admin.getRole())) {
+            return "redirect:/login";
+        }
+
+        // If binding/validation errors → redisplay the same page with errors
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("customers", customerService.getAllCustomers());
+            model.addAttribute("isEditing", true);
+            return "admin/customers";
+        }
+
+        try {
+            // Update the customer
+            Customer updated = customerService.updateCustomer(id, customer);
+
+            // Handle file uploads if any
+            if (files != null) {
+                for (MultipartFile f : files) {
+                    if (f != null && !f.isEmpty()) {
+                        documentService.save(f, "CUSTOMER", updated.getId());
+                    }
+                }
+            }
+
+            redirectAttributes.addFlashAttribute("message", "Customer updated successfully");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/admin/customers";
     }
 }

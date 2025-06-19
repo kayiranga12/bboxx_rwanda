@@ -61,4 +61,18 @@ public class CustomerService {
         }
         customerRepository.deleteById(id);
     }
+    public Customer updateCustomer(Long id, Customer customerDetails) {
+        Customer existingCustomer = customerRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found with ID: " + id));
+
+        // Update fields
+        existingCustomer.setFullName(customerDetails.getFullName());
+        existingCustomer.setPhoneNumber(customerDetails.getPhoneNumber());
+        existingCustomer.setEmail(customerDetails.getEmail());
+        existingCustomer.setAddress(customerDetails.getAddress());
+        existingCustomer.setEnergyPlan(customerDetails.getEnergyPlan());
+        existingCustomer.setPaymentCompleted(customerDetails.isPaymentCompleted());
+
+        return customerRepository.save(existingCustomer);
+    }
 }
